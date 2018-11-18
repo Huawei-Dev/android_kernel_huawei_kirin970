@@ -735,9 +735,11 @@ __SYSCALL(__NR_statx,     sys_statx)
 /* add for hrdelay */
 #define __NR_delay 295
 __SC_COMP(__NR_delay, sys_delay, compat_sys_delay)
+#define __NR_pidfd_send_signal 424
+__SYSCALL(__NR_pidfd_send_signal, sys_pidfd_send_signal)
 
 #undef __NR_syscalls
-#define __NR_syscalls 296
+#define __NR_syscalls 425
 
 /*
  * All syscalls below here should go away really,
