@@ -1840,6 +1840,7 @@ struct xhci_hcd {
 #define XHCI_SUSPEND_DELAY	BIT_ULL(30)
 #define XHCI_INTEL_USB_ROLE_SW	BIT_ULL(31)
 #define XHCI_RESET_PLL_ON_DISCONNECT	BIT_ULL(34)
+#define XHCI_SNPS_BROKEN_SUSPEND    BIT_ULL(35)
 
 #define XHCI_SUPPORT_S3_WAKEUP          (1ULL << 57)
 #define XHCI_CTRL_NYET_ABNORMAL		(1ULL << 58)
@@ -1891,6 +1892,8 @@ struct xhci_hcd {
 
 	/* platform-specific data -- must come last */
 	unsigned long		priv[0] __aligned(sizeof(s64));
+	/* Broken Suspend flag for SNPS Suspend resume issue */
+	u8			broken_suspend;
 };
 
 /* Platform specific overrides to generic XHCI hc_driver ops */
