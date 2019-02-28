@@ -820,6 +820,8 @@ __SYSCALL(__NR_statx, sys_statx)
 /* add for hrdelay */
 #define __NR_delay 400
 __SYSCALL(__NR_delay, compat_sys_delay)
+#define __NR_pidfd_send_signal 424
+__SYSCALL(__NR_pidfd_send_signal, sys_pidfd_send_signal)
 #define __NR_pidfd_open 434
 __SYSCALL(__NR_pidfd_open, sys_pidfd_open)
 
