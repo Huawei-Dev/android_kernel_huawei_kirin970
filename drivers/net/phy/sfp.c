@@ -907,10 +907,6 @@ static int sfp_remove(struct platform_device *pdev)
 
 	sfp_unregister_socket(sfp->sfp_bus);
 
-	sfp->sfp_bus = sfp_register_socket(sfp->dev, sfp, &sfp_module_ops);
-	if (!sfp->sfp_bus)
-		return -ENOMEM;
-
 	return 0;
 }
 
