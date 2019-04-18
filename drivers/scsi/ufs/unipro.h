@@ -31,6 +31,7 @@
 
 /* M-RX Configuration Attributes */
 #define RX_ENTER_HIBERN8			0x00A7
+#define RX_TERMINATION_FORCE_ENABLE		0x00A9
 #define RX_REFCLKFREQ				0x00EB
 #define	RX_CFGCLKFREQVAL			0x00EC
 #define CFGWIDEINLN				0x00F0
