@@ -727,7 +727,7 @@ static int cpufreq_get_requested_power(struct thermal_cooling_device *cdev,
 #ifdef CONFIG_IPA_THERMAL
 		if (load_cpu != NULL)
 #else
-		if (trace_thermal_power_cpu_limit_enabled() && load_cpu)
+		if (load_cpu)
 #endif
 			load_cpu[i] = load;
 
