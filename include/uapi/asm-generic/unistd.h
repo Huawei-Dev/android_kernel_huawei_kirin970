@@ -737,9 +737,11 @@ __SYSCALL(__NR_statx,     sys_statx)
 __SC_COMP(__NR_delay, sys_delay, compat_sys_delay)
 #define __NR_pidfd_send_signal 424
 __SYSCALL(__NR_pidfd_send_signal, sys_pidfd_send_signal)
+#define __NR_pidfd_open 434
+__SYSCALL(__NR_pidfd_open, sys_pidfd_open)
 
 #undef __NR_syscalls
-#define __NR_syscalls 425
+#define __NR_syscalls 435
 
 /*
  * All syscalls below here should go away really,
