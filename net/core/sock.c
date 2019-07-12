@@ -1531,14 +1531,14 @@ static struct sock *sk_prot_alloc(struct proto *prot, gfp_t priority,
 		if (!sk)
 			return sk;
 #ifdef CONFIG_MPTCP
-		if (priority & __GFP_ZERO) {
+		if (want_init_on_alloc(priority)) {
 			if (prot->clear_sk)
 				prot->clear_sk(sk, prot->obj_size);
 			else
 				sk_prot_clear_nulls(sk, prot->obj_size);
 		}
 #else
-		if (priority & __GFP_ZERO)
+		if (want_init_on_alloc(priority))
 			sk_prot_clear_nulls(sk, prot->obj_size);
 #endif
 	} else
