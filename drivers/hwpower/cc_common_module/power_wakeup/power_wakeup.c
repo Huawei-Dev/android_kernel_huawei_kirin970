@@ -32,11 +32,7 @@ struct wakeup_source *power_wakeup_source_register(struct device *dev,
 		return NULL;
 	}
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
 	ws = wakeup_source_register(dev, name);
-#else
-	ws = wakeup_source_register(name);
-#endif
 	if (!ws) {
 		hwlog_err("wakeup source %s register fail\n", name);
 		return NULL;
