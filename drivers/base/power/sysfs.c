@@ -7,6 +7,7 @@
 #include <linux/export.h>
 #include <linux/pm_qos.h>
 #include <linux/pm_runtime.h>
+#include <linux/pm_wakeup.h>
 #include <linux/atomic.h>
 #include <linux/jiffies.h>
 #include "power.h"
@@ -731,18 +732,25 @@ int dpm_sysfs_add(struct device *dev)
 		if (rc)
 			goto err_wakeup;
 	}
+
 #ifdef CONFIG_HISI_FREQ_STATS_COUNTING_IDLE
 	rc = sysfs_merge_group(&dev->kobj, &time_in_state_attr_group);
 	if (rc)
 		goto err_pm_qos;
 #endif
 
+	rc = pm_wakeup_source_sysfs_add(dev);
+	if (rc)
+		goto err_latency;
 	return 0;
 
 #ifdef CONFIG_HISI_FREQ_STATS_COUNTING_IDLE
  err_pm_qos:
 	sysfs_unmerge_group(&dev->kobj, &pm_qos_latency_tolerance_attr_group);
 #endif
+
+ err_latency:
+	sysfs_unmerge_group(&dev->kobj, &pm_qos_latency_tolerance_attr_group);
  err_wakeup:
 	sysfs_unmerge_group(&dev->kobj, &pm_wakeup_attr_group);
  err_runtime:
