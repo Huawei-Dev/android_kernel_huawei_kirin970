@@ -279,6 +279,9 @@ struct ufs_pm_lvl_states {
  * @lun: LUN of the command
  * @intr_cmd: Interrupt command (doesn't participate in interrupt aggregation)
  * @issue_time_stamp: time stamp for debug purposes
+ * @crypto_enable: whether or not the request needs inline crypto operations
+ * @crypto_key_slot: the key slot to use for inline crypto
+ * @data_unit_num: the data unit number for the first block for inline crypto
  * @req_abort_skip: skip request abort task flag
  */
 struct ufshcd_lrb {
@@ -304,10 +307,15 @@ struct ufshcd_lrb {
 	u8 lun; /* UPIU LUN id field is only 8-bit wide */
 	bool intr_cmd;
 	ktime_t issue_time_stamp;
+	bool crypto_enable;
+	u8 crypto_key_slot;
+	u64 data_unit_num;
+
+	bool req_abort_skip;
+
 	ktime_t complete_time_stamp;
 	u8 opcode;
 	int req_tag;
-	bool req_abort_skip;
 	bool is_hufs_utrd; /* use hisi ufs host controller UTRD structure */
 	unsigned int operation_lba;
 	u8 hpb_flag;
@@ -1296,15 +1304,6 @@ void ufshcd_remove(struct ufs_hba *);
 int ufshcd_wait_for_register(struct ufs_hba *hba, u32 reg, u32 mask,
 				u32 val, unsigned long interval_us,
 				unsigned long timeout_ms, bool can_sleep);
-
-/**
- * ufshcd_hba_start - Start controller initialization sequence
- * @hba: per adapter instance
- */
-static inline void ufshcd_hba_start(struct ufs_hba *hba)
-{
-	ufshcd_writel(hba, CONTROLLER_ENABLE, REG_CONTROLLER_ENABLE);
-}
 
 static inline void check_upiu_size(void)
 {
