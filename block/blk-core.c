@@ -34,9 +34,12 @@
 #include <linux/pm_runtime.h>
 #include <linux/blk-cgroup.h>
 #include <linux/debugfs.h>
+#include <linux/blk-crypto.h>
+
 #ifdef CONFIG_QOS_BLKIO
 #include <chipset_common/hwqos/hwqos_common.h>
 #endif
+
 #define CREATE_TRACE_POINTS
 #include <trace/events/block.h>
 
@@ -2353,7 +2356,8 @@ blk_qc_t generic_make_request(struct bio *bio)
 #ifdef CONFIG_MAS_BLK
 			mas_blk_generic_make_request(bio);
 #endif
-			ret = q->make_request_fn(q, bio);
+			if (!blk_crypto_submit_bio(&bio))
+				ret = q->make_request_fn(q, bio);
 
 			blk_queue_exit(q);
 
@@ -3808,6 +3812,9 @@ int __init blk_dev_init(void)
 
 	if (bio_crypt_ctx_init() < 0)
 		panic("Failed to allocate mem for bio crypt ctxs\n");
+
+	if (blk_crypto_init() < 0)
+		panic("Failed to init blk-crypto\n");
 
 	return 0;
 }
