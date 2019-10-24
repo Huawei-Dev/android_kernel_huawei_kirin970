@@ -3805,5 +3805,9 @@ int __init blk_dev_init(void)
 #ifdef CONFIG_MAS_BLK
 	mas_blk_dev_init();
 #endif
+
+	if (bio_crypt_ctx_init() < 0)
+		panic("Failed to allocate mem for bio crypt ctxs\n");
+
 	return 0;
 }
