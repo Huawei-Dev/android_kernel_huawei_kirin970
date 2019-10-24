@@ -20,11 +20,14 @@ obj-$(CONFIG_SCSI_UFS_SGR) += ufs-sgr.o
 obj-$(CONFIG_SCSI_UFS_DWC_TC_PCI) += tc-dwc-g210-pci.o ufshcd-dwc.o tc-dwc-g210.o
 obj-$(CONFIG_SCSI_UFS_DWC_TC_PLATFORM) += tc-dwc-g210-pltfrm.o ufshcd-dwc.o tc-dwc-g210.o
 obj-$(CONFIG_SCSI_UFS_QCOM) += ufs-qcom.o
-obj-$(CONFIG_SCSI_UFSHCD) += ufshcd.o
-obj-$(CONFIG_RPMB_UFS) += ufs_rpmb.o
-obj-$(CONFIG_HUAWEI_UFS_VENDOR_MODE) += ufs-vendor-mode.o
+obj-$(CONFIG_SCSI_UFSHCD) += ufshcd-core.o
+ufshcd-core-y := ufshcd.o
 obj-$(CONFIG_SCSI_UFSHCD_PCI) += ufshcd-pci.o
 obj-$(CONFIG_SCSI_UFSHCD_PLATFORM) += ufshcd-pltfrm.o
+ufshcd-core-$(CONFIG_SCSI_UFS_CRYPTO) += ufshcd-crypto.o
+
+obj-$(CONFIG_RPMB_UFS) += ufs_rpmb.o
+obj-$(CONFIG_HUAWEI_UFS_VENDOR_MODE) += ufs-vendor-mode.o
 obj-$(CONFIG_SCSI_UFS_FAULT_INJECT) += ufs-fault-inject.o
 obj-$(CONFIG_SCSI_UFS_BLOCK_TEST) += ufs_block_test.o
 obj-$(CONFIG_SCSI_UFS_TEST) += ufs_test.o
