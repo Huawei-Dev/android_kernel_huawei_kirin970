@@ -838,7 +838,7 @@ static bool has_cache_idc(const struct arm64_cpu_capabilities *entry,
 	return ctr & BIT(CTR_IDC_SHIFT);
 }
 
-static int cpu_emulate_effective_ctr(void *__unused)
+static void cpu_emulate_effective_ctr(const struct arm64_cpu_capabilities *__unused)
 {
 	/*
 	 * If the CPU exposes raw CTR_EL0.IDC = 0, while effectively
@@ -848,8 +848,6 @@ static int cpu_emulate_effective_ctr(void *__unused)
 	 */
 	if (!(read_cpuid_cachetype() & BIT(CTR_IDC_SHIFT)))
 		sysreg_clear_set(sctlr_el1, SCTLR_EL1_UCT, 0);
-
-	return 0;
 }
 
 static bool has_cache_dic(const struct arm64_cpu_capabilities *entry,
@@ -912,7 +910,8 @@ static bool unmap_kernel_at_el0(const struct arm64_cpu_capabilities *entry,
 						     ID_AA64PFR0_CSV3_SHIFT);
 }
 
-static int __nocfi kpti_install_ng_mappings(void *__unused)
+static void
+kpti_install_ng_mappings(const struct arm64_cpu_capabilities *__unused)
 {
 	typedef void (kpti_remap_fn)(int, int, phys_addr_t);
 	extern kpti_remap_fn idmap_kpti_install_ng_mappings;
@@ -922,7 +921,7 @@ static int __nocfi kpti_install_ng_mappings(void *__unused)
 	int cpu = smp_processor_id();
 
 	if (kpti_applied)
-		return 0;
+		return;
 
 	remap_fn = (void *)__pa_symbol(idmap_kpti_install_ng_mappings);
 
@@ -933,7 +932,7 @@ static int __nocfi kpti_install_ng_mappings(void *__unused)
 	if (!cpu)
 		kpti_applied = true;
 
-	return 0;
+	return;
 }
 
 static int __init parse_kpti(char *str)
@@ -959,7 +958,7 @@ static bool has_hhee(const struct arm64_cpu_capabilities *entry, int __unused)
 }
 #endif
 
-static int cpu_copy_el2regs(void *__unused)
+static void cpu_copy_el2regs(const struct arm64_cpu_capabilities *__unused)
 {
 	/*
 	 * Copy register values that aren't redirected by hardware.
@@ -971,8 +970,6 @@ static int cpu_copy_el2regs(void *__unused)
 	 */
 	if (!alternatives_applied)
 		write_sysreg(read_sysreg(tpidr_el1), tpidr_el2);
-
-	return 0;
 }
 
 #ifdef CONFIG_ARM64_SSBD
@@ -996,7 +993,7 @@ static struct undef_hook ssbs_emulation_hook = {
 	.fn		= ssbs_emulation_handler,
 };
 
-static int cpu_enable_ssbs(void *__unused)
+static void cpu_enable_ssbs(const struct arm64_cpu_capabilities *__unused)
 {
 	static bool undef_hook_registered = false;
 	static DEFINE_SPINLOCK(hook_lock);
@@ -1019,7 +1016,6 @@ static int cpu_enable_ssbs(void *__unused)
 	sysreg_clear_set(sctlr_el1, 0, SCTLR_ELx_DSSBS);
 	arm64_set_ssbd_mitigation(false);
 #endif
-	return 0;
 }
 #endif /* CONFIG_ARM64_SSBD */
 
@@ -1044,7 +1040,7 @@ static const struct arm64_cpu_capabilities arm64_features[] = {
 		.field_pos = ID_AA64MMFR1_PAN_SHIFT,
 		.sign = FTR_UNSIGNED,
 		.min_field_value = 1,
-		.enable = cpu_enable_pan,
+		.cpu_enable = cpu_enable_pan,
 	},
 #endif /* CONFIG_ARM64_PAN */
 #if defined(CONFIG_AS_LSE) && defined(CONFIG_ARM64_LSE_ATOMICS)
@@ -1099,7 +1095,7 @@ static const struct arm64_cpu_capabilities arm64_features[] = {
 		.capability = ARM64_HAS_VIRT_HOST_EXTN,
 		.def_scope = SCOPE_SYSTEM,
 		.matches = runs_at_el2,
-		.enable = cpu_copy_el2regs,
+		.cpu_enable = cpu_copy_el2regs,
 	},
 	{
 		.desc = "32-bit EL0 Support",
@@ -1123,7 +1119,7 @@ static const struct arm64_cpu_capabilities arm64_features[] = {
 		.capability = ARM64_UNMAP_KERNEL_AT_EL0,
 		.def_scope = SCOPE_SYSTEM,
 		.matches = unmap_kernel_at_el0,
-		.enable = kpti_install_ng_mappings,
+		.cpu_enable = kpti_install_ng_mappings,
 	},
 #endif
 	{
@@ -1153,7 +1149,7 @@ static const struct arm64_cpu_capabilities arm64_features[] = {
 		.field_pos = ID_AA64PFR1_SSBS_SHIFT,
 		.sign = FTR_UNSIGNED,
 		.min_field_value = ID_AA64PFR1_SSBS_PSTATE_ONLY,
-		.enable = cpu_enable_ssbs,
+		.cpu_enable = cpu_enable_ssbs,
 	},
 #endif
 	{
@@ -1161,7 +1157,7 @@ static const struct arm64_cpu_capabilities arm64_features[] = {
 		.capability = ARM64_HAS_CACHE_IDC,
 		.def_scope = SCOPE_SYSTEM,
 		.matches = has_cache_idc,
-		.enable = cpu_emulate_effective_ctr,
+		.cpu_enable = cpu_emulate_effective_ctr,
 	},
 	{
 		.desc = "Instruction cache invalidation not required for I/D coherence",
@@ -1316,6 +1312,14 @@ void update_cpu_capabilities(const struct arm64_cpu_capabilities *caps,
 	}
 }
 
+static int __enable_cpu_capability(void *arg)
+{
+	const struct arm64_cpu_capabilities *cap = arg;
+
+	cap->cpu_enable(cap);
+	return 0;
+}
+
 /*
  * Run through the enabled capabilities and enable() it on all active
  * CPUs
@@ -1331,14 +1335,15 @@ void __init enable_cpu_capabilities(const struct arm64_cpu_capabilities *caps)
 		/* Ensure cpus_have_const_cap(num) works */
 		static_branch_enable(&cpu_hwcap_keys[num]);
 
-		if (caps->enable) {
+		if (caps->cpu_enable) {
 			/*
 			 * Use stop_machine() as it schedules the work allowing
 			 * us to modify PSTATE, instead of on_each_cpu() which
 			 * uses an IPI, giving us a PSTATE that disappears when
 			 * we return.
 			 */
-			stop_machine(caps->enable, (void *)caps, cpu_online_mask);
+			stop_machine(__enable_cpu_capability, (void *)caps,
+				     cpu_online_mask);
 		}
 	}
 }
@@ -1399,8 +1404,8 @@ verify_local_cpu_features(const struct arm64_cpu_capabilities *caps_list)
 					smp_processor_id(), caps->desc);
 			cpu_die_early();
 		}
-		if (caps->enable)
-			caps->enable((void *)caps);
+		if (caps->cpu_enable)
+			caps->cpu_enable(caps);
 	}
 }
 
