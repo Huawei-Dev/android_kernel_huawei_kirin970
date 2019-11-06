@@ -574,11 +574,6 @@ static inline void *kvmalloc_array(size_t n, size_t size, gfp_t flags)
 
 extern void kvfree(const void *addr);
 
-static inline atomic_t *compound_mapcount_ptr(struct page *page)
-{
-	return &page[1].compound_mapcount;
-}
-
 /*
  * Mapcount of compound page as a whole, does not include mapped sub-pages.
  *
