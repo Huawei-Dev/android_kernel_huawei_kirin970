@@ -5581,7 +5581,7 @@ ufshcd_transfer_rsp_status(struct ufs_hba *hba, struct ufshcd_lrb *lrbp, bool
 		break;
 	} /* end of switch */
 
-	if (host_byte(result) != DID_OK)
+	if ((host_byte(result) != DID_OK) && !hba->silence_err_logs)
 		ufshcd_print_trs(hba, 1UL << lrbp->task_tag, true);
 
 	return result;
@@ -6188,8 +6188,8 @@ static void ufshcd_err_handler(struct kthread_work *work)
 
 	/*
 	 * if host reset is required then skip clearing the pending
-	 * transfers forcefully because they will automatically get
-	 * cleared after link startup.
+	 * transfers forcefully because they will get cleared during
+	 * host reset and restore
 	 */
 	if (needs_reset)
 		goto skip_pending_xfer_clear;
@@ -6881,9 +6881,15 @@ static int __ufshcd_host_reset_and_restore(struct ufs_hba *hba,
 	int err;
 	unsigned long flags;
 
-	/* Reset the host controller */
+	/*
+	 * Stop the host controller and complete the requests
+	 * cleared by h/w
+	 */
 	spin_lock_irqsave(hba->host->host_lock, flags);
 	ufshcd_hba_stop(hba, false);
+	hba->silence_err_logs = true;
+	ufshcd_complete_requests(hba);
+	hba->silence_err_logs = false;
 	spin_unlock_irqrestore(hba->host->host_lock, flags);
 
 	if (device_reset)
@@ -6915,7 +6921,6 @@ out:
 static int ufshcd_reset_and_restore(struct ufs_hba *hba)
 {
 	int err = 0;
-	unsigned long flags;
 
 	hba->ufs_reset_retries = hba->reset_retry_max;
 	pm_runtime_get_sync(hba->dev);
@@ -6951,15 +6956,6 @@ static int ufshcd_reset_and_restore(struct ufs_hba *hba)
 	ufshcd_enable_dev_tmt_cnt(hba);
 
 	pm_runtime_put_sync(hba->dev);
-
-	/*
-	 * After reset the door-bell might be cleared, complete
-	 * outstanding requests in s/w here.
-	 */
-	spin_lock_irqsave(hba->host->host_lock, flags);
-	ufshcd_transfer_req_compl(hba);
-	ufshcd_tmc_handler(hba);
-	spin_unlock_irqrestore(hba->host->host_lock, flags);
 
 	/*
 	 * We retry 7 times, and can not fix err condition. No need keep system
