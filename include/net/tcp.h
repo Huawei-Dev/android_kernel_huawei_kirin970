@@ -326,7 +326,6 @@ extern int sysctl_tcp_autocorking;
 extern int sysctl_tcp_invalid_ratelimit;
 extern int sysctl_tcp_pacing_ss_ratio;
 extern int sysctl_tcp_pacing_ca_ratio;
-extern int sysctl_tcp_default_init_rwnd;
 #ifdef CONFIG_TCP_AUTOTUNING
 extern int sysctl_tcp_autotuning;
 #endif
@@ -1532,7 +1531,7 @@ static inline void tcp_sack_reset(struct tcp_options_received *rx_opt)
 	rx_opt->num_sacks = 0;
 }
 
-u32 tcp_default_init_rwnd(u32 mss);
+u32 tcp_default_init_rwnd(struct net *net, u32 mss);
 void tcp_cwnd_restart(struct sock *sk, s32 delta);
 
 static inline void tcp_slow_start_after_idle_check(struct sock *sk)
@@ -1555,7 +1554,8 @@ static inline void tcp_slow_start_after_idle_check(struct sock *sk)
 
 /* Determine a window scaling and initial window to offer. */
 #ifdef CONFIG_MPTCP
-void tcp_select_initial_window(int __space, __u32 mss, __u32 *rcv_wnd,
+void tcp_select_initial_window(struct net *net,
+			       int __space, __u32 mss, __u32 *rcv_wnd,
 			       __u32 *window_clamp, int wscale_ok,
 			       __u8 *rcv_wscale, __u32 init_rcv_wnd,
 			       const struct sock *sk);
@@ -1566,7 +1566,8 @@ static inline bool mptcp(const struct tcp_sock *tp)
 	return static_key_false(&mptcp_static_key) && tp->mpc;
 }
 #else
-void tcp_select_initial_window(int __space, __u32 mss, __u32 *rcv_wnd,
+void tcp_select_initial_window(struct net *net,
+			       int __space, __u32 mss, __u32 *rcv_wnd,
 			       __u32 *window_clamp, int wscale_ok,
 			       __u8 *rcv_wscale, __u32 init_rcv_wnd);
 #endif
@@ -2160,7 +2161,8 @@ struct tcp_sock_af_ops {
 struct tcp_sock_ops {
 	u32 (*__select_window)(struct sock *sk);
 	u16 (*select_window)(struct sock *sk);
-	void (*select_initial_window)(int __space, __u32 mss, __u32 *rcv_wnd,
+	void (*select_initial_window)(struct net *net,
+				      int __space, __u32 mss, __u32 *rcv_wnd,
 				      __u32 *window_clamp, int wscale_ok,
 				      __u8 *rcv_wscale, __u32 init_rcv_wnd,
 				      const struct sock *sk);
