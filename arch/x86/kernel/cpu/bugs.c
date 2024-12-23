@@ -796,8 +796,6 @@ static ssize_t l1tf_show_state(char *buf)
 }
 #endif
 
-<<<<<<< HEAD
-=======
 static ssize_t mds_show_state(char *buf)
 {
 	if (!hypervisor_is_type(X86_HYPER_NATIVE)) {
@@ -844,7 +842,6 @@ static char *ibpb_state(void)
 	return "";
 }
 
->>>>>>> 644386d... x86/speculation/mds: Add sysfs reporting for MDS
 static ssize_t cpu_show_common(struct device *dev, struct device_attribute *attr,
 			       char *buf, unsigned int bug)
 {
