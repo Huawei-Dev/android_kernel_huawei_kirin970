@@ -383,7 +383,7 @@ HOST_LFS_CFLAGS := $(shell getconf LFS_CFLAGS 2>/dev/null)
 HOST_LFS_LDFLAGS := $(shell getconf LFS_LDFLAGS 2>/dev/null)
 HOST_LFS_LIBS := $(shell getconf LFS_LIBS 2>/dev/null)
 
-CLANG_PREBUILTS_PATH ?= $(srctree)/../../prebuilts/clang/host/linux-x86/clang-r346389c/
+CLANG_PREBUILTS_PATH ?= $(srctree)/../../../prebuilts/clang/host/linux-x86/clang-r346389c/
 CLANG_PREBUILT_BIN := $(CLANG_PREBUILTS_PATH)bin/
 
 HOSTCC       = $(CLANG_PREBUILT_BIN)clang
