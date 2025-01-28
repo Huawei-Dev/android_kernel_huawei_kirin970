@@ -162,4 +162,5 @@ static inline bool wifi_is_validate_state(struct sock *sk)
 }
 
 void wifi_update_rtt(unsigned int rtt, struct sock *sk);
+unsigned int hw_get_currect_ipv4_sysctl_tcp_timestamps(void);
 #endif

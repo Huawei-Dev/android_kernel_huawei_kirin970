@@ -90,7 +90,6 @@ int sysctl_tcp_tso_win_divisor __read_mostly = 3;
 int sysctl_tcp_slow_start_after_idle __read_mostly = 1;
 
 #ifdef CONFIG_HW_WIFI
-extern unsigned int hw_get_currect_ipv4_sysctl_tcp_timestamps(void);
 extern bool hw_timestamps_get_wifi_connect_status(void);
 #endif
 
