@@ -7252,12 +7252,6 @@ find_idlest_group(struct sched_domain *sd, struct task_struct *p,
 	int imbalance_scale = 100 + (sd->imbalance_pct-100)/2;
 	unsigned long imbalance = scale_load_down(NICE_0_LOAD) *
 				(sd->imbalance_pct-100) / 100;
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	cpumask_t allowed_cpus;
-
-	cpumask_andnot(&allowed_cpus, &p->cpus_allowed, cpu_isolated_mask);
-#endif
-
 
 	if (sd_flag & SD_BALANCE_WAKE)
 		load_idx = sd->wake_idx;
@@ -7269,15 +7263,9 @@ find_idlest_group(struct sched_domain *sd, struct task_struct *p,
 		int i;
 
 		/* Skip over this group if it has no CPUs allowed */
-#ifdef CONFIG_HISI_CPU_ISOLATION
-		if (!cpumask_intersects(sched_group_cpus(group),
-					&allowed_cpus))
-			continue;
-#else
 		if (!cpumask_intersects(sched_group_span(group),
 					&p->cpus_allowed))
 			continue;
-#endif
 
 		local_group = cpumask_test_cpu(this_cpu,
 					       sched_group_span(group));
@@ -7399,11 +7387,6 @@ find_idlest_group_cpu(struct sched_group *group, struct task_struct *p, int this
 
 	/* Traverse only the allowed CPUs */
 	for_each_cpu_and(i, sched_group_span(group), &p->cpus_allowed) {
-#ifdef CONFIG_HISI_CPU_ISOLATION
-		if (cpu_isolated(i))
-			continue;
-#endif
-
 		if (idle_cpu(i)) {
 			struct rq *rq = cpu_rq(i);
 			struct cpuidle_state *idle = idle_get_state(rq);
@@ -7488,9 +7471,6 @@ static inline int find_rtg_cpu(struct task_struct *p, struct cpumask *preferred_
 	int idle_backup_cpu = -1;
 
 	cpumask_and(&search_cpus, &p->cpus_allowed, cpu_online_mask);
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	cpumask_andnot(&search_cpus, &search_cpus, cpu_isolated_mask);
-#endif
 
 	/* search the perferred idle cpu */
 	for_each_cpu_and(i, &search_cpus, preferred_cpus) {
@@ -7679,9 +7659,6 @@ find_global_boost_cpu(struct task_struct *p)
 
 
 	hisi_get_fast_cpus(&fast_cpus);
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	cpumask_andnot(&fast_cpus, &fast_cpus, cpu_isolated_mask);
-#endif
 
 	if (cpumask_empty(&fast_cpus) || !cpumask_intersects(&p->cpus_allowed, &fast_cpus)
 	    || !cpumask_intersects(&fast_cpus, cpu_online_mask))
@@ -7696,9 +7673,6 @@ find_global_boost_cpu(struct task_struct *p)
 		/* If util of boost_cpu is over 90%, check if any spare cpu is available.*/
 		if ((capacity_of(boost_cpu) * 1024) < (cpu_util_without(boost_cpu, p) * 1138)) {
 			cpumask_xor(&spare_cpus, &fast_cpus, cpu_online_mask);
-#ifdef CONFIG_HISI_CPU_ISOLATION
-			cpumask_andnot(&spare_cpus, &spare_cpus, cpu_isolated_mask);
-#endif
 			spare_cpu = find_spare_boost_cpu(&spare_cpus, p);
 
 			/* if spare_cpu available, select max spare one . */
@@ -7830,10 +7804,6 @@ static int select_idle_core(struct task_struct *p, struct sched_domain *sd, int 
 
 	cpumask_and(cpus, sched_domain_span(sd), &p->cpus_allowed);
 
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	cpumask_andnot(cpus, cpus, cpu_isolated_mask);
-#endif
-
 	for_each_cpu_wrap(core, cpus, target) {
 		bool idle = true;
 
@@ -7868,10 +7838,6 @@ static int select_idle_smt(struct task_struct *p, struct sched_domain *sd, int t
 	for_each_cpu(cpu, cpu_smt_mask(target)) {
 		if (!cpumask_test_cpu(cpu, &p->cpus_allowed))
 			continue;
-#ifdef CONFIG_HISI_CPU_ISOLATION
-		if (cpu_isolated(cpu))
-			continue;
-#endif
 		if (idle_cpu(cpu))
 			return cpu;
 	}
@@ -7991,35 +7957,19 @@ static inline int select_idle_sibling_cstate_aware(struct task_struct *p, int pr
 	int best_idle_cstate = -1;
 	int best_idle_capacity = INT_MAX;
 	int i;
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	struct cpumask allowed_cpus;
-#endif
 
 	/*
 	 * Iterate the domains and find an elegible idle cpu.
 	 */
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	cpumask_andnot(&allowed_cpus, &p->cpus_allowed, cpu_isolated_mask);
-#endif
 	sd = rcu_dereference(per_cpu(sd_llc, target));
 	for_each_lower_domain(sd) {
 		sg = sd->groups;
 		do {
-#ifdef CONFIG_HISI_CPU_ISOLATION
-			if (!cpumask_intersects(sched_group_cpus(sg),
-						&allowed_cpus))
-				goto next;
-#else
 			if (!cpumask_intersects(
 					sched_group_span(sg), &p->cpus_allowed))
 				goto next;
-#endif
 
-#ifdef CONFIG_HISI_CPU_ISOLATION
-			for_each_cpu_and(i, &allowed_cpus, sched_group_cpus(sg)) {
-#else
 			for_each_cpu_and(i, &p->cpus_allowed, sched_group_span(sg)) {
-#endif
 				int idle_idx;
 				unsigned long new_usage;
 				unsigned long capacity_orig;
@@ -8094,9 +8044,6 @@ static inline bool skip_cpu(int cpu)
 {
 	/* Check all conditions other than util here. */
 	return !cpu_online(cpu) ||
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	       cpu_isolated(cpu) ||
-#endif
 	       walt_cpu_high_irqload(cpu) ||
 	       is_reserved(cpu);
 }
@@ -8783,9 +8730,6 @@ static int find_energy_efficient_cpu(struct sched_domain *sd,
 	if (sysctl_sched_sync_hint_enable && sync) {
 #ifdef CONFIG_HISI_EAS_SCHED
 		if (cpumask_test_cpu(cpu, &p->cpus_allowed) &&
-#ifdef CONFIG_HISI_CPU_ISOLATION
-		    !cpu_isolated(cpu) &&
-#endif
 		    task_fits_max(p, cpu)) {
 			return cpu;
 		}
@@ -9062,12 +9006,7 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
 		if (cpu == prev_cpu)
 			goto pick_cpu;
 
-#ifdef CONFIG_HISI_CPU_ISOLATION
-		if (wake_affine(affine_sd, p, prev_cpu, sync) &&
-		    !cpu_isolated(cpu))
-#else
 		if (wake_affine(affine_sd, p, prev_cpu, sync))
-#endif
 			new_cpu = cpu;
 	}
 
@@ -10507,11 +10446,6 @@ void update_group_capacity(struct sched_domain *sd, int cpu)
 			struct sched_group_capacity *sgc;
 			struct rq *rq = cpu_rq(cpu);
 
-#ifdef CONFIG_HISI_CPU_ISOLATION
-			if (cpu_isolated(cpu))
-				continue;
-#endif
-
 			/*
 			 * build_sched_domains() -> init_sched_groups_capacity()
 			 * gets here before we've attached the domains to the
@@ -10542,18 +10476,9 @@ void update_group_capacity(struct sched_domain *sd, int cpu)
 		group = child->groups;
 		do {
 			struct sched_group_capacity *sgc = group->sgc;
-#ifdef CONFIG_HISI_CPU_ISOLATION
-			/* Revisit this later. This won't work for MT domain */
-			if (!cpu_isolated(cpumask_first(sched_group_cpus(group)))) {
-				capacity += sgc->capacity;
-				max_capacity = max(sgc->max_capacity, max_capacity);
-				min_capacity = min(sgc->min_capacity, min_capacity);
-			}
-#else
 			capacity += sgc->capacity;
 			min_capacity = min(sgc->min_capacity, min_capacity);
 			max_capacity = max(sgc->max_capacity, max_capacity);
-#endif
 			group = group->next;
 		} while (group != child->groups);
 	}
@@ -10737,11 +10662,6 @@ static inline void update_sg_lb_stats(struct lb_env *env,
 	for_each_cpu_and(i, sched_group_span(group), env->cpus) {
 		struct rq *rq = cpu_rq(i);
 
-#ifdef CONFIG_HISI_CPU_ISOLATION
-		if (cpu_isolated(i))
-			continue;
-#endif
-
 		/* Bias balancing toward cpus of our domain */
 		if (local_group)
 			load = target_load(i, load_idx);
@@ -10784,19 +10704,6 @@ static inline void update_sg_lb_stats(struct lb_env *env,
 				*misfit_task = true;
 		}
 	}
-
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	/* Isolated CPU has no weight */
-	if (!group->group_weight) {
-		sgs->group_capacity = 0;
-		sgs->avg_load = 0;
-		sgs->group_no_capacity = 1;
-		sgs->group_type = group_other;
-		sgs->group_weight = 0;
-		sgs->load_per_task = 0;
-		return;
-	}
-#endif
 
 	/* Adjust by relative CPU capacity of the group */
 	sgs->group_capacity = group->sgc->capacity;
@@ -11535,11 +11442,6 @@ static struct rq *find_busiest_queue(struct lb_env *env,
 		if (rt > env->fbq_type)
 			continue;
 
-#ifdef CONFIG_HISI_CPU_ISOLATION
-		if (cpu_isolated(i))
-			continue;
-#endif
-
 		/*
 		 * For ASYM_CPUCAPACITY domains with misfit tasks we simply
 		 * seek the "biggest" misfit task.
@@ -11665,16 +11567,6 @@ static int need_active_balance(struct lb_env *env)
 	return unlikely(sd->nr_balance_failed > sd->cache_nice_tries+2);
 }
 
-#ifdef CONFIG_HISI_CPU_ISOLATION
-static int group_balance_cpu_not_isolated(struct sched_group *sg)
-{
-	cpumask_t cpus;
-
-	cpumask_andnot(&cpus, group_balance_mask(sg), cpu_isolated_mask);
-	return cpumask_first(&cpus);
-}
-#endif
-
 static int active_load_balance_cpu_stop(void *data);
 
 static int should_we_balance(struct lb_env *env)
@@ -11701,22 +11593,12 @@ static int should_we_balance(struct lb_env *env)
 		if (!idle_cpu(cpu))
 			continue;
 
-#ifdef CONFIG_HISI_CPU_ISOLATION
-		if (cpu_isolated(cpu))
-			continue;
-#endif
-
 		balance_cpu = cpu;
 		break;
 	}
 
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	if (balance_cpu == -1)
-		balance_cpu = group_balance_cpu_not_isolated(sg);
-#else
 	if (balance_cpu == -1)
 		balance_cpu = group_balance_cpu(sg);
-#endif
 
 	/*
 	 * First idle cpu or the first cpu(busiest) in this sched group
@@ -12093,11 +11975,6 @@ static int idle_balance(struct rq *this_rq, struct rq_flags *rf)
 	int pulled_task = 0;
 	u64 curr_cost = 0;
 
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	if (cpu_isolated(this_cpu))
-		return 0;
-#endif
-
 	/*
 	 * We must set idle_stamp _before_ calling idle_balance(), such that we
 	 * measure the duration of idle_balance() as idle time.
@@ -12448,10 +12325,6 @@ static inline int hisi_find_new_ilb(void)
 
 	for_each_domain(call_cpu, sd) {
 		for_each_cpu_and(ilb, nohz.idle_cpus_mask, sched_domain_span(sd)) {
-#ifdef CONFIG_HISI_CPU_ISOLATION
-			if (cpu_isolated(ilb))
-				continue;
-#endif
 			if (idle_cpu(ilb)) {
 				bool is_bigger_cpu =  capacity_orig_of(ilb) > capacity_orig_of(call_cpu);
 				if (type == NOHZ_KICK_FAST_CPU) {
@@ -12490,11 +12363,6 @@ static inline int find_new_ilb(void)
 {
 #ifdef CONFIG_HISI_EAS_SCHED
 	int ilb = hisi_find_new_ilb();
-#elif defined(CONFIG_HISI_CPU_ISOLATION)
-	int ilb;
-	cpumask_t cpumask;
-	cpumask_andnot(&cpumask, nohz.idle_cpus_mask, cpu_isolated_mask);
-	ilb = cpumask_first(&cpumask);
 #else
 	int ilb = cpumask_first(nohz.idle_cpus_mask);
 #endif
@@ -12617,11 +12485,6 @@ void nohz_balance_enter_idle(int cpu)
 	if (on_null_domain(cpu_rq(cpu)))
 		return;
 
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	if (cpu_isolated(cpu))
-		return;
-#endif
-
 	cpumask_set_cpu(cpu, nohz.idle_cpus_mask);
 	atomic_inc(&nohz.nr_cpus);
 	set_bit(NOHZ_TICK_STOPPED, nohz_flags(cpu));
@@ -12638,17 +12501,7 @@ static DEFINE_SPINLOCK(balancing);
  */
 void update_max_interval(void)
 {
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	cpumask_t avail_mask;
-	unsigned long available_cpus;
-
-	cpumask_andnot(&avail_mask, cpu_online_mask, cpu_isolated_mask);
-	available_cpus = (unsigned long)cpumask_weight(&avail_mask);
-
-	max_load_balance_interval = HZ*available_cpus/10;
-#else
 	max_load_balance_interval = HZ*num_online_cpus()/10;
-#endif
 }
 
 /*
@@ -12802,11 +12655,6 @@ static void nohz_idle_balance(struct rq *this_rq, enum cpu_idle_type idle)
 	rcu_read_unlock();
 
 	for_each_cpu(balance_cpu, nohz.idle_cpus_mask) {
-#ifdef CONFIG_HISI_CPU_ISOLATION
-		if (cpu_isolated(balance_cpu))
-			continue;
-#endif
-
 		if (balance_cpu == this_cpu || !idle_cpu(balance_cpu))
 			continue;
 
@@ -12878,9 +12726,6 @@ static inline bool nohz_kick_needed(struct rq *rq, bool only_update)
 	struct sched_domain *sd;
 	int nr_busy, i, cpu = rq->cpu;
 	bool kick = false;
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	cpumask_t cpumask;
-#endif
 
 #ifdef CONFIG_SCHED_HISI_USE_WALT
 	/* When use walt, there's no need for "force update of blocked
@@ -12905,12 +12750,6 @@ static inline bool nohz_kick_needed(struct rq *rq, bool only_update)
 	 */
 	if (likely(!atomic_read(&nohz.nr_cpus)))
 		return false;
-
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	cpumask_andnot(&cpumask, nohz.idle_cpus_mask, cpu_isolated_mask);
-	if (cpumask_empty(&cpumask))
-		return false;
-#endif
 
 	if (only_update) {
 		if (time_before(now, nohz.next_update))
@@ -12991,11 +12830,6 @@ static __latent_entropy void run_rebalance_domains(struct softirq_action *h)
 	enum cpu_idle_type idle = this_rq->idle_balance ?
 						CPU_IDLE : CPU_NOT_IDLE;
 
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	if (cpu_isolated(this_rq->cpu))
-		return;
-#endif
-
 	/*
 	 * If this cpu has a pending nohz_balance_kick, then do the
 	 * balancing on behalf of the other idle cpus whose ticks are
@@ -13023,11 +12857,6 @@ void trigger_load_balance(struct rq *rq)
 	/* Don't need to rebalance while attached to NULL domain */
 	if (unlikely(on_null_domain(rq)))
 		return;
-
-#ifdef CONFIG_HISI_CPU_ISOLATION
-	if (cpu_isolated(cpu_of(rq)))
-		return;
-#endif
 
 	if (time_after_eq(jiffies, rq->next_balance))
 		raise_softirq(SCHED_SOFTIRQ);
