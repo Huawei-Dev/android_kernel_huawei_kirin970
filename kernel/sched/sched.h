@@ -67,11 +67,7 @@ extern void cpu_load_update_active(struct rq *this_rq);
 #ifdef CONFIG_HISI_EAS_SCHED
 extern void check_for_migration(struct rq *rq, struct task_struct *p);
 #endif
-#ifdef CONFIG_HISI_RT_ACTIVE_LB
-extern void check_for_rt_migration(struct rq *rq, struct task_struct *p);
-#else
 static inline void check_for_rt_migration(struct rq *rq, struct task_struct *p) { }
-#endif
 #else
 static inline void cpu_load_update_active(struct rq *this_rq) { }
 #ifdef CONFIG_HISI_EAS_SCHED
@@ -861,13 +857,6 @@ struct rq {
 	struct task_struct *push_task;
 #endif
 	struct cpu_stop_work active_balance_work;
-
-	/* For rt active balancing */
-#ifdef CONFIG_HISI_RT_ACTIVE_LB
-	int rt_active_balance;
-	struct task_struct *rt_push_task;
-	struct cpu_stop_work rt_active_balance_work;
-#endif
 
 	/* cpu of this runqueue: */
 	int cpu;

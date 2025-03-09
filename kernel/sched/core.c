@@ -3567,13 +3567,7 @@ void scheduler_tick(void)
 #ifdef CONFIG_HISI_EAS_SCHED
 	if (curr->sched_class == &fair_sched_class)
 		check_for_migration(rq, curr);
-#endif
-#ifdef CONFIG_HISI_RT_ACTIVE_LB
-	if (curr->sched_class == &rt_sched_class)
-		check_for_rt_migration(rq, curr);
-#endif
 
-#ifdef CONFIG_HISI_EAS_SCHED
 	sugov_check_freq_update(cpu);
 #endif
 
