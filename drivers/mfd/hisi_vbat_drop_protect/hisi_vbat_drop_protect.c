@@ -536,31 +536,6 @@ static void hisi_vbat_drop_en(
 	}
 }
 
-#ifdef CONFIG_HISI_HI6421V700_PMU
-static int hisi_vbat_drop_vol_set_1(int mv)
-{
-	unsigned int reg_val;
-
-	if (mv > 3400)       /* Battery voltage :3400 mv */
-		reg_val = 7; /* PMIC_VSYS_DROP_VOL_SET: 7 */
-	else if (mv > 3300)  /* Battery voltage :3300 mv */
-		reg_val = 6; /* PMIC_VSYS_DROP_VOL_SET: 6 */
-	else if (mv > 3200)  /* Battery voltage :3200 mv */
-		reg_val = 5; /* PMIC_VSYS_DROP_VOL_SET: 5 */
-	else if (mv > 3100)  /* Battery voltage :3100 mv */
-		reg_val = 4; /* PMIC_VSYS_DROP_VOL_SET: 4 */
-	else if (mv > 3000)  /* Battery voltage :3000 mv */
-		reg_val = 3; /* PMIC_VSYS_DROP_VOL_SET: 3 */
-	else if (mv > 2900)  /* Battery voltage :2900 mv */
-		reg_val = 2; /* PMIC_VSYS_DROP_VOL_SET: 2 */
-	else if (mv > 2800)  /* Battery voltage :2800 mv */
-		reg_val = 1;
-	else
-		reg_val = 0;
-
-	return reg_val;
-}
-#else
 static int hisi_vbat_drop_vol_set_2(int mv)
 {
 	unsigned int reg_val;
@@ -582,15 +557,11 @@ static int hisi_vbat_drop_vol_set_2(int mv)
 
 	return reg_val;
 }
-#endif
+
 static void hisi_vbat_drop_vol_set(int mv)
 {
 	unsigned int reg_val;
-#ifdef CONFIG_HISI_HI6421V700_PMU
-	reg_val = hisi_vbat_drop_vol_set_1(mv);
-#else
 	reg_val = hisi_vbat_drop_vol_set_2(mv);
-#endif
 	HISI_VBAT_DROP_PMIC_REG_WRITE(PMIC_VSYS_DROP_VOL_SET, reg_val);
 	pr_info("[%s]:set vol [%d]mv reg %u!\n", __func__, mv, reg_val);
 }

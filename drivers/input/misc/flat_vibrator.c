@@ -70,22 +70,12 @@ static void flat_vibrator_ldo_ctrl(
 	/* no blocking, the lock should not be used */
 	if (state) {
 		vibrator_shake = 1;
-#ifdef CONFIG_HISI_HI6421V900_PMU
-		hisi_sub_pmic_reg_write(
-			vdata->vibrator_reg_on, vdata->vibrator_bit_on);
-#else
 		pmic_write_reg(
 			vdata->vibrator_reg_on, vdata->vibrator_bit_on);
-#endif
 		dev_info(vdata->dev, "flat_vibrator open\n");
 	} else {
 		vibrator_shake = 0;
-#ifdef CONFIG_HISI_HI6421V900_PMU
-		hisi_sub_pmic_reg_write(
-			vdata->vibrator_reg_off, VIBRATOR_OFF);
-#else
 		pmic_write_reg(vdata->vibrator_reg_off, VIBRATOR_OFF);
-#endif
 		dev_info(vdata->dev, "flat_vibrator close\n");
 	}
 }

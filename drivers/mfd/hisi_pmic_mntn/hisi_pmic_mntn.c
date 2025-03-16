@@ -33,15 +33,8 @@
 
 #define PMIC_DSM_MASK_STATE 0xFF
 
-#if defined CONFIG_HISI_HI6555V200_PMU || \
-	defined CONFIG_HISI_HI6555V300_PMU || \
-	defined CONFIG_HISI_HI6421V700_PMU || \
-	defined CONFIG_HISI_HI6421V800_PMU
-#define PMIC_DSM_IGNORE_NUM 99
-#else
 /* BALT and later platform */
 #define PMIC_DSM_IGNORE_NUM 999
-#endif
 
 #ifdef CONFIG_GCOV_KERNEL
 #define STATIC
