@@ -230,7 +230,6 @@ obj-$(CONFIG_MFD_MXS_LRADC)     += mxs-lradc.o
 
 obj-$(CONFIG_HISI_PMIC_PMU_SPMI)+= hisi_pmic_spmi.o
 obj-$(CONFIG_HISI_PMIC_PMU_SPMI)+= hisi_pmic_sim_hpd.o
-obj-$(CONFIG_HISI_PMIC_DCXO) += pmic_dcxo/
 obj-$(CONFIG_HISI_PMIC_MNTN_SPMI)     += hisi_pmic_mntn/
 obj-$(CONFIG_HISI_PMIC_MNTN_SPMI)     += hisi_pmic_ramp.o
 obj-$(CONFIG_MFD_HISI_IP_CORE)	+= ip_core.o
