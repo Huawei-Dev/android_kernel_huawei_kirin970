@@ -7,9 +7,6 @@ config SCHARGER_V200
 config SCHARGER_V300
 	bool "schargerV300"
 	default n
-config SCHARGER_V600
-	bool "schargerV600"
-	default n
 config CHARGER_SYS_WDG
 	bool "pmic charger sys watchdog"
 	default n
