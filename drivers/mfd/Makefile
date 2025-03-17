@@ -235,4 +235,3 @@ obj-$(CONFIG_HISI_PMIC_MNTN_SPMI)     += hisi_pmic_ramp.o
 obj-$(CONFIG_MFD_HISI_IP_CORE)	+= ip_core.o
 obj-$(CONFIG_HISI_FREQ_AUTODOWN)+= freq_autodown.o
 obj-$(CONFIG_HISI_CHARGER_POWER)+= hisi_charger_power.o
-obj-$(CONFIG_HISI_HI6562_PMIC_MIPI) += hisi_hi6562_pmic_mipi/

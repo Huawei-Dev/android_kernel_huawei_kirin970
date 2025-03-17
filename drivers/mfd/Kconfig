@@ -1855,7 +1855,5 @@ config MFD_VEXPRESS_SYSREG
 	  System Registers are the platform configuration block
 	  on the ARM Ltd. Versatile Express board.
 
-source "drivers/mfd/hisi_hi6562_pmic_mipi/Kconfig"
-
 endmenu
 endif
