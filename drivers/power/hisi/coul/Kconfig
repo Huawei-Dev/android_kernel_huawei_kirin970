@@ -5,9 +5,6 @@ config COUL_DRV
 config COUL_PMIC6X21V600
 	bool "pmic6421v600 coul"
 	default n
-config COUL_PMIC6X55V100
-        bool "pmic6555v100 coul"
-        default n
 config COUL_PMIC6X55V200
         bool "pmic6555v200 coul"
         default n

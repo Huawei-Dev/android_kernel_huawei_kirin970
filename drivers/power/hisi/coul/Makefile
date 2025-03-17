@@ -1,4 +1,3 @@
-obj-$(CONFIG_COUL_PMIC6X55V100)	+= pmic6x55v100/
 obj-$(CONFIG_COUL_PMIC6X55V200)      += pmic6xxx/
 obj-$(CONFIG_COUL_PMIC6X55V300)      += pmic6xxx/
 obj-$(CONFIG_COUL_PMIC6X55V500)      += pmic6xxx/
