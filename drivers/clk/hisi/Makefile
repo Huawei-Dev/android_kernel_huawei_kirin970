@@ -9,4 +9,3 @@ obj-$(CONFIG_HISI_CLK)                  += clk-dvfs.o
 obj-$(CONFIG_HISI_CLK)                  += hisi-clk-intr.o
 
 obj-$(CONFIG_HISI_PERIDVFS)             += dvfs/
-obj-$(CONFIG_HISI_CKM_MODULE)	        += hisi-clk-monitor.o
