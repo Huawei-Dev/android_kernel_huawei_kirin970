@@ -234,7 +234,4 @@ enum pmic_irq_list {
 	PMIC_IRQ_LIST_MAX,
 };
 
-#ifdef CONFIG_SR_DEBUG
-extern void get_ip_regulator_state(void);
-#endif
 #endif /* __HISI_PMIC_H */
