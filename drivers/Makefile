@@ -201,7 +201,6 @@ obj-$(CONFIG_MULTIPLEXER)	+= mux/
 obj-$(CONFIG_HW_WIFI)       += hwnet/
 obj-y += devkit/tpkit/
 obj-$(CONFIG_HISILICON_PLATFORM)+= hisi/
-obj-$(CONFIG_HUAWEI_DSM_IOMT_HOST)	+= iomt_host/
 obj-$(CONFIG_LOGGER_EXTEND)	+= log/
 obj-$(CONFIG_BOOT_DETECTOR) += hwbootfail/
 obj-$(CONFIG_HUAWEI_HITRACE) += hitrace/
