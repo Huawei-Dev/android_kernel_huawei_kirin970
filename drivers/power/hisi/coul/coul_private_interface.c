@@ -20,13 +20,9 @@
 #ifdef CONFIG_BATT_EIS
 #include <linux/power/hisi/hisi_eis.h>
 #endif
-#ifdef CONFIG_BATT_SOH
-#include <linux/power/hisi/soh/hisi_soh_interface.h>
-#else
 #define ACR_CHECK_CYCLE_S               (20 * 60)
 #define ACR_MAX_BATTERY_CURRENT_MA      100
 #define DCR_CHECK_CYCLE_S               (20 * 60)
-#endif
 #include "coul_private_interface.h"
 #include "coul_sysfs.h"
 #include "coul_temp.h"
@@ -1190,42 +1186,6 @@ static int coul_dev_ops_check_fail(struct smartstar_coul_device *di)
 	return coul_dev_ops_check_fail_part_two(di);
 }
 
-#ifdef CONFIG_BATT_SOH
-static void acr_check(struct smartstar_coul_device *di, u32 charged_cnt)
-{
-	static int chg_done_acr_enter_time;
-	int acr_time_inc, chg_done_now_time;
-
-	if (charged_cnt == 0)
-		chg_done_acr_enter_time = hisi_getcurtime() / NSEC_PER_SEC;
-
-	chg_done_now_time = hisi_getcurtime() / NSEC_PER_SEC;
-	/* get acr cal period */
-	acr_time_inc = chg_done_now_time - chg_done_acr_enter_time;
-	/*
-	* if current is more than max value,
-	* acr condition check is restarted after ACR_CHECK_CYCLE_MS
-	*/
-	if (di->chg_done_max_avg_cur_flag) {
-		/*
-		* if current is more than max value,
-		* acr condition check is restarted after ACR_CHECK_CYCLE_MS
-		*/
-		chg_done_acr_enter_time = hisi_getcurtime() / NSEC_PER_SEC;
-		di->chg_done_max_avg_cur_flag = 0;
-		coul_core_info("acr notifier, avg cur is more than max\n");
-		return;
-	}
-
-	if (acr_time_inc > ACR_CHECK_CYCLE_S) {
-		chg_done_acr_enter_time = hisi_getcurtime() / NSEC_PER_SEC;
-		call_coul_blocking_notifiers(BATT_SOH_ACR, NULL);
-		coul_core_info("acr notify success,acr_time_inc = [%d]\n",
-			acr_time_inc);
-	}
-}
-#endif
-
 #ifdef CONFIG_BATT_EIS
 static void eis_freq_check(struct smartstar_coul_device *di,
 	u32 charged_cnt, int *eis_freq_ntf_cnt)
@@ -1259,36 +1219,6 @@ static void eis_freq_check(struct smartstar_coul_device *di,
 }
 #endif
 
-#ifdef CONFIG_BATT_SOH
-static void dcr_check(struct smartstar_coul_device *di, u32 charged_cnt)
-{
-	static int chg_done_dcr_enter_time;
-	int dcr_time_inc, chg_done_now_time;
-
-	if (charged_cnt == 0)
-		chg_done_dcr_enter_time = hisi_getcurtime() / NSEC_PER_SEC;
-
-	chg_done_now_time = hisi_getcurtime() / NSEC_PER_SEC;
-
-	/* get dcr cal period */
-	dcr_time_inc = chg_done_now_time - chg_done_dcr_enter_time;
-
-	if (di->chg_done_max_avg_cur_flag) {
-		chg_done_dcr_enter_time = hisi_getcurtime() / NSEC_PER_SEC;
-		di->chg_done_max_avg_cur_flag = 0;
-		coul_core_info("dcr notifier, avg cur is more than max\n");
-		return;
-	}
-
-	if (dcr_time_inc > DCR_CHECK_CYCLE_S) {
-		chg_done_dcr_enter_time = hisi_getcurtime() / NSEC_PER_SEC;
-		call_coul_blocking_notifiers(BATT_SOH_DCR, NULL);
-		coul_core_info("dcr notify success, dcr_time_inc = %d\n",
-			dcr_time_inc);
-	}
-}
-#endif
-
 /* Remark: 1 charging done 2 Calculation period 20min  */
 void coul_start_soh_check(void)
 {
@@ -1300,14 +1230,8 @@ void coul_start_soh_check(void)
 		return;
 
 	if (di->charging_state == CHARGING_STATE_CHARGE_DONE) {
-#ifdef CONFIG_BATT_SOH
-		acr_check(di, charged_cnt);
-#endif
 #ifdef CONFIG_BATT_EIS
 		eis_freq_check(di, charged_cnt, &eis_freq_ntf_cnt);
-#endif
-#ifdef CONFIG_BATT_SOH
-		dcr_check(di, charged_cnt);
 #endif
 		charged_cnt++;
 	} else {

@@ -16,5 +16,4 @@ config BATTERY_ISCD
 
 source "drivers/power/hisi/charger/Kconfig"
 source "drivers/power/hisi/coul/Kconfig"
-source "drivers/power/hisi/soh/Kconfig"
 source "drivers/power/hisi/eis/Kconfig"

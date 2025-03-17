@@ -80,16 +80,6 @@ enum acr_type {
 	ACR_L_PRECISION = 1 /* for factory Aging test and low precision requirements */
 };
 
-#ifdef CONFIG_BATT_SOH
-int soh_get_acr_resistance(struct acr_info *r, enum acr_type type);
-int soh_get_dcr_resistance(struct dcr_info *r);
-int soh_get_poweroff_leakage(struct pd_leak_current_info *i);
-void soh_acr_low_precision_cal_start(void);
-int hisi_soh_register_blocking_notifier(struct notifier_block *nb);
-int hisi_soh_unregister_blocking_notifier(struct notifier_block *nb);
-int hisi_call_soh_blocking_notifiers(unsigned long val, void *v);
-
-#else
 static inline int soh_get_acr_resistance(struct acr_info *r, enum acr_type type)
 {
 	return 0;
@@ -124,6 +114,5 @@ static inline int hisi_call_soh_blocking_notifiers(unsigned long val, void *v)
 {
 	return 0;
 }
-#endif /* CONFIG_BATT_SOH */
 
 #endif
