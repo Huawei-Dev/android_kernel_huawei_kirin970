@@ -17,9 +17,6 @@
 #include <huawei_platform/power/batt_info_pub.h>
 #endif
 #include <linux/power/hisi/coul/coul_event.h>
-#ifdef CONFIG_BATT_EIS
-#include <linux/power/hisi/hisi_eis.h>
-#endif
 #define ACR_CHECK_CYCLE_S               (20 * 60)
 #define ACR_MAX_BATTERY_CURRENT_MA      100
 #define DCR_CHECK_CYCLE_S               (20 * 60)
@@ -1186,39 +1183,6 @@ static int coul_dev_ops_check_fail(struct smartstar_coul_device *di)
 	return coul_dev_ops_check_fail_part_two(di);
 }
 
-#ifdef CONFIG_BATT_EIS
-static void eis_freq_check(struct smartstar_coul_device *di,
-	u32 charged_cnt, int *eis_freq_ntf_cnt)
-{
-	static int chg_done_eis_freq_time;
-	int eis_freq_time_inc, chg_done_now_time;
-
-	if (charged_cnt == 0)
-		chg_done_eis_freq_time = hisi_getcurtime() / NSEC_PER_SEC;
-
-	chg_done_now_time = hisi_getcurtime() / NSEC_PER_SEC;
-
-	/* get eis_freq cal period */
-	eis_freq_time_inc = chg_done_now_time - chg_done_eis_freq_time;
-
-	if (di->chg_done_max_avg_cur_flag) {
-		chg_done_eis_freq_time = hisi_getcurtime() / NSEC_PER_SEC;
-		di->chg_done_max_avg_cur_flag = 0;
-		coul_core_info("acr/dcr/eis_freq notifier, avg cur is more than max\n");
-		return;
-	}
-
-	if ((eis_freq_time_inc > EIS_FREQ_CYCLE_S) &&
-		(*eis_freq_ntf_cnt <= SAME_CYC_MAX_TRIAL)) {
-		chg_done_eis_freq_time = hisi_getcurtime() / NSEC_PER_SEC;
-		call_coul_blocking_notifiers(BATT_EIS_FREQ, NULL);
-		(*eis_freq_ntf_cnt)++;
-		coul_core_info("eis freq notify success, eis_freq_time_inc = [%d]S, %dth notify\n",
-			eis_freq_time_inc, *eis_freq_ntf_cnt);
-	}
-}
-#endif
-
 /* Remark: 1 charging done 2 Calculation period 20min  */
 void coul_start_soh_check(void)
 {
@@ -1230,9 +1194,6 @@ void coul_start_soh_check(void)
 		return;
 
 	if (di->charging_state == CHARGING_STATE_CHARGE_DONE) {
-#ifdef CONFIG_BATT_EIS
-		eis_freq_check(di, charged_cnt, &eis_freq_ntf_cnt);
-#endif
 		charged_cnt++;
 	} else {
 		charged_cnt = 0;

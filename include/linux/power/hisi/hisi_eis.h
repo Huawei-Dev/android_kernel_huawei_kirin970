@@ -47,13 +47,6 @@ struct eis_freq_infos {
 	struct eis_freq_info freq_infos[LEN_T_FREQ];
 };
 
-#ifdef CONFIG_BATT_EIS
-int get_freq_work_flag(void);
-int hisi_eis_register_blocking_notifier(struct notifier_block *nb);
-int hisi_eis_unregister_blocking_notifier(struct notifier_block *nb);
-int hisi_call_eis_blocking_notifiers(unsigned long val, void *v);
-
-#else
 static inline int get_freq_work_flag(void) {
 	return 0;
 }
@@ -73,7 +66,5 @@ static inline int hisi_call_eis_blocking_notifiers(unsigned long val, void *v)
 {
 	return 0;
 }
-
-#endif /* CONFIG_BATT_EIS */
 
 #endif /* BATT_EIS_H */
