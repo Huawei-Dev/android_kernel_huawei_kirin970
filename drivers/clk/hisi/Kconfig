@@ -6,10 +6,6 @@ config HISI_CLK_ALWAYS_ON
 	bool "all clocks of Hisi Soc are always on"
 	default n
 
-config HISI_CLK_PM_MONITOR
-	bool "clock pm_monitor spec"
-	default n
-
 config HISI_CLK_MAILBOX_SUPPORT
 	depends on HISI_CLK
 	depends on HISI_MAILBOX

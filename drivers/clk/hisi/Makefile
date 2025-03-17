@@ -6,7 +6,6 @@ obj-$(CONFIG_HISI_CLK_DEBUG)            += debug/
 obj-$(CONFIG_HISI_CLK_MAILBOX_SUPPORT)	+= hisi-clk-mailbox.o
 
 obj-$(CONFIG_HISI_CLK)                  += clk-dvfs.o
-obj-$(CONFIG_HISI_CLK_PM_MONITOR)       += hisi-clk-pm-monitor.o
 obj-$(CONFIG_HISI_CLK)                  += hisi-clk-intr.o
 
 obj-$(CONFIG_HISI_PERIDVFS)             += dvfs/

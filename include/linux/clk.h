@@ -283,14 +283,10 @@ int __must_check clk_bulk_get(struct device *dev, int num_clks,
 #ifdef CONFIG_HISI_CLK
 int clk_remote_prepare_enable(struct clk *clk);
 void clk_remote_disable_unprepare(struct clk *clk);
-#ifdef CONFIG_HISI_CLK_PM_MONITOR
-void pmclk_monitor_enable(void);
-#else
 static inline void pmclk_monitor_enable(void)
 {
     return;
 }
-#endif
 #endif
 
 /**
