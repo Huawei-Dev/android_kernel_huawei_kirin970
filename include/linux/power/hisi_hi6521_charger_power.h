@@ -29,14 +29,6 @@ extern int scharger_power_get_current_limit_index(unsigned int vget_regs,unsigne
 extern int scharger_flash_led_timeout_disable(void);
 extern int scharger_flash_torch_timeout_config(unsigned int timeoutSec);
 
-#ifdef CONFIG_SCHARGER_V200
-
-int scharger_flash_led_timeout_config(unsigned int timeoutMs);
-int scharger_flash_led_timeout_enable(void);
-int scharger_register_notifier(struct notifier_block *nb);
-int scharger_unregister_notifier(struct notifier_block *nb);
-int scharger_flash_bst_vo_config(int config_voltage);
-#else
 static inline int scharger_flash_led_timeout_config(unsigned int timeoutMs)
 {
 	return 0;
@@ -57,5 +49,4 @@ static inline int scharger_flash_bst_vo_config(int config_voltage)
 {
 	return 0;
 }
-#endif
 #endif
