@@ -1166,10 +1166,6 @@ void mmc_get_card(struct mmc_card *card)
 	if (mmc_blk_cmdq_hangup(card))
 		pr_err("%s: cmdq hangup err.\n", __func__);
 #endif
-#ifdef CONFIG_ZODIAC_MMC_MANUAL_BKOPS
-	if (mmc_card_doing_bkops(card) && mmc_stop_bkops(card))
-		pr_err("%s: mmc_stop_bkops failed!\n", __func__);
-#endif
 }
 EXPORT_SYMBOL(mmc_get_card);
 

@@ -42,9 +42,6 @@ bool g_mmc_reset_status;
 #define R1_UNEXPECTED_STATUS 0xFDFFA000
 #define MMC_EXT_CSD_REV_1_8 8
 
-#ifdef CONFIG_ZODIAC_MMC_MANUAL_BKOPS
-bool zodiac_mmc_is_bkops_needed(struct mmc_card *card);
-#endif
 static void mmc_set_cold_reset(struct mmc_host *host);
 
 static void mmc_power_up_vcc(struct mmc_host *host, u32 ocr)
@@ -307,13 +304,6 @@ static int mmc_enable_bkops_auto_feature(struct mmc_card *card)
 	/* Enable BKOPS AUTO  feature (if supported) */
 	if ((host->caps2 & MMC_CAP2_BKOPS_AUTO_CTRL) && (host->pm_flags & MMC_PM_KEEP_POWER) &&
 		card->ext_csd.bkops && (card->ext_csd.rev >= MMC_EXT_CSD_REV_1_8)) {
-#ifdef CONFIG_ZODIAC_MMC_MANUAL_BKOPS
-		if (zodiac_mmc_is_bkops_needed(card))
-			err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL, EXT_CSD_BKOPS_EN,
-				EXT_CSD_BKOPS_MANUAL_EN | EXT_CSD_BKOPS_AUTO_EN,
-				card->ext_csd.generic_cmd6_time);
-		else
-#endif
 			err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
 				EXT_CSD_BKOPS_EN, EXT_CSD_BKOPS_AUTO_EN |
 				(card->ext_csd.man_bkops_en ? EXT_CSD_BKOPS_MANUAL_EN : 0),
@@ -326,10 +316,6 @@ static int mmc_enable_bkops_auto_feature(struct mmc_card *card)
 			card->ext_csd.bkops_auto_en = 0;
 		} else {
 			card->ext_csd.bkops_auto_en = 1;
-#ifdef CONFIG_ZODIAC_MMC_MANUAL_BKOPS
-			if (zodiac_mmc_is_bkops_needed(card))
-				card->ext_csd.man_bkops_en = 1;
-#endif
 			pr_err("%s: support BKOPS_AUTO_EN, bkops_auto_en=%u\n", __func__, card->ext_csd.bkops_auto_en);
 		}
 	}

@@ -24,7 +24,6 @@ obj-$(CONFIG_SDIO_UART)		+= sdio_uart.o
 obj-$(CONFIG_HISI_BOOTDEVICE) 	+= emmc-rpmb.o
 obj-$(CONFIG_MMC_CQ_HCI) 	+= hisi_cmdq_core.o
 obj-$(CONFIG_ZODIAC_MMC) 	+= zodiac_core_mmc.o
-obj-$(CONFIG_ZODIAC_MMC_MANUAL_BKOPS) += hisi_mmc_bkops.o
 obj-$(CONFIG_MMC_FFU)		+= ffu.o
 obj-$(CONFIG_HW_SD_HEALTH_DETECT)	+= mmc_health_diag.o
 obj-$(CONFIG_HW_MMC_TEST_MODULE)	+= hw_mmc_test.o

@@ -54,13 +54,6 @@ config HISI_MMC_FLUSH_REDUCE
 	help
 	   Enable this config will provide the flush reduce support in MMC
 
-config ZODIAC_MMC_MANUAL_BKOPS
-	bool "MMC manual BKOPS support"
-	depends on MAS_BKOPS
-	default n
-	help
-	 MMC manual BKOPS support
-
 config HUAWEI_SDCARD_DSM
 	bool "Listen sdcard kernel err"
 	depends on MMC != n

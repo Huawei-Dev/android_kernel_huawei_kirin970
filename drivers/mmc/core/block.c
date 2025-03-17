@@ -2629,10 +2629,6 @@ void mmc_blk_sd_dump_status(
 }
 
 #ifdef CONFIG_MAS_BLK
-#ifdef CONFIG_ZODIAC_MMC_MANUAL_BKOPS
-extern int hisi_mmc_manual_bkops_config(struct request_queue *q);
-extern bool zodiac_mmc_is_bkops_needed(struct mmc_card *card);
-#endif
 #define HISI_MMC_IO_LATENCY_MS	2000
 #define HISI_SD_IO_LATENCY_MS	2000
 static void mmc_blk_hisi_cfg_queue_feature(struct mmc_card *card, struct mmc_blk_data *md, int area_type)
@@ -2646,10 +2642,6 @@ static void mmc_blk_hisi_cfg_queue_feature(struct mmc_card *card, struct mmc_blk
 			blk_queue_dump_register(md->queue.queue, NULL);
 #endif
 			blk_queue_busyidle_enable(md->queue.queue, 1);
-#ifdef CONFIG_ZODIAC_MMC_MANUAL_BKOPS
-			if (card->ext_csd.man_bkops_en && zodiac_mmc_is_bkops_needed(card))
-				hisi_mmc_manual_bkops_config(md->queue.queue);
-#endif
 
 		} else if (mmc_card_sd(card)) {
 			blk_queue_latency_warning_set(md->queue.queue, HISI_SD_IO_LATENCY_MS);
