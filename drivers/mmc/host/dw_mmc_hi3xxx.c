@@ -40,9 +40,7 @@
 #ifdef CONFIG_MMC_DW_MUX_SDSIM
 #include <linux/mmc/dw_mmc_mux_sdsim.h>
 #endif
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-#include <linux/mmc/dsm_emmc.h>
-#endif
+
 #ifdef CONFIG_HUAWEI_DSM
 #include <dsm/dsm_pub.h>
 #endif

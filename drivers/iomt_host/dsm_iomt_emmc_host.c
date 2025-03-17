@@ -18,9 +18,6 @@
  */
 
 #include <linux/mmc/host.h>
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-#include <linux/mmc/dsm_emmc.h>
-#endif
 #include <linux/iomt_host/dsm_iomt_host.h>
 
 #define iomt_cls_dev_to_mmc_host(d)	\
@@ -29,30 +26,6 @@
 static void iomt_mmc_io_timeout_dsm_action(
 		struct mmc_host *host)
 {
-	unsigned int op_arg;
-	unsigned int block_ticks;
-	struct iomt_host_info *iomt_host_info = NULL;
-
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-	if (host != NULL && host->card != NULL &&
-		host->iomt_host_info != NULL &&
-		!mmc_card_is_removable(host)) {
-		iomt_host_info = iomt_info_from_host(host);
-		op_arg = iomt_host_info->io_timeout_dsm.op_arg;
-		block_ticks = iomt_host_info->io_timeout_dsm.block_ticks;
-		DSM_EMMC_LOG(host->card, DSM_EMMC_IO_TIMEOUT,
-			"%s:%s(manfid:0x%x) emmc io timeout, judge slot = %u, "
-			"opcode = %u, arg = 0x%x, blocks = %u, ticks = %u, dir = %u",
-			__func__, mmc_hostname(host),
-			host->card->cid.manfid,
-			iomt_host_info->io_timeout_dsm.judge_slot,
-			op_arg >> IOMT_OP_BLOCK_SHIFT,
-			(unsigned int)((unsigned short)op_arg),
-			block_ticks >> IOMT_OP_BLOCK_SHIFT,
-			(unsigned int)((unsigned short)block_ticks),
-			iomt_host_info->io_timeout_dsm.data_dir);
-	}
-#endif
 }
 
 static void *mmc_host_to_iomt(const void *mmc_host)

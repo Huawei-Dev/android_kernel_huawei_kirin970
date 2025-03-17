@@ -29,7 +29,6 @@
 #include <linux/regulator/consumer.h>
 #include <linux/hisi/rdr_pub.h>
 #include <mntn_subtype_exception.h>
-#include <linux/mmc/dsm_emmc.h>
 #include <linux/mmc/sdio.h>
 #include <linux/mmc/sd.h>
 #include <linux/mmc/sdhci_hisi_mux_sdsim.h>

@@ -61,13 +61,6 @@ config HUAWEI_SDCARD_DSM
 	help
 	   use huawei sdcard log radar
 
-config HUAWEI_EMMC_DSM
-	bool "Listen eMMC kernel err"
-	depends on MMC != n
-	default n
-	help
-	   use huawei emmc log radar
-
 if MMC
 
 source "drivers/mmc/core/Kconfig"

@@ -1238,10 +1238,6 @@ static int cmdq_interrupt_errors_handle(
 #endif
 	}
 
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-	sdhci_dsm_set_host_status(mmc_priv(mmc), intmask & SDHCI_INT_ERROR_MASK);
-	sdhci_dsm_handle(mmc_priv(mmc), mrq);
-#endif
 	cmdq_finish_data(mmc, tag);
 	spin_unlock(&cq_host->cmdq_lock);
 

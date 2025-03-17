@@ -30,7 +30,6 @@
 #include <linux/i2c.h>
 #include <linux/hisi/rdr_pub.h>
 
-#include <linux/mmc/dsm_emmc.h>
 #include <linux/mmc/sdio.h>
 #include <linux/mmc/sd.h>
 #include <linux/hisi/rpmb.h>
@@ -366,88 +365,5 @@ int sdhci_coldboot_rdr_regester(void)
 	}
 
 	return 0;
-}
-#endif
-
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-void sdhci_dsm_set_host_status(struct sdhci_host *host, u32 error_bits)
-{
-	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
-	struct sdhci_mshc_data *sdhci_mshc = pltfm_host->priv;
-
-	sdhci_mshc->cmd_data_status |= error_bits;
-}
-
-void sdhci_dsm_work(struct work_struct *work)
-{
-	struct mmc_card *card = NULL;
-	struct sdhci_mshc_data *sdhci_mshc = container_of(work, struct sdhci_mshc_data, dsm_work);
-	struct sdhci_host *host = (struct sdhci_host *)sdhci_mshc->data;
-	u32 error_bits, opcode;
-	u64 para;
-	unsigned long flags;
-
-	spin_lock_irqsave(&sdhci_mshc->sdhci_dsm_lock, flags);
-	para = sdhci_mshc->para;
-	sdhci_mshc->para = 0;
-	spin_unlock_irqrestore(&sdhci_mshc->sdhci_dsm_lock, flags);
-	card = host->mmc->card;
-	opcode = para & SDHCI_ERR_CMD_INDEX_MASK;
-	error_bits = ((para >> SDHCI_DSM_ERR_INT_STATUS) & SDHCI_DMD_ERR_MASK);
-	if (error_bits & SDHCI_INT_TIMEOUT)
-		DSM_EMMC_LOG(card, DSM_EMMC_RW_TIMEOUT_ERR,
-			"opcode:%u failed, status:0x%x\n", opcode, error_bits);
-	else if (error_bits & SDHCI_INT_DATA_CRC)
-		DSM_EMMC_LOG(card, DSM_EMMC_DATA_CRC,
-			"opcode:%u failed, status:0x%x\n", opcode, error_bits);
-	else if (error_bits & SDHCI_INT_CRC)
-		DSM_EMMC_LOG(card, DSM_EMMC_COMMAND_CRC,
-			"opcode:%u failed, status:0x%x\n", opcode, error_bits);
-	else
-		DSM_EMMC_LOG(card, DSM_EMMC_HOST_ERR,
-			"opcode:%u failed, status:0x%x\n", opcode, error_bits);
-}
-
-static inline void sdhci_dsm_host_error_filter(
-	struct sdhci_host *host, struct mmc_request *mrq, u32 *error_bits)
-{
-	if (mrq->cmd) {
-		if (mrq->cmd->opcode == MMC_SEND_TUNING_BLOCK_HS200) {
-			*error_bits = 0;
-		} else if (host->mmc->ios.clock <= 400000UL) { /* set mmc clk 400k */
-			if (((mrq->cmd->opcode == SD_IO_RW_DIRECT) ||
-				    (mrq->cmd->opcode == SD_SEND_IF_COND) ||
-				    (mrq->cmd->opcode == SD_IO_SEND_OP_COND) ||
-				    (mrq->cmd->opcode == MMC_APP_CMD)))
-				*error_bits = 0;
-			else if (mrq->cmd->opcode == MMC_SEND_STATUS)
-				*error_bits &= ~SDHCI_INT_CRC;
-		}
-	}
-}
-
-void sdhci_dsm_handle(struct sdhci_host *host, struct mmc_request *mrq)
-{
-	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
-	struct sdhci_mshc_data *sdhci_mshc = pltfm_host->priv;
-	u32 error_bits = sdhci_mshc->cmd_data_status;
-
-	if (error_bits) {
-		sdhci_mshc->cmd_data_status = 0;
-		sdhci_dsm_host_error_filter(host, mrq, &error_bits);
-		if (error_bits) {
-			sdhci_mshc->para = (((unsigned long)error_bits << SDHCI_DSM_ERR_INT_STATUS) |
-				((mrq->cmd ? mrq->cmd->opcode : 0) & SDHCI_ERR_CMD_INDEX_MASK));
-			queue_work(system_freezable_wq, &sdhci_mshc->dsm_work);
-		}
-	}
-}
-
-void sdhci_dsm_report(struct mmc_host *host, struct mmc_request *mrq)
-{
-	struct sdhci_host *sdhci_host = mmc_priv(host);
-
-	sdhci_dsm_set_host_status(sdhci_host, SDHCI_INT_TIMEOUT);
-	sdhci_dsm_handle(sdhci_host, mrq);
 }
 #endif

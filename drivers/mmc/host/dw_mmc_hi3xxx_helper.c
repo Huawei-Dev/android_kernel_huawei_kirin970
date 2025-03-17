@@ -25,9 +25,6 @@
 #include <linux/pm_runtime.h>
 #include <linux/hisi/rdr_hisi_platform.h>
 
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-#include <linux/mmc/dsm_emmc.h>
-#endif
 #ifdef CONFIG_HUAWEI_DSM
 #include <dsm/dsm_pub.h>
 #endif
@@ -690,12 +687,6 @@ static void dw_mci_hs_tuning_finish_handle(struct dw_mci *host,
 		host->tuning_init_sample = (sample_min + sample_max) / SAM_PHASE_MID;
 		dev_info(host->dev, "tuning err: no good sam_del, timing is %d, tuning_flag = 0x%x",
 			timing, host->tuning_sample_flag);
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-		if (host->hw_mmc_id == DWMMC_EMMC_ID)
-			DSM_EMMC_LOG(host->cur_slot->mmc, DSM_EMMC_TUNING_ERROR,
-				"%s:eMMC tuning error: timing is %d, tuning_flag = 0x%x\n",
-				__func__, timing, host->tuning_sample_flag);
-#endif
 #ifdef CONFIG_HUAWEI_DSM
 		if (host->hw_mmc_id == DWMMC_SDIO_ID)
 			dsm_wifi_client_notify(DSM_SDIO_TUNNING_ERR, "sdio tuning error: timing %d, flag 0x%x\n",
@@ -1652,11 +1643,6 @@ void dw_mci_clean_queue(struct dw_mci *host, struct dw_mci_slot *slot)
 		if (mrq->stop)
 			mrq->stop->error = -ENOMEDIUM;
 
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-		if (host->hw_mmc_id == DWMMC_EMMC_ID)
-			if (!del_timer(&host->rw_to_timer))
-				dev_info(host->dev, "inactive timer\n");
-#endif
 		if (del_timer(&host->timer))
 			dev_info(host->dev, "del_timer failed\n");
 		spin_unlock(&host->lock);

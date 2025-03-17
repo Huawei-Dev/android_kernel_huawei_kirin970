@@ -28,9 +28,6 @@
 #ifdef CONFIG_HUAWEI_SDCARD_DSM
 #include <linux/mmc/dsm_sdcard.h>
 #endif
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-#include <linux/mmc/dsm_emmc.h>
-#endif
 #define MMC_OPS_TIMEOUT_MS	(10 * 60 * 1000) /* 10 minute timeout */
 #define MMC_REMOVABLE_OPS_TIMEOUT_MS	(5 * 1000) /* 5 second timeout */
 #define SD_OPS_TIMEOUT_MS	(30 * 1000) /* 30 second timeout */
@@ -367,14 +364,6 @@ mmc_send_cxd_data(struct mmc_card *card, struct mmc_host *host,
 
 	mmc_wait_for_req(host, &mrq);
 
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-	if (cmd.error || data.error)
-		if (!strcmp(mmc_hostname(host), "mmc0")) {
-			DSM_EMMC_LOG(card, DSM_EMMC_SEND_CXD_ERR,
-				"opcode:%d failed, cmd.error:%d, data.error:%d\n",
-				opcode, cmd.error, data.error);
-		}
-#endif
 	if (cmd.error)
 		return cmd.error;
 	if (data.error)
@@ -1074,11 +1063,6 @@ void mmc_start_bkops(struct mmc_card *card, bool from_exception)
 	if (card->ext_csd.raw_bkops_status < EXT_CSD_BKOPS_LEVEL_2 &&
 	    from_exception)
 		return;
-
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-	DSM_EMMC_LOG(card, DSM_EMMC_URGENT_BKOPS,
-		"the device needs to perform background operations urgently\n");
-#endif
 
 	mmc_claim_host(card->host);
 	if (card->ext_csd.raw_bkops_status >= EXT_CSD_BKOPS_LEVEL_2) {

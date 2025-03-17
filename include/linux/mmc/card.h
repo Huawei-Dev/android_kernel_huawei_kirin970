@@ -12,11 +12,6 @@
 
 #include <linux/device.h>
 #include <linux/mod_devicetable.h>
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-#define EXT_CSD_PRE_EOL_INFO_NORMAL     0x01
-#define EXT_CSD_PRE_EOL_INFO_WARNING     0x02
-#define EXT_CSD_PRE_EOL_INFO_URGENT     0x03
-#endif
 
 #define MMC_CARD_CMDQ_BLK_SIZE 512
 #define RDR_MODID_MMC_COLDBOOT      0x81ffff02
@@ -357,9 +352,6 @@ struct mmc_card {
 	struct dentry *debugfs_sdxc;
 	struct blk_queue_tag *mmc_tags;
 	int mmc_tags_depth;
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-	u8 *cached_ext_csd;
-#endif
 	unsigned int		bouncesz;	/* Bounce buffer size */
 };
 

@@ -46,10 +46,6 @@
 #include "mmc_zodiac_card.h"
 #include "card.h"
 
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-void sdhci_dsm_report(struct mmc_host *host, struct mmc_request *mrq);
-#endif
-
 #define MMC_SECTOR_TO_BLOCK 9
 #define MMC_BLOCK_TO_BYTE 9
 #define MMC_BYTE_TO_BLOCK 512
@@ -1237,10 +1233,6 @@ enum blk_eh_timer_return mmc_blk_cmdq_req_timed_out(struct request *req)
 		__func__, ktime_to_ns(cmdq_task_info[cmdq_req->tag].issue_time),
 		ktime_to_ns(cmdq_task_info[cmdq_req->tag].start_dbr_time),
 		ktime_to_ns(cmdq_task_info[cmdq_req->tag].end_dbr_time));
-
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-	sdhci_dsm_report(host, mrq);
-#endif
 
 	if (cmdq_req->cmdq_req_flags & DCMD)
 		mrq->cmd->error = -ETIMEDOUT;

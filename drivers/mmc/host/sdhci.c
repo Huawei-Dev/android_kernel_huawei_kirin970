@@ -69,11 +69,6 @@ static void sdhci_finish_data(struct sdhci_host *);
 
 static void sdhci_enable_preset_value(struct sdhci_host *host, bool enable);
 
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-extern void sdhci_dsm_handle(struct sdhci_host *host, struct mmc_request *mrq);
-extern void sdhci_dsm_set_host_status(struct sdhci_host *host, u32 error_bits);
-#endif
-
 #ifdef CONFIG_MMC_CQ_HCI
 extern irqreturn_t sdhci_cmdq_irq(struct mmc_host *mmc, u32 intmask);
 extern void sdhci_cmdq_init(struct sdhci_host *host, struct mmc_host *mmc);
@@ -2744,11 +2739,7 @@ out:
 	if (!sdhci_has_requests(host))
 		sdhci_led_deactivate(host);
 
-	host->mrqs_done[i] = NULL;/*lint !e661*/ /* [false alarm]*/
-
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-	sdhci_dsm_handle(host, mrq);
-#endif
+	host->mrqs_done[i] = NULL;
 
 	mmiowb();
 	spin_unlock_irqrestore(&host->lock, flags);
@@ -2884,9 +2875,6 @@ static void sdhci_cmd_irq(struct sdhci_host *host, u32 intmask, u32 *intmask_p)
 		if ((host->mmc->ios.timing >= MMC_TIMING_MMC_HS) &&
 		    (!(host->flags & SDHCI_EXE_SOFT_TUNING))) {
 			sdhci_dumpregs(host);
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-			sdhci_dsm_set_host_status(host, (intmask & ~SDHCI_INT_RESPONSE));
-#endif
                 }
 		sdhci_finish_mrq(host, host->cmd->mrq);
 		return;
@@ -3035,13 +3023,6 @@ static void sdhci_data_irq(struct sdhci_host *host, u32 intmask)
 			&& (!(host->flags & SDHCI_EXE_SOFT_TUNING))
 			) {
 			sdhci_dumpregs(host);
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-			sdhci_dsm_set_host_status(
-				host, intmask & (SDHCI_INT_DATA_TIMEOUT |
-						 SDHCI_INT_DATA_END_BIT |
-						 SDHCI_INT_DATA_CRC |
-						 SDHCI_INT_ADMA_ERROR));
-#endif
 		}
 		sdhci_finish_data(host);
 	} else {

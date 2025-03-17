@@ -270,23 +270,11 @@ struct sdhci_mshc_data {
 	int tuning_strobe_phase_min;
 
 	bool need_delay_measure;
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-	u64 para;
-	u32 cmd_data_status;
-	void *data;
-	struct work_struct dsm_work;
-	spinlock_t sdhci_dsm_lock;
-#endif
 };
 
 extern void sdhci_dumpregs(struct sdhci_host *host);
 extern int sdhci_get_cmd_err(u32 intmask);
 extern int sdhci_get_data_err(u32 intmask);
-
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-extern void sdhci_dsm_handle(struct sdhci_host *host, struct mmc_request *mrq);
-extern void sdhci_dsm_set_host_status(struct sdhci_host *host, u32 error_bits);
-#endif
 
 void sdhci_i2c_writel(struct sdhci_host *host, u32 val, u32 addr);
 u32 sdhci_i2c_readl(struct sdhci_host *host, u32 addr);

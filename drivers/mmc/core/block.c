@@ -84,10 +84,6 @@
 #include <linux/mmc/dsm_sdcard.h>
 #endif
 
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-#include <linux/mmc/dsm_emmc.h>
-#endif
-
 #ifdef CONFIG_HUAWEI_STORAGE_ROFA
 #include <chipset_common/storage_rofa/storage_rofa.h>
 #endif
@@ -1561,11 +1557,6 @@ int mmc_blk_reset(struct mmc_blk_data *md, struct mmc_host *host,
 		host->card->auto_unlock = true;
 	}
 	host->card->state &= ~(MMC_STATE_LOCKED | MMC_STATE_ENCRYPT);
-#endif
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-	if (mmc_card_mmc(host->card))
-		DSM_EMMC_LOG(host->card, DSM_EMMC_RW_TIMEOUT_ERR, "%s: eMMC enter reset, type=%d, partition=%d\n",
-			__FUNCTION__, type, md->part_type);
 #endif
 	err = mmc_hw_reset(host);
 	if (err && err != -EOPNOTSUPP) {
@@ -3489,9 +3480,6 @@ static int __init mmc_blk_init(void)
 	if (res)
 		goto out2;
 
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-	dsm_emmc_init();
-#endif
 	return 0;
  out2:
 	unregister_blkdev(MMC_BLOCK_MAJOR, "mmc");

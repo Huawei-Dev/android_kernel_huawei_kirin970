@@ -35,7 +35,6 @@
 #ifdef CONFIG_MMC_SDHCI_MSHC_LIBRA
 #include <linux/hisi/rdr_pub.h>
 #include <mntn_subtype_exception.h>
-#include <linux/mmc/dsm_emmc.h>
 #include <linux/mmc/sdio.h>
 #include <linux/mmc/sd.h>
 #endif
@@ -1367,14 +1366,6 @@ static int sdhci_mshc_probe(struct platform_device *pdev)
 
 #ifdef CONFIG_RPMB_MMC
 	(void)rpmb_mmc_init();
-#endif
-
-#ifdef CONFIG_MMC_SDHCI_MSHC_LIBRA
-#ifdef CONFIG_HUAWEI_EMMC_DSM
-	sdhci_mshc->data = (void *)host;
-	INIT_WORK(&sdhci_mshc->dsm_work, sdhci_dsm_work);
-	spin_lock_init(&sdhci_mshc->sdhci_dsm_lock);
-#endif
 #endif
 
 	ret = sdhci_add_host(host);
