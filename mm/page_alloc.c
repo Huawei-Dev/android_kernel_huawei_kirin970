@@ -87,10 +87,6 @@
 #include <chipset_common/allocpages_delayacct/allocpages_delayacct.h>
 #endif
 
-#ifdef CONFIG_HW_RECLAIM_ACCT
-#include <chipset_common/reclaim_acct/reclaim_acct.h>
-#endif
-
 #ifdef CONFIG_ANDROID_LOW_MEMORY_KILLER_DAEMON
 #include <linux/hisi/lowmem_killer.h>
 #endif
@@ -3701,13 +3697,7 @@ retry:
 	 */
 	if (!page && !drained) {
 		unreserve_highatomic_pageblock(ac, false);
-#ifdef CONFIG_HW_RECLAIM_ACCT
-		reclaimacct_drainallpages_start();
-#endif
 		drain_all_pages(NULL);
-#ifdef CONFIG_HW_RECLAIM_ACCT
-		reclaimacct_drainallpages_end();
-#endif
 		drained = true;
 		goto retry;
 	}
@@ -4095,14 +4085,8 @@ retry:
 #ifdef CONFIG_HISI_SLOW_PATH_COUNT
 	pgalloc_count_inc(1, order);
 #endif
-#ifdef CONFIG_HW_RECLAIM_ACCT
-	reclaimacct_directreclaim_start();
-#endif
 	page = __alloc_pages_direct_reclaim(gfp_mask, order, alloc_flags, ac,
 							&did_some_progress);
-#ifdef CONFIG_HW_RECLAIM_ACCT
-	reclaimacct_directreclaim_end();
-#endif
 	if (page)
 		goto got_pg;
 
