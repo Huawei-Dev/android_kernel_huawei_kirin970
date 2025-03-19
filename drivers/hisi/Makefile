@@ -94,3 +94,4 @@ obj-$(CONFIG_BOOT_DETECTOR) += hwbootfail/
 obj-$(CONFIG_HW_ERECOVERY) += hwerecovery/
 obj-$(CONFIG_HW_FDLEAK) += hwfdleak/
 obj-$(CONFIG_HW_MEMCHECK) += hwmemcheck/
+obj-$(CONFIG_HW_WIFI)       += hwnet/
