@@ -195,7 +195,6 @@ obj-$(CONFIG_HI_VCODEC_VDEC_HIVNA) += vcodec/hi_vcodec/vdec_hivna/
 obj-$(CONFIG_MULTIPLEXER)	+= mux/
 obj-y += devkit/tpkit/
 obj-$(CONFIG_HISILICON_PLATFORM)+= hisi/
-obj-$(CONFIG_LOGGER_EXTEND)	+= log/
 obj-$(CONFIG_AUDIOKIT) += devkit/audiokit/
 obj-y += contexthub/
 obj-$(CONFIG_HUAWEI_PLATFORM) += huawei_platform/
