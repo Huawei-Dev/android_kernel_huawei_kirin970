@@ -228,6 +228,4 @@ source "drivers/devkit/lcdkit/Kconfig"
 source "drivers/devkit/tpkit/Kconfig"
 
 source "drivers/connectivity/Kconfig"
-
-source "drivers/storage_rofa/Kconfig"
 endmenu
