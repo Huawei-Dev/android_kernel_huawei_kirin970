@@ -197,7 +197,6 @@ obj-$(CONFIG_HW_WIFI)       += hwnet/
 obj-y += devkit/tpkit/
 obj-$(CONFIG_HISILICON_PLATFORM)+= hisi/
 obj-$(CONFIG_LOGGER_EXTEND)	+= log/
-obj-$(CONFIG_BOOT_DETECTOR) += hwbootfail/
 obj-$(CONFIG_HW_ZEROHUNG) += hwzerohung/
 obj-$(CONFIG_HW_MEMCHECK) += hwmemcheck/
 obj-$(CONFIG_AUDIOKIT) += devkit/audiokit/
