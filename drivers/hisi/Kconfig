@@ -88,6 +88,7 @@ source "drivers/hisi/emcom/Kconfig"
 source "drivers/hisi/hwbootfail/Kconfig"
 source "drivers/hisi/hwerecovery/Kconfig"
 source "drivers/hisi/hwfdleak/Kconfig"
+source "drivers/hisi/hwmemcheck/Kconfig"
 endif #HISILICON_PLATFORM
 
 endmenu
