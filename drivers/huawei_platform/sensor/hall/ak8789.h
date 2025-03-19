@@ -30,7 +30,6 @@
 #include <linux/interrupt.h>
 #include <linux/platform_device.h>
 #include <linux/irq.h>
-#include <chipset_common/hwsensor/hall/hall_interface.h>
 
 #ifdef CONFIG_HUAWEI_DSM
 #include <dsm/dsm_pub.h>
@@ -90,6 +89,11 @@
 /* hall_type bite-0 instand north, bit-1 instand sourh */
 #define support_type_north(type) ((((unsigned int)(type)) & 0x01) != 0)
 #define support_type_south(type) ((((unsigned int)(type)) & 0x02) != 0)
+
+struct hall_interface_ops {
+	void *dev_data;
+	bool (*get_hall_status)(void);
+};
 
 struct hall_info {
 	unsigned int h_type;
@@ -153,6 +157,11 @@ struct ak8789_data {
 #endif
 #endif
 };
+
+static inline int hall_interface_ops_register(struct hall_interface_ops *ops)
+{
+	return -1;
+}
 
 #ifdef HALL_DATA_REPORT_INPUTDEV
 int ak8789_input_register(struct ak8789_data *data);
