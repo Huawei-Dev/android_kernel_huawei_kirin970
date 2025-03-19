@@ -22,12 +22,8 @@
 #define WLC_START_CHARING  1
 #define WLC_STOP_CHARING   0
 
-#ifdef CONFIG_WIRELESS_ACCESSORY
-void wlc_update_kb_control(int status);
-#else
 inline void wlc_update_kb_control(int status)
 {
 }
-#endif /* CONFIG_WIRELESS_ACCESSORY */
 
 #endif /* _WIRELESS_KEYBOARD_H_ */

@@ -2,7 +2,6 @@
 # wireless charger driver
 #
 
-
 config WIRELESS_IDTP9221
 	bool "wireless idt9221"
 	default n
@@ -13,10 +12,3 @@ config WIRELESS_IDTP9221
 	  with latest WPC Qi specification of BPP and EPP
 	  and also supports various proprietary fast charging
 	  protocols used by major smart phone OEM.
-
-config WIRELESS_ACCESSORY
-	bool "wireless accessory"
-	default n
-	help
-	  Say Y here to enable wireless accessory driver.
-	  The wireless accessory support wireless charging for huawei wireless pen

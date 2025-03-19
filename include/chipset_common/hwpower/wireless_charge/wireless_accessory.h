@@ -65,14 +65,9 @@ struct wireless_acc_dev {
 	struct wireless_acc_dev_info dev_info[ACC_DEV_NO_END];
 };
 
-#ifdef CONFIG_WIRELESS_ACCESSORY
-void wireless_acc_report_uevent(struct wireless_acc_key_info *key_info,
-	u8 info_no, u8 dev_no);
-#else
 static inline void wireless_acc_report_uevent(
 	struct wireless_acc_key_info *key_info, u8 info_no, u8 dev_no)
 {
 }
-#endif /* CONFIG_WIRELESS_ACCESSORY */
 
 #endif /* _WIRELESS_ACCESSORY_H_ */

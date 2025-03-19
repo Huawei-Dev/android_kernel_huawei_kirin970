@@ -103,11 +103,6 @@ struct lightstrap_di {
 	unsigned int work_freq;
 };
 
-#ifdef CONFIG_WIRELESS_ACCESSORY
-bool lightstrap_online_state(void);
-enum wltx_pwr_src lightstrap_specify_pwr_src(void);
-void lightstrap_reinit_tx_chip(void);
-#else
 static inline bool lightstrap_online_state(void)
 {
 	return false;
@@ -121,6 +116,5 @@ static inline enum wltx_pwr_src lightstrap_specify_pwr_src(void)
 static inline void lightstrap_reinit_tx_chip(void)
 {
 }
-#endif /* CONFIG_WIRELESS_ACCESSORY */
 
 #endif /* _WIRELESS_LIGHTSTRAP_H_ */

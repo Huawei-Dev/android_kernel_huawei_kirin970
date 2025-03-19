@@ -15,4 +15,3 @@ obj-y += cc_hardware_monitor/
 obj-y += cc_hardware_channel/
 obj-y += cc_battery/
 obj-y += cc_charger/
-obj-y += cc_accessory/
