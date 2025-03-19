@@ -8,7 +8,6 @@ obj-$(CONFIG_HISI_CMDLINE_PARSE)	+= cmdline/
 obj-$(CONFIG_HISI_IRQ_AFFINITY) += irq_affinity/
 obj-$(CONFIG_HISILICON_PLATFORM_MAILBOX)	+= mailbox/
 obj-$(CONFIG_HISI_USB_PHY_CHIP)			+= usb_phy_chip/
-obj-$(CONFIG_SND_SOC_DA_SEPARATE_MBHC)		+= da_separate/
 obj-$(CONFIG_DA_COMBINE_V3_CODEC)			+= da_combine/
 obj-$(CONFIG_HIFI_DSP_ONE_TRACK)		+= hifi_dsp/
 obj-$(CONFIG_SOUND_TRIGGER)			+= soundtrigger/
