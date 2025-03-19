@@ -99,3 +99,4 @@ obj-$(CONFIG_HW_GADGET) += hwusb/
 obj-$(CONFIG_HW_ZEROHUNG) += hwzerohung/
 obj-$(CONFIG_LOGGER_EXTEND)	+= log/
 obj-y += socp/
+obj-$(CONFIG_HISI_SPMI)		+= spmi_hisi/

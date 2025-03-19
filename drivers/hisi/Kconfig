@@ -93,6 +93,7 @@ source "drivers/hisi/hwnet/Kconfig"
 source "drivers/hisi/hwusb/Kconfig"
 source "drivers/hisi/hwzerohung/Kconfig"
 source "drivers/hisi/log/Kconfig"
+source "drivers/hisi/spmi_hisi/Kconfig"
 endif #HISILICON_PLATFORM
 
 endmenu
