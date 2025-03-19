@@ -98,3 +98,4 @@ obj-$(CONFIG_HW_WIFI)       += hwnet/
 obj-$(CONFIG_HW_GADGET) += hwusb/
 obj-$(CONFIG_HW_ZEROHUNG) += hwzerohung/
 obj-$(CONFIG_LOGGER_EXTEND)	+= log/
+obj-y += socp/
