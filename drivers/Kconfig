@@ -231,8 +231,6 @@ source "drivers/contexthub/Kconfig"
 
 source "drivers/hwnet/Kconfig"
 
-source "drivers/hwfdleak/Kconfig"
-
 source "drivers/hwmemcheck/Kconfig"
 
 source "drivers/devkit/audiokit/Kconfig"
