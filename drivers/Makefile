@@ -205,5 +205,3 @@ obj-$(CONFIG_HUAWEI_STORAGE_ROFA) += storage_rofa/
 
 # socp mem config
 obj-y += socp/
-
-obj-$(CONFIG_ICS_DRIVER) += ics_drivers/
