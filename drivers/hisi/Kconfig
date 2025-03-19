@@ -91,6 +91,7 @@ source "drivers/hisi/hwfdleak/Kconfig"
 source "drivers/hisi/hwmemcheck/Kconfig"
 source "drivers/hisi/hwnet/Kconfig"
 source "drivers/hisi/hwusb/Kconfig"
+source "drivers/hisi/hwzerohung/Kconfig"
 endif #HISILICON_PLATFORM
 
 endmenu
