@@ -39,9 +39,7 @@ void da_combine_dump_debug_info(void);
 
 void da_combine_utils_deinit(void);
 
-#ifdef CONFIG_HISI_DIEID
 int codec_get_dieid(char *dieid, unsigned int len);
-#endif
 
 unsigned int da_combine_utils_reg_read(unsigned int reg);
 

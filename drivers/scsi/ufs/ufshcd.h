@@ -1229,7 +1229,6 @@ enum ufs_dcmd_scenario {
 };
 #endif
 
-#ifdef CONFIG_HISI_DIEID
 #ifdef CONFIG_SCSI_UFSHCD
 int hufs_get_dieid(char *dieid, unsigned int len);
 #else
@@ -1237,7 +1236,6 @@ int hufs_get_dieid(char *dieid, unsigned int len)
 {
 	return -1;
 }
-#endif
 #endif
 
 /* Returns true if clocks can be gated. Otherwise false */

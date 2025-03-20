@@ -119,14 +119,14 @@ static inline void mmw_pmic_reg_write(int addr, int val)
 u32 pmic_read_sub_pmu(u8 sid, int reg);
 void pmic_write_sub_pmu(u8 sid, int reg, u32 val);
 int pmic_get_dieid(char *dieid, unsigned int len);
-#if defined(CONFIG_SUBPMU) && defined(CONFIG_HISI_DIEID)
+#ifdef CONFIG_SUBPMU
 int hisi_subpmu_get_dieid(char *dieid, unsigned int len);
 #endif
 
 static inline int hisi_sub_pmu_pmic_dieid(char *dieid, unsigned int len)
 {
 	int ret;
-#if defined(CONFIG_SUBPMU) && defined(CONFIG_HISI_DIEID)
+#ifdef CONFIG_SUBPMU
 	ret = hisi_subpmu_get_dieid(dieid, len);
 #endif
 	return ret;

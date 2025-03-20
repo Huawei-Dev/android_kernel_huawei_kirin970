@@ -60,9 +60,6 @@ obj-$(CONFIG_JPU_SUPPORT) += jpu/
 obj-$(CONFIG_HISI_TIMEKEEPER) += timekeeper/
 obj-$(CONFIG_TLB_CONFLICT_WORKAROUND) += tlb_conflict/
 obj-$(CONFIG_LPCPU_PMU_DUMP) += lpcpu_pmu_dump/
-ifeq ($(TARGET_VERSION_MODE),factory)
-obj-$(CONFIG_HISI_DIEID) += dieid/
-endif
 obj-$(CONFIG_HISPIPP) += ipp/
 obj-$(CONFIG_ACCURATE_DELAY) += accurate_delay/
 obj-$(CONFIG_PERF_CTRL) += perf_ctrl/

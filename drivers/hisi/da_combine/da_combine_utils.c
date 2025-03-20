@@ -83,12 +83,10 @@ void da_combine_utils_deinit(void)
 	g_snd_codec = NULL;
 }
 
-#ifdef CONFIG_HISI_DIEID
 int codec_get_dieid(char *dieid, unsigned int len)
 {
 	return -1;
 }
-#endif
 
 unsigned int da_combine_utils_reg_read(unsigned int reg)
 {

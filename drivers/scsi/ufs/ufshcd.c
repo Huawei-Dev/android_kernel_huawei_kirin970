@@ -291,7 +291,7 @@ static void ufshpb_compose_upiu(struct ufs_hba *hba, struct ufshcd_lrb *lrbp);
 /* default value of auto suspend is 3000ms*/
 /*#define UFSHCD_AUTO_SUSPEND_DELAY_MS 3000*/
 
-#if defined(CONFIG_SCSI_UFS_HI1861_VCMD) && defined(CONFIG_HISI_DIEID)
+#ifdef CONFIG_SCSI_UFS_HI1861_VCMD
 static u8 *ufs_hixxxx_dieid;
 static int is_fsr_read_failed;
 #define UFS_CONTROLLER_DIEID_SIZE 32
@@ -426,7 +426,6 @@ static int ufshcd_hba_uie_init(struct ufs_hba *hba);
 void ufshcd_fsr_dump_handler(struct work_struct *work);
 static void ufshcd_init_fsr_sys(struct ufs_hba *hba);
 
-#ifdef CONFIG_HISI_DIEID
 #define UFS_HIXXXX_PRODUCT_NAME                 "SS6100GBCV100"
 #define HIXXXX_PROD_LEN                         (13)
 #define UFS_PRODUCT_NAME_THOR920                "THR920"
@@ -435,7 +434,6 @@ static void ufshcd_init_fsr_sys(struct ufs_hba *hba);
 #define UFS_PRODUCT_NAME_LEN                    (6)
 char ufs_product_name[UFS_PRODUCT_NAME_LEN + 1];
 static void ufshcd_ufs_set_dieid(struct ufs_hba *hba, struct ufs_dev_desc *dev_desc);
-#endif
 #endif
 
 #ifdef CONFIG_SCSI_UFS_HS_ERROR_RECOVER
@@ -7679,11 +7677,8 @@ static int ufshcd_probe_hba(struct ufs_hba *hba)
 	}
 #endif
 
-#if defined(CONFIG_SCSI_UFS_HI1861_VCMD) && defined(CONFIG_HISI_DIEID)
-	ufshcd_ufs_set_dieid(hba, &card);
-#endif
-
 #ifdef CONFIG_SCSI_UFS_HI1861_VCMD
+	ufshcd_ufs_set_dieid(hba, &card);
 	ufshcd_device_capbitlity_config(hba);
 #endif
 
@@ -10419,7 +10414,7 @@ static void ufshcd_init_fsr_sys(struct ufs_hba *hba)
 		dev_err(hba->dev, "Failed to create sysfs for ufs fsrs\n");
 }
 
-#ifdef CONFIG_HISI_DIEID
+#ifdef CONFIG_SCSI_UFS_HI1861_VCMD
 static void ufshcd_ufs_set_dieid(struct ufs_hba *hba, struct ufs_dev_desc *dev_desc)
 {
 	/* allocate memory to hold full descriptor */
@@ -10557,10 +10552,9 @@ static int hufs_get_flash_dieid(
 #endif
 #endif
 
-#ifdef CONFIG_HISI_DIEID
+#ifdef CONFIG_SCSI_UFS_HI1861_VCMD
 int hufs_get_dieid(char *dieid, unsigned int len)
 {
-#ifdef CONFIG_SCSI_UFS_HI1861_VCMD
 	int length = 0;
 	int ret = 0;
 	u32 dieid_num = 0;
@@ -10613,9 +10607,6 @@ int hufs_get_dieid(char *dieid, unsigned int len)
 		return strlen(buf);
 
 	return 0;
-#else
-	return -1;
-#endif
 }
 #endif
 

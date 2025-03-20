@@ -19,7 +19,6 @@
 #ifndef __SUBPMU_H__
 #define __SUBPMU_H__
 
-#ifdef CONFIG_HISI_DIEID
 #define ID_OTP_CLK_CTRL	0x54
 #define ID_OTP_CTRL0	0x51
 #define ID_OTP_CTRL1	0x52
@@ -93,5 +92,4 @@ struct pmu_dieid_func_def {
 };
 
 int hisi_subpmu_get_dieid(char *dieid, unsigned int len);
-#endif
 #endif

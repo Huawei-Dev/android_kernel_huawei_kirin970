@@ -37,8 +37,6 @@
 #include <linux/delay.h>
 #include <securec.h>
 
-#ifdef CONFIG_HISI_DIEID
-
 #define PMUSSI0_BASE_ADDR	0xFFF34000
 #define PMUSSI_ADDR(ch, offset)	((char *)PMUSSI0_BASE_ADDR + (ch) * 0x2000 + ((offset) << 2))
 
@@ -402,4 +400,3 @@ out:
 	kfree(subpmu.pmu_info);
 	return ret;
 }
-#endif

@@ -46,8 +46,6 @@
 #define CODEC_BASE_ADDR_PAGE_ANA 0x7100
 #define CODEC_BASE_ADDR_PAGE_DIG 0x7200
 
-#ifdef CONFIG_HISI_DIEID
 int da_combine_v5_codec_get_dieid(char *dieid, unsigned int len);
-#endif
 
 #endif /* __DA_COMBINE_V5_H__ */
