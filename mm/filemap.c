@@ -36,7 +36,6 @@
 #include <linux/memcontrol.h>
 #include <linux/cleancache.h>
 #include <linux/rmap.h>
-#include <linux/hisi/page_tracker.h>
 #include <linux/hisi/pagecache_manage.h>
 #include <linux/hisi/pagecache_debug.h>
 #include <linux/file_map.h>
@@ -818,7 +817,6 @@ static int __add_to_page_cache_locked(struct page *page,
 	/* hugetlb pages do not participate in page cache accounting. */
 	if (!huge)
 		__inc_node_page_state(page, NR_FILE_PAGES);
-	page_tracker_set_type(page, TRACK_FILE, 0);
 	spin_unlock_irq(&mapping->tree_lock);
 	if (!huge)
 		mem_cgroup_commit_charge(page, memcg, false, false);

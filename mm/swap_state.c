@@ -21,7 +21,6 @@
 #include <linux/vmalloc.h>
 #include <linux/swap_slots.h>
 #include <linux/huge_mm.h>
-#include <linux/hisi/page_tracker.h>
 
 #include <asm/pgtable.h>
 #include "internal.h"
@@ -138,7 +137,6 @@ int __add_to_swap_cache(struct page *page, swp_entry_t entry)
 	if (likely(!error)) {
 		address_space->nrpages += nr;
 		__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, nr);
-		page_tracker_set_type(page, TRACK_FILE, 0);
 		__inc_zone_page_state(page, NR_SWAPCACHE);
 		ADD_CACHE_INFO(add_total, nr);
 	} else {
@@ -264,7 +262,6 @@ int __add_to_swap_cache(struct page *page, swp_entry_t entry, void **shadowp)
 		address_space->nrpages += nr;
 		address_space->nrexceptional -= nr_shadows;
 		__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, nr);
-		page_tracker_set_type(page, TRACK_FILE, 0);
 		__inc_zone_page_state(page, NR_SWAPCACHE);
 		ADD_CACHE_INFO(add_total, nr);
 	} else {

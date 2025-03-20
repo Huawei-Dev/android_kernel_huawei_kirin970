@@ -67,7 +67,6 @@
 #include <linux/ftrace.h>
 #include <linux/lockdep.h>
 #include <linux/nmi.h>
-#include <linux/hisi/page_tracker.h>
 #include <linux/hisi/hisi_ion.h>
 #include <linux/psi.h>
 #ifdef CONFIG_ZONE_MEDIA
@@ -1108,7 +1107,6 @@ static __always_inline bool free_pages_prepare(struct page *page,
 	page_cpupid_reset_last(page);
 	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
 	reset_page_owner(page, order);
-	page_tracker_reset_tracker(page, order);
 	if (!PageHighMem(page)) {
 		debug_check_no_locks_freed(page_address(page),
 					   PAGE_SIZE << order);
@@ -1864,8 +1862,6 @@ static void prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags
 
 	if (order && (gfp_flags & __GFP_COMP))
 		prep_compound_page(page, order);
-
-	page_tracker_set_tracker(page, order);
 
 	/*
 	 * page is set pfmemalloc when ALLOC_NO_WATERMARKS was necessary to
@@ -2720,7 +2716,6 @@ void split_page(struct page *page, unsigned int order)
 	VM_BUG_ON_PAGE(PageCompound(page), page);
 	VM_BUG_ON_PAGE(!page_count(page), page);
 
-	page_tracker_set_tracker(page, 0);
 	for (i = 1; i < (1 << order); i++)
 		set_page_refcounted(page + i);
 	split_page_owner(page, order);
@@ -2770,8 +2765,6 @@ int __isolate_free_page(struct page *page, unsigned int order)
 							  MIGRATE_MOVABLE);
 		}
 	}
-
-	page_tracker_set_tracker(page, order);
 
 	return 1UL << order;
 }
@@ -4333,8 +4326,7 @@ out:
 	trace_mm_page_alloc(page, order, alloc_mask, ac.migratetype);
 
 	if (page) {
-		page_tracker_set_trace(page, _RET_IP_, order);/*lint !e571*/
-		page_trace_hook(gfp_mask, (unsigned char)MEM_ALLOC, _RET_IP_, page, order);/*lint !e571*/
+		page_trace_hook(gfp_mask, (unsigned char)MEM_ALLOC, _RET_IP_, page, order);
 	}
 #ifdef CONFIG_HISI_PAGE_TRACE
 	if (page)
@@ -4360,8 +4352,6 @@ unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order)
 	page = alloc_pages(gfp_mask, order);
 	if (!page)
 		return 0;
-
-	page_tracker_set_trace(page, _RET_IP_, order); /*lint !e571*/
 
 	return (unsigned long) page_address(page);
 }

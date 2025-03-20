@@ -35,7 +35,6 @@
 #include <linux/uio.h>
 #include <linux/khugepaged.h>
 #include <linux/hugetlb.h>
-#include <linux/hisi/page_tracker.h>
 #include <asm/tlbflush.h> /* for arch/microblaze update_mmu_cache() */
 
 static struct vfsmount *shm_mnt;
@@ -77,7 +76,6 @@ static struct vfsmount *shm_mnt;
 #include <linux/userfaultfd_k.h>
 #include <linux/rmap.h>
 #include <linux/uuid.h>
-#include <linux/hisi/page_tracker.h>
 
 #include <linux/uaccess.h>
 #include <asm/pgtable.h>
@@ -625,8 +623,6 @@ static int shmem_add_to_page_cache(struct page *page,
 			__inc_node_page_state(page, NR_SHMEM_THPS);
 		__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, nr);
 		__mod_node_page_state(page_pgdat(page), NR_SHMEM, nr);
-
-		page_tracker_set_type(page, TRACK_FILE, 0);
 
 		spin_unlock_irq(&mapping->tree_lock);
 	} else {

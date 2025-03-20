@@ -40,7 +40,6 @@ if HISI_INC_MODEM_CONFIG
 -source "drivers/hisi/modem/Kconfig"
 endif
 source "drivers/hisi/ivp/Kconfig"
-source "drivers/hisi/hisi_page_tracker/Kconfig"
 source "drivers/hisi/timekeeper/Kconfig"
 source "drivers/hisi/max_power/Kconfig"
 source "drivers/hisi/hhee/Kconfig"

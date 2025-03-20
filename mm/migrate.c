@@ -46,7 +46,6 @@
 #include <linux/page_owner.h>
 #include <linux/sched/mm.h>
 #include <linux/ptrace.h>
-#include <linux/hisi/page_tracker.h>
 
 #include <asm/tlbflush.h>
 
@@ -783,7 +782,6 @@ int migrate_page(struct address_space *mapping,
 		migrate_page_copy(newpage, page);
 	else
 		migrate_page_states(newpage, page);
-	page_tracker_change_tracker(newpage, page);
 	return MIGRATEPAGE_SUCCESS;
 }
 EXPORT_SYMBOL(migrate_page);

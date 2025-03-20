@@ -35,7 +35,6 @@
 #include <linux/hisi/hisi_ion.h>
 #include <linux/version.h>
 #include <linux/skbuff.h>
-#include <linux/hisi/page_tracker.h>
 #ifdef CONFIG_SLUB
 #include <linux/slub_def.h>
 #endif
@@ -128,8 +127,6 @@ static void lowmem_dump(struct work_struct *work)
 		alloc_skb_with_frags_stats_show();
 	}
 #endif
-	if (verbose)
-		page_tracker_wake_up();
 	mutex_unlock(&lowmem_dump_mutex);
 }
 
