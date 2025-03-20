@@ -5121,7 +5121,6 @@ CONFIG_ACCURATE_DELAY=y
 # Performace Control
 #
 CONFIG_PERF_CTRL=y
-CONFIG_HISI_DUMMY_KO=m
 
 #
 # RPMB support
