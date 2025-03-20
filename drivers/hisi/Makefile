@@ -13,7 +13,6 @@ obj-$(CONFIG_HISILICON_PLATFORM_DDRC)   += ddrc/
 obj-$(CONFIG_HISI_NOC)	+= noc/
 obj-$(CONFIG_BSP_SYSCOUNTER) += syscounter/
 obj-$(CONFIG_PLATFORM_SLIMBUS)+= slimbus/
-obj-$(CONFIG_HSDTTRACE) += hsdt_trace/
 obj-y += hhee/
 obj-$(CONFIG_HISI_KERNEL_HARDEN_DEBUG) += kernel_harden_test/
 

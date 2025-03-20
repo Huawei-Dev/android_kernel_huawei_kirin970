@@ -1,5 +1,0 @@
-config HSDTTRACE
-	bool "hsdttrace module support"
-	default n
-	help
-		HSDT Trace Function
