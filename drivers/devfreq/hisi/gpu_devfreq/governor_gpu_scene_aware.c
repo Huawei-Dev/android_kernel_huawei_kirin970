@@ -786,47 +786,6 @@ static struct attribute_group dev_attr_group = {
 
 static void gpufreq_scene_aware_policy_init(struct devfreq *devfreq)
 {
-#ifdef CONFIG_GPUFREQ_GOV_POLICY_USING_DTSI
-	int ret, count, i;
-	unsigned int cl_boost_freq;
-	struct device_node *np = NULL;
-	const char *scene_para = NULL;
-	struct devfreq_gpu_scene_aware_data *data = devfreq->data;
-
-	np = of_find_compatible_node(NULL, NULL, "hisi,scene-aware");
-	if (np == NULL) {
-		pr_err("%s: find hisi,scene-aware fail\n", __func__);
-		return;
-	}
-
-	ret = of_property_read_u32(np, "cl-boost-freq", &cl_boost_freq);
-	if (ret != 0)
-		pr_err("%s: read cl-boost-freq fail\n", __func__);
-	else
-		data->cl_boost_freq = cl_boost_freq;
-
-	count = of_property_count_strings(np, "scene-para");
-	if (count <= 0) {
-		pr_err("%s: count scene-para err %d\n", __func__, count);
-		of_node_put(np);
-		return;
-	}
-
-	count = min(count, SURPORT_POLICY_NUM);
-	for (i = 0; i < count; i++) {
-		ret = of_property_read_string_index(np, "scene-para", i, &scene_para);
-		if (ret != 0)
-			continue;
-
-		ret = policy_para_parse(devfreq, scene_para, strlen(scene_para) + 1);
-		if (ret != 0) {
-			pr_err("%s: parse scene-para %s fail\n", __func__, scene_para);
-			of_node_put(np);
-			return;
-		}
-	}
-	of_node_put(np);
-#endif
 }
 
 static int gpu_scene_aware_init(struct devfreq *devfreq)
