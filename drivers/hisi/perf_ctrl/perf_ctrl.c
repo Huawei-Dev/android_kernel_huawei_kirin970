@@ -101,13 +101,13 @@ static long perf_ctrl_ioctl(struct file *file, unsigned int cmd,
 		return perf_ctrl_get_gpu_buffer_size(uarg);
 
 	case PERF_CTRL_SET_LB_POLICY:
-		return perf_ctrl_lb_set_policy(uarg);
+		return 0;
 
 	case PERF_CTRL_RESET_LB_POLICY:
-		return perf_ctrl_lb_reset_policy(uarg);
+		return 0;
 
 	case PERF_CTRL_GET_LB_LITE_INFO:
-		return perf_ctrl_lb_lite_info(uarg);
+		return 0;
 
 	case PERF_CTRL_ENABLE_GPU_LB:
 		return perf_ctrl_enable_gpu_lb(uarg);

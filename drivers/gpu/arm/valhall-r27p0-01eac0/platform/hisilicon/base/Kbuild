@@ -14,8 +14,5 @@
 #
 #
 
-# Compile the hisilicon last buffer implementation.
-#include $(src)/$(MALI_PLATFORM_DIR)/base/lb/Kbuild
-
 # Compile the hisilicon memory group manager implementation.
 include $(src)/$(MALI_PLATFORM_DIR)/base/mgm/Kbuild

@@ -23,7 +23,6 @@
 #include <linux/hisi/ddr_perf_ctrl.h>
 #include <linux/render_rt.h>
 #include <linux/sched_perf_ctrl.h>
-#include <linux/hisi/hisi_lb.h>
 #include <linux/cpufreq_perf_ctrl.h>
 #include <linux/hisi/l3cache_partition_ctrl.h>
 
@@ -79,6 +78,13 @@ enum {
 	CAP_AI_SCHED_COMM_CMD = 0,
 	CAP_RTG_CMD,
 	CAP_RENDER_RT_CMD,
+};
+
+struct lb_policy_config {
+	unsigned int pid;
+	unsigned int quota;
+	unsigned int prio;
+	unsigned int available;
 };
 
 struct drg_dev_freq {

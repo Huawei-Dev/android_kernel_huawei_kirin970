@@ -23,7 +23,6 @@
 #include <linux/rbtree.h>
 #include <linux/slab.h>
 #include <linux/hisi/hisi_ion.h>
-#include <linux/hisi/hisi_lb.h>
 #include <linux/dma-buf.h>
 #include <linux/kernel.h>
 
@@ -159,28 +158,12 @@ void hicam_internal_unmap_iommu(struct device *dev, int fd,
 
 void hicam_internal_sc_available_size(struct systemcache_format *fmt)
 {
-	if (is_lb_available() == 0) {
-		fmt->size = 0;
-		return;
-	}
-
-	fmt->size = lb_get_available_size();
+	fmt->size = 0;
 }
 
 int hicam_internal_sc_wakeup(struct systemcache_format *fmt)
 {
-	int rc;
-
-	cam_info("%s: prio %u for pid %u", __FUNCTION__, fmt->prio, fmt->pid);
-	if (fmt->prio == 1)
-		rc =  lb_up_policy_prio(fmt->pid);
-	else
-		rc =  lb_down_policy_prio(fmt->pid);
-
-	if (rc < 0)
-		cam_err("%s: failed", __FUNCTION__);
-
-	return rc;
+	return 0;
 }
 
 struct sgtable_node *find_sgtable_node_by_fd(struct priv_ion_t *ion, int fd)

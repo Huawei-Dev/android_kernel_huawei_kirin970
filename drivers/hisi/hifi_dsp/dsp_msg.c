@@ -32,7 +32,6 @@
 #include "usbaudio_ioctl.h"
 #include "soundtrigger_socdsp_mailbox.h"
 
-#include "hisi_lb.h"
 #include "dsp_lpp.h"
 
 #define FPGA_TIMEOUT_LEN_MS 10000

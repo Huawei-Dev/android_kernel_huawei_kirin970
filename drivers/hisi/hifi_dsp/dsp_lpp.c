@@ -40,8 +40,6 @@
 #include "om_debug.h"
 #include "om_bigdata.h"
 
-#include "hisi_lb.h"
-
 #define FILE_PROC_DIRECTORY "hifidsp"
 
 struct dsp_lpp_priv {

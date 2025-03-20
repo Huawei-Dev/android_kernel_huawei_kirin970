@@ -1,7 +1,6 @@
 menu "L3Cache"
 config L3CACHE_EXTENSION
 	bool "l3cache extension"
-	depends on HISI_LB_L3_EXTENSION
 	default n
 	help
 	 support l3cache extension

@@ -29,9 +29,6 @@
 #include <linux/atomic.h>
 #include <linux/version.h>
 #include <linux/delay.h>
-#ifdef CONFIG_MALI_LAST_BUFFER
-#include <linux/hisi/hisi_lb.h>
-#endif
 
 #define pool_dbg(pool, format, ...) \
 	dev_dbg(pool->kbdev->dev, "%s-mali_pool [%zu/%zu]: " format,	\

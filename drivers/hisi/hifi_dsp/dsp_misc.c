@@ -42,12 +42,28 @@
 #include "om_debug.h"
 #include "om_bigdata.h"
 
-
-#include "hisi_lb.h"
 #include "dsp_lpp.h"
 #include "dsp_msg.h"
 
 #define DTS_COMP_HIFIDSP_NAME "hisilicon,k3hifidsp"
+
+enum lb_pid {
+	PID_BY_PASS = 0,
+
+	PID_CAMAIP = 1,
+	PID_GPUFBO  = 2,
+	PID_GPUTXT  = 3,
+	PID_IDISPLAY = 4,
+	PID_NPU     = 5,
+	PID_VIDEO   = 6,
+	PID_CAMTOF = 7,
+	PID_TINY    = 8,
+	PID_AUDIO   = 9,
+	PID_VOICE   = 10,
+	PID_ISPNN   = 11,
+
+	PID_MAX,
+};
 
 static DEFINE_SEMAPHORE(s_misc_sem);
 
@@ -127,7 +143,7 @@ void dsp_reset_release_syscache(void)
 		if (!g_request_flag[i])
 			continue;
 
-		ret = lb_release_quota(get_syscache_pid(i));
+		ret = 0;
 		if (ret != 0) {
 			loge("reset release syscache fail. ret %d pid %u\n",
 				ret, get_syscache_pid(i));
@@ -165,14 +181,14 @@ static void set_audio_syscache_quota(enum socdsp_om_work_id work_id,
 	pid = get_syscache_pid(msg->session);
 
 	if (msg->msg_type == SYSCACHE_QUOTA_REQUEST) {
-		ret = lb_request_quota(pid);
+		ret = 0;
 		if (ret != 0) {
 			loge("request syscache fail ret %d pid %u\n", ret, pid);
 			return;
 		}
 		g_request_flag[msg->session] = true;
 	} else {
-		ret = lb_release_quota(pid);
+		ret = 0;
 		if (ret != 0) {
 			loge("release syscache fail ret %d pid %u\n", ret, pid);
 			return;

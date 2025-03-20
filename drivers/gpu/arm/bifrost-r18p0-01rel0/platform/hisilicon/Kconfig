@@ -59,7 +59,7 @@ config HISI_GPU_CORE_HOTPLUG
 
 config MALI_LAST_BUFFER
 	bool "Last buffer"
-	depends on MALI_MIDGARD && MALI_EXPERT && MALI_PLATFORM_HISILICON && HISI_LB
+	depends on MALI_MIDGARD && MALI_EXPERT && MALI_PLATFORM_HISILICON
 	default n
 	help
 	  Select  this option to enable last buffer support.
