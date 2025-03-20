@@ -1,9 +1,4 @@
-ifeq ($(CONFIG_HI11XX_DRIVER_PATH),)
-HI110X_DRIVER_BUILTIN_PATH ?= drivers/connectivity/hi11xx
-else
-HI110X_DRIVER_BUILTIN_PATH ?= $(subst ",,$(CONFIG_HI11XX_DRIVER_PATH))
-endif
-
+HI110X_DRIVER_BUILTIN_PATH := drivers/connectivity/hi11xx
 DRIVER_FLODER = platform
 export _PRE_PRODUCT_VERSION ?= 1105
 export HI110X_BOARD_VERSION ?= default
@@ -284,14 +279,12 @@ export HI1102_MAKE_FLAG=MODULES
 export HI110X_DRIVER_SRC_PATH ?= $(shell pwd)/..
 
 ifeq (Hi3751, $(findstring Hi3751,$(TARGET_DEVICE)))
-# 大屏Hi3751平台编译使用的参数
 MODULE_PARAM ?= ARCH=arm64 CROSS_COMPILE=aarch64-hisiv610-linux- CONFIG_HI110X_KERNEL_MODULES_BUILD_SUPPORT=yes
 KERNEL_DIR ?= $(LINUX_SRC)
 else ifeq (v818, $(findstring v818,$(TARGET_DEVICE)))
 MODULE_PARAM ?= ARCH=arm64 CROSS_COMPILE=aarch64-hi100-linux- CONFIG_HI110X_KERNEL_MODULES_BUILD_SUPPORT=no
 KERNEL_DIR ?= $(LINUX_SRC)
 else
-# 非Hi3751平台编译使用的参数
 ANDROID_PRODUCT=hi6210sft
 ifeq ($(ARCH),arm64)
 ANDROID_PATH ?= /home/dengwenhua/zhouxinfeng/k3v5
@@ -305,7 +298,7 @@ KERNEL_DIR ?= $(ANDROID_PATH)/out/target/product/$(ANDROID_PRODUCT)/obj/KERNEL_O
 CROSS_DIR ?= $(ANDROID_PATH)/prebuilts/gcc/linux-x86/arm/arm-eabi-4.6/bin:$(ANDROID_PATH)/prebuilts/gcc/linux-x86/arm/gcc-linaro-aarch64-linux-gnu-4.8/bin
 PATH := $(CROSS_DIR):$(PATH)
 CONFIG_HI110X_KERNEL_MODULES_BUILD_SUPPORT ?= yes
-endif # ifeq Hi3751
+endif
 
 default:
 	$(MAKE) -C $(KERNEL_DIR) $(MODULE_PARAM)  M=$(HI110X_DRIVER_SRC_PATH)/$(DRIVER_FLODER) modules
