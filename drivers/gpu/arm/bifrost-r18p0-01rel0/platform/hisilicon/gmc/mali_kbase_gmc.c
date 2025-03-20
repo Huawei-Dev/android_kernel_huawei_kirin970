@@ -775,146 +775,6 @@ void kbase_gmc_walk_region_work(struct work_struct *work)
 	wake_up_interruptible(&gmc_wait);
 }
 
-#ifdef CONFIG_MALI_NORR_PHX
-/*
- * kbase_gmc_work_execute_wait - Wait for the work execution to complete.
- * Return: 0 on success or error.
- */
-static int kbase_gmc_work_execute_wait()
-{
-	int ret = 0;
-	long timeout_jiff = msecs_to_jiffies(GMC_WORKER_TIMEOUT_MS);
-	while (atomic_read(&n_gmc_workers) > 0) {
-		int err = wait_event_interruptible_timeout(gmc_wait,
-			!atomic_read(&n_gmc_workers), timeout_jiff);
-		if (err <= 0) {
-			pr_alert("Timeout while waiting GMC workers, \
-				it takes more than %d ms\n",
-				GMC_WORKER_TIMEOUT_MS);
-			return -ETIMEDOUT;
-		}
-	}
-	return ret;
-}
-
-/*
- * kbase_gmc_queue_work - Compress and decompress the work enqueue.
- *
- * @kctx:      Graphical context
- * @rb_root:   RB tree of the memory regions
- *
- * Return: 0 on success or error.
- */
-static int kbase_gmc_work_enqueue(struct kbase_context *kctx,
-	struct kbase_gmc_arg arg, struct rb_root *va_rb_root, int *nr_pages_to_compressed)
-{
-	int ret = 0;
-	struct kbase_device *kbdev = kctx->kbdev;
-	struct kbase_va_region *reg = NULL;
-	struct workqueue_struct *local_workqueue = NULL;
-	struct rb_node *node = NULL;
-
-	if (kbdev->hisi_dev_data.gmc_workqueue != NULL)
-		local_workqueue = kbdev->hisi_dev_data.gmc_workqueue;
-	else
-		local_workqueue  = system_unbound_wq;
-
-	for_each_rb_node(va_rb_root, node) {
-		reg = rb_entry(node, struct kbase_va_region, rblink);
-		if (is_region_free(reg))
-			continue;
-		reg->op = arg.op;
-
-		atomic_inc(&n_gmc_workers);
-		queue_work(local_workqueue, &reg->gmc_work);
-
-		if (arg.op != GMC_COMPRESS)
-			continue;
-
-		*nr_pages_to_compressed -= reg->cpu_alloc->nents;
-		if (*nr_pages_to_compressed <= 0)
-			// only compress arg->compress_size
-			break;
-
-		if (kbdev->hisi_dev_data.gmc_cancel != 0)
-			break;
-		if (atomic_read(&n_gmc_workers) % GMC_BATCH_OPERATION_SIZE == 0) {
-			ret = kbase_gmc_work_execute_wait();
-			if (ret < 0) {
-				if (kbdev->hisi_dev_data.gmc_cancel != 0)
-					kbdev->hisi_dev_data.gmc_cancel = 0;
-				return ret;
-			}
-		}
-	}
-	return ret;
-}
-
-/*
- * kbase_gmc_walk_kctx - Walk through not freed kctxs regions.
- *
- * @kctx:      Graphical context
- * @op:         Operation - could be GMC_COMPRESS, GMC_DECOMPRESS or
- *
- * Return: 0 on success or error.
- */
-static int kbase_gmc_walk_kctx(struct kbase_context *kctx,
-				struct kbase_gmc_arg arg)
-{
-	int ret;
-	struct kbase_gmc_tsk gmc_tsk;
-	int n_workers_failed;
-	int nr_pages_to_compressed = GMC_MAX_COMPRESS_SIZE_IN_MEGA *
-		GMC_PAGES_PER_MEGA;
-	struct kbase_device *kbdev = kctx->kbdev;
-	gmc_tsk.kctx = kctx;
-	gmc_tsk.task = NULL;
-
-	if (arg.op == GMC_COMPRESS) {
-		if (arg.compress_size >= GMC_MAX_COMPRESS_SIZE_IN_MEGA ||
-			arg.compress_size == 0)
-			arg.compress_size = GMC_MAX_COMPRESS_SIZE_IN_MEGA;
-		nr_pages_to_compressed = arg.compress_size *
-					GMC_PAGES_PER_MEGA; // in pages
-	}
-
-	KBASE_DEBUG_ASSERT(!atomic_read(&n_gmc_workers));
-	atomic_set(&n_gmc_workers_failed, 0);
-	ret = kbase_gmc_trylock_task(&gmc_tsk, arg.op);
-	if (ret)
-		return ret;
-
-	if (arg.op == GMC_DECOMPRESS)
-		kctx->hisi_ctx_data.set_pt_flag = true;
-
-	ret = kbase_gmc_work_enqueue(kctx, arg, &(kctx->reg_rbtree_same),
-		&nr_pages_to_compressed);
-	if (ret < 0) {
-		kbase_gmc_unlock_task(&gmc_tsk, arg.op);
-		return ret;
-	}
-
-	if ((arg.op == GMC_COMPRESS) && (kbdev->hisi_dev_data.gmc_cancel != 0))
-		kbdev->hisi_dev_data.gmc_cancel = 0;
-
-	ret = kbase_gmc_work_execute_wait();
-	if (ret < 0) {
-		kbase_gmc_unlock_task(&gmc_tsk, arg.op);
-		return ret;
-	}
-
-	if (arg.op == GMC_DECOMPRESS)
-		kctx->hisi_ctx_data.set_pt_flag = false;
-
-	kbase_gmc_unlock_task(&gmc_tsk, arg.op);
-	n_workers_failed = atomic_read(&n_gmc_workers_failed);
-	if (n_workers_failed > 0) {
-		pr_err("%d workers has failed to complete\n", n_workers_failed);
-		ret = -EINVAL;
-	}
-	return ret;
-}
-#else
 /**
  * kbase_gmc_walk_kctx - Walk through not freed kctxs regions.
  *
@@ -1012,7 +872,6 @@ static int kbase_gmc_walk_kctx(struct kbase_context *kctx,
 	}
 	return ret;
 }
-#endif
 
 int kbase_get_compressed_region(struct kbase_va_region *reg, u64 vpfn,
 				size_t nr)
@@ -1128,22 +987,6 @@ int kbase_gmc_decompress(pid_t pid, struct gmc_device *gmc_dev)
 	return kbase_gmc_walk_device(kbdev, pid, arg);
 }
 
-#ifdef CONFIG_MALI_NORR_PHX
-int kbase_gmc_cancel(long cancel, struct gmc_device *gmc_dev)
-{
-	struct kbase_hisi_device_data *hisi_dev = container_of(gmc_dev,
-		struct kbase_hisi_device_data,
-		kbase_gmc_device);
-
-	struct kbase_device *kbdev = container_of(hisi_dev, struct kbase_device,
-		hisi_dev_data);
-	if (cancel == 1)
-		kbdev->hisi_dev_data.gmc_cancel = 1;
-	else
-		kbdev->hisi_dev_data.gmc_cancel = 0;
-	return 0;
-}
-#else
 /**
  * Implement an empty interface.
  * Because the cancel node created in the file gmc.c cannot distinguish between platforms,
@@ -1154,7 +997,6 @@ int kbase_gmc_cancel(long cancel, struct gmc_device *gmc_dev)
 {
 	return 0;
 }
-#endif
 
 int kbase_gmc_meminfo_open(struct inode *in, struct file *file)
 {

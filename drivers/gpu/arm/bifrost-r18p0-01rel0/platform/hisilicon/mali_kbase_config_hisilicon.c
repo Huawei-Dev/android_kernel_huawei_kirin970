@@ -868,13 +868,6 @@ static int kbase_platform_backend_init(struct kbase_device *kbdev)
 	if (gmc_register_device(&kbase_gmc_ops, &kbdev->hisi_dev_data.kbase_gmc_device)) {
 		/* Failed to initialize GMC. */
 		dev_warn(kbdev->dev, "GMC initialization failed.\n");
-#ifdef CONFIG_MALI_NORR_PHX
-	} else {
-		kbdev->hisi_dev_data.gmc_workqueue =
-			alloc_workqueue("gmc_workqueue", WQ_UNBOUND | WQ_FREEZABLE, 0);
-		if (kbdev->hisi_dev_data.gmc_workqueue == NULL)
-			dev_warn(kbdev->dev, "GMC workqueue alloc failed.\n");
-#endif
 	}
 #endif
 
@@ -893,12 +886,6 @@ static void kbase_platform_backend_term(struct kbase_device *kbdev)
 #if defined(CONFIG_MALI_MIDGARD_DVFS) && defined(CONFIG_DEVFREQ_THERMAL)
 	if (kbdev->hisi_dev_data.ipa_ctx)
 		kbase_dynipa_term(kbdev->hisi_dev_data.ipa_ctx);
-#endif
-#ifdef CONFIG_GPU_GMC_GENERIC
-#ifdef CONFIG_MALI_NORR_PHX
-	if (kbdev->hisi_dev_data.gmc_workqueue)
-		destroy_workqueue(kbdev->hisi_dev_data.gmc_workqueue);
-#endif
 #endif
 	kbdev->hisi_dev_data.callbacks = NULL;
 }

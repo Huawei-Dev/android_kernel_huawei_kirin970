@@ -63,33 +63,19 @@
 /**
  * @value set to gpu power KEY/OVERRIDE
  */
-#ifdef CONFIG_MALI_NORR_PHX
-#define KBASE_PWR_KEY_VALUE             0x2968a819
-#define KBASE_PWR_OVERRIDE_VALUE        0xd036206c
-#else
 #define KBASE_PWR_KEY_VALUE             0x2968a819
 #define KBASE_PWR_OVERRIDE_VALUE        0xc4b00960
-#endif /* CONFIG_MALI_NORR_PHX */
 
 /**
  * @define the soc modules mmap address for pmctrl, crg, pctrl
  */
-#if defined(CONFIG_MALI_GONDUL) || defined(CONFIG_MALI_NORR) || \
-	defined(CONFIG_MALI_SIGURD) || defined(CONFIG_MALI_HEIMDALL)
+#ifdef CONFIG_MALI_HEIMDALL
 /* PMCTRL control registers */
 #define SYS_REG_PMCTRL_BASE_ADDR        0xFFF31000
 /* Crg control registers */
 #define SYS_REG_CRG_BASE_ADDR           0xFFF35000
 /* PCTRL control registers */
 #define SYS_REG_PCTRL_BASE_ADDR         0xE8A09000
-#elif defined(CONFIG_MALI_NORR_PHX)
-#define SYS_REG_PMCTRL_BASE_ADDR        0xFFF01000
-#define SYS_REG_CRG_BASE_ADDR           0xFFF05000
-#define SYS_REG_PCTRL_BASE_ADDR         0xFE02E000
-#else
-#define SYS_REG_PMCTRL_BASE_ADDR        0xFFF01000
-#define SYS_REG_CRG_BASE_ADDR           0xFFF05000
-#define SYS_REG_PCTRL_BASE_ADDR         0xFFA2E000
 #endif
 #define SYS_REG_PCTRL_BASE_ADDR_CS2     0xFFA2E000
 
@@ -110,56 +96,17 @@
 #define PERI_CTRL92                     0x230
 #define MASK_PERI_CTRL93                0x70000
 
-#if defined(CONFIG_MALI_GONDUL)
-#define PERI_STAT_FPGA_GPU_EXIST        0xC4
-#define PERI_STAT_FPGA_GPU_EXIST_MASK   0x4
-#elif defined(CONFIG_MALI_NORR_PHX)
-#define PERI_STAT_FPGA_GPU_EXIST        0xBC
-#define PERI_STAT_FPGA_GPU_EXIST_MASK   0x40
-#else
 #define PERI_STAT_FPGA_GPU_EXIST        0xBC
 #define PERI_STAT_FPGA_GPU_EXIST_MASK   0x400000
-#endif
 
-#if defined(CONFIG_MALI_MIMIR) || defined(CONFIG_MALI_SIGURD)
-#define G3DAUTOCLKDIVBYPASS             0x268
-#define VS_CTRL_2                       0x46c
-#elif defined(CONFIG_MALI_HEIMDALL)
+#ifdef CONFIG_MALI_HEIMDALL
 #define G3DAUTOCLKDIVBYPASS             0x268
 #define VS_CTRL_2                       0x418
-#elif defined(CONFIG_MALI_NORR)
-#define G3DAUTOCLKDIVBYPASS             0x258
-#define VS_CTRL_2                       0x448
-#elif defined(CONFIG_MALI_NORR_PHX) || defined(CONFIG_MALI_GONDUL)
-#define G3DAUTOCLKDIVBYPASS             0x1D8
-#define VS_CTRL_2                       0x448
 #endif
 /* for cs */
 #define G3DAUTOCLKDIVBYPASS_2           0x248
 #define VS_CTRL_GPU                     0x448
 
-#if defined(CONFIG_MALI_NORR_PHX)
-/* set [1]bit to 1, Hardware auto shutdown */
-#define MASK_AUTOSDBYHW                 0x2
-#define MASK_ENABLEDSBYSF               0x1FFFF
-#define MASK_DISABLEDSBYSF              0xFFFE0000
-/* Hardware auto shutdown */
-#define HW_AUTO_SHUTDOWN                PERI_CTRL93
-/* deep sleep by software */
-#define DEEP_SLEEP_BYSW                 PERI_CTRL92
-#elif defined(CONFIG_MALI_GONDUL)
-/* set [1]bit to 1, Hardware auto shutdown */
-#define MASK_AUTOSDBYHW                 0x2
-/* gondul'PERI_CTRL92,6 regional ds respectively */
-#define MASK_ENABLEDSBYSF               0x7F
-/* gondul'PERI_CTRL92,6 regional ds respectively */
-#define MASK_DISABLEDSBYSF              0xFFFFFF80
-#define PERI_CTRL91                     0x22C
-/* Hardware auto shutdown */
-#define HW_AUTO_SHUTDOWN                PERI_CTRL91
-/* deep sleep by software */
-#define DEEP_SLEEP_BYSW                 PERI_CTRL92
-#else
 #define MASK_AUTOSDBYHW                 0x80000000
 #define MASK_ENABLEDSBYSF               0x3FFFE
 #define MASK_DISABLEDSBYSF              0xFFFC0001
@@ -167,7 +114,6 @@
 #define HW_AUTO_SHUTDOWN                PERI_CTRL93
 /* deep sleep by software */
 #define DEEP_SLEEP_BYSW                 PERI_CTRL93
-#endif
 
 #define MASK_HASH_STRIPING_GRANULE      0xE00
 

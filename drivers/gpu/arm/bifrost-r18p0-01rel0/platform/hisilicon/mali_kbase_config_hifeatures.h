@@ -95,9 +95,6 @@ static const enum kbase_hi_feature kbase_hi_feature_thex_r0p0[] = {
 	KBASE_FEATURE_HI0007,
 	KBASE_FEATURE_HI0008,
 	KBASE_FEATURE_HI0010,
-#ifdef CONFIG_MALI_NORR
-	KBASE_FEATURE_HI0014,
-#endif
 	KBASE_FEATURE_HI0016,
 	KBASE_HI_FEATURE_END
 };
@@ -110,9 +107,6 @@ static const enum kbase_hi_feature kbase_hi_feature_tnox_r0p0[] = {
 #endif
 	KBASE_FEATURE_HI0015,
 	KBASE_FEATURE_HI0016,
-#ifdef CONFIG_MALI_NORR_PHX
-	KBASE_FEATURE_HI0017,
-#endif
 	KBASE_FEATURE_HI0018,
 	KBASE_HI_FEATURE_END
 };

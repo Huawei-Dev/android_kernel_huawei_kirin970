@@ -28,12 +28,7 @@
 #include <mali_kbase.h>
 #include <kernel.h>
 
-#if defined(CONFIG_MALI_NORR) || defined(CONFIG_MALI_SIGURD) ||         \
-		defined(CONFIG_MALI_NORR_PHX) || defined(CONFIG_MALI_GONDUL)
-#define PAGE_FAULT_MAP_BLOCK		128
-#else
 #define PAGE_FAULT_MAP_BLOCK		1
-#endif
 #define PAGE_FAULT_MAP_BLOCK_MASK	(PAGE_FAULT_MAP_BLOCK - 1)
 #define GMC_PF_OUT_OF_BOUNDS		1
 #define GMC_HANDLE_ALL_KCTXS		0
