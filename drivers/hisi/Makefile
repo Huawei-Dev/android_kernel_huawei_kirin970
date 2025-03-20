@@ -24,7 +24,6 @@ obj-$(CONFIG_FILE_BASED_ENCRYPTO) += file_encry/
 obj-$(CONFIG_HISI_KERNEL_HARDEN_DEBUG) += kernel_harden_test/
 
 obj-$(CONFIG_CODEC_DSP_MISC) += da_combine_dsp/
-obj-y += dpm/
 obj-y += l3cache/
 obj-$(CONFIG_HISEE) += hisee/
 obj-$(CONFIG_MSPC)  += mspc/
