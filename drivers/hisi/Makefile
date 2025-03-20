@@ -1,8 +1,3 @@
-ifeq ($(TARGET_BOARD_PLATFORM), denver)
-ifeq ($(product_type), lite)
-NPU_CUT_MAKEFILE := yes
-endif
-endif
 obj-$(CONFIG_LPM_HKADC) += adc/
 obj-$(CONFIG_HISI_CMDLINE_PARSE)	+= cmdline/
 obj-$(CONFIG_HISI_IRQ_AFFINITY) += irq_affinity/
@@ -28,8 +23,6 @@ obj-y += l3cache/
 obj-$(CONFIG_HISEE) += hisee/
 obj-$(CONFIG_MSPC)  += mspc/
 obj-$(CONFIG_HIEPS) += hieps/
-ifneq ($(strip $(CFG_HISI_OPENSOURCE)), true)
-endif
 obj-$(CONFIG_DEV_IVP) += ivp/
 obj-$(CONFIG_HISTAR_ISP) += isp/
 obj-$(CONFIG_DRMDRIVER)                         += drmdriver/
@@ -44,7 +37,6 @@ obj-$(CONFIG_SR)                      += pm/
 obj-$(CONFIG_HW_VOTE)                 += hw_vote/
 obj-$(CONFIG_GPUFREQ)                 += gpufreq/
 obj-$(CONFIG_ONSYS_AVS)                 += onsys_avs/
-obj-$(CONFIG_DRG)                     += drg/
 obj-$(CONFIG_HISI_AP_CP_DECOUPL)           += modem_decoupl/
 ifneq ($(link_kernel),false)
 ifneq (,$(findstring $(CONFIG_HISI_BALONG_MODEM),y m))
@@ -66,8 +58,6 @@ obj-$(CONFIG_HISI_DUMMY_KO) += hisi_dummy_ko/
 obj-$(CONFIG_VENDOR_RPMB) += rpmb/
 obj-$(CONFIG_PERFHUB) += perfhub/
 obj-$(CONFIG_HISI_ICS_IPU_PLATFORM) += ics/
-ifneq ($(NPU_CUT_MAKEFILE), yes)
-endif
 obj-$(CONFIG_SOC_MAD) += soc_mad/
 obj-$(CONFIG_HISI_AP_READY)	+= hisi_ap_ready/
 obj-$(CONFIG_HISI1103_EEPROM) += hi1103_eeprom/

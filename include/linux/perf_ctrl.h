@@ -21,7 +21,6 @@
 #include <linux/hisi/gpu_hook.h>
 #include <linux/thermal_perf_ctrl.h>
 #include <linux/hisi/ddr_perf_ctrl.h>
-#include <linux/drg.h>
 #include <linux/render_rt.h>
 #include <linux/sched_perf_ctrl.h>
 #include <linux/hisi/hisi_lb.h>
@@ -81,6 +80,19 @@ enum {
 	CAP_RTG_CMD,
 	CAP_RENDER_RT_CMD,
 };
+
+struct drg_dev_freq {
+	/* enum drg_dev_type */
+	unsigned int type;
+	/* described as Hz  */
+	unsigned long max_freq;
+	unsigned long min_freq;
+};
+
+static inline int perf_ctrl_get_drg_dev_freq(void __user *uarg)
+{
+	return -EFAULT;
+}
 
 #define PERF_CTRL_GET_SCHED_STAT \
 	_IOR(PERF_CTRL_MAGIC, GET_SCHED_STAT, struct sched_stat)
