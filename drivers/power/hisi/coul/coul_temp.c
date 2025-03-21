@@ -13,9 +13,6 @@
  *
  */
 
-#ifdef CONFIG_HUAWEI_BATTERY_TEMP_FITTING
-#include <huawei_platform/power/battery_temp_fitting.h>
-#endif
 #include "coul_temp.h"
 
 #define T_V_ARRAY_LENGTH        31 /* NTC Table length */
@@ -370,9 +367,6 @@ int coul_retry_temp_permille(enum battery_temp_user user)
 					coul_battery_temperature_compensation(
 						temperature);
 				/* check validity of temperature, do temp fitting if not */
-#ifdef CONFIG_HUAWEI_BATTERY_TEMP_FITTING
-				temperature = btf_try_fit(temperature);
-#endif
 				return temperature;
 			}
 		}
@@ -389,9 +383,6 @@ int coul_retry_temp_permille(enum battery_temp_user user)
 			temperature = coul_battery_temperature_compensation(
 				temperature);
 			/* check validity of temperature, do temp fitting if not */
-#ifdef CONFIG_HUAWEI_BATTERY_TEMP_FITTING
-			temperature = btf_try_fit(temperature);
-#endif
 			return temperature;
 		}
 	}
@@ -423,9 +414,6 @@ static int coul_ntc_temperature_compensation(
 	 */
 	temp_without_compensation = coul_battery_temperature_tenth_degree(user);
 	temp_with_compensation = temp_without_compensation;
-#ifdef CONFIG_HUAWEI_BATTERY_TEMP_FITTING
-	batt_temp_fitted = btf_temp_fitted_eqr();
-#endif
 	if ((di->ntc_compensation_is == 1) && (!batt_temp_fitted) &&
 			(temp_without_compensation >= COMPENSATION_THRESHOLD)) {
 		ichg = di->coul_dev_ops->get_battery_current_ua() / PERMILLAGE;

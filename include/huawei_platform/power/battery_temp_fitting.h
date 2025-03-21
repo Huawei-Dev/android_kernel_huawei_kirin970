@@ -98,11 +98,6 @@ struct btf_dev {
 	struct delayed_work check_ready;
 };
 
-#ifdef CONFIG_HUAWEI_BATTERY_TEMP_FITTING
-bool btf_temp_fitted_eqr(void);
-int btf_try_fit(int temp_in);
-struct btf_charge_temp_data *btf_charge_temp_data_eqr(void);
-#else
 static inline bool btf_temp_fitted_eqr(void)
 {
 	return false;
@@ -117,6 +112,5 @@ static inline struct btf_charge_temp_data *btf_charge_temp_data_eqr(void)
 {
 	return NULL;
 }
-#endif /* CONFIG_HUAWEI_BATTERY_TEMP_FITTING */
 
 #endif /* _BATTERY_TEMP_FITTING_ */
