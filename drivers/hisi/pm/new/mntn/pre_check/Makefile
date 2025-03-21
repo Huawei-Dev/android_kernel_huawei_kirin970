@@ -1,1 +1,0 @@
-obj-y += pre_check.o
