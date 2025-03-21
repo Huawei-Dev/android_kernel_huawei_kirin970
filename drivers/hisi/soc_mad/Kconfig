@@ -1,2 +1,0 @@
-config SOC_MAD
-	tristate "audio mad support"
