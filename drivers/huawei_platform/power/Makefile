@@ -1,7 +1,6 @@
 obj-y += charger/
 obj-y += wireless/
 obj-y += hardware_ic/
-obj-y += hardware_channel/
 
 ifeq ($(HLTHERM_RUNTEST), true)
 CFLAGS_KERNEL += -DCONFIG_HLTHERM_RUNTEST

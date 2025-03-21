@@ -5239,7 +5239,6 @@ CONFIG_BQ25892_CHARGER=y
 # CONFIG_WIRELESS_STWLC68 is not set
 # CONFIG_WIRELESS_IDTP9415 is not set
 # CONFIG_WIRELESS_NU1619 is not set
-# CONFIG_HUAWEI_VSYS_SWITCH is not set
 
 #
 # Battery certification support
