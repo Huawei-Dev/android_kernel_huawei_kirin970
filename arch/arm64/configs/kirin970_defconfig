@@ -5034,11 +5034,6 @@ CONFIG_IVP_IVPV160=y
 CONFIG_HISI_TIMEKEEPER=y
 
 #
-# Hisi lpm3_debug options
-#
-# CONFIG_HISI_LPM3_DEBUG is not set
-
-#
 # HHEE options
 #
 CONFIG_HHEE=y
