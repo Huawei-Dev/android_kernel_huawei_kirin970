@@ -1,5 +1,4 @@
 source "drivers/huawei_platform/power/charger/charger_ap/Kconfig"
-source "drivers/huawei_platform/power/charger/watch_charger/Kconfig"
 source "drivers/huawei_platform/power/charger/speaker_charger/Kconfig"
 
 config HUAWEI_CHARGER

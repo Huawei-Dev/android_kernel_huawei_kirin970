@@ -6,19 +6,7 @@
 
 #define BATTERY_POWER_SUPPLY_NAME	"Battery"
 
-#ifdef CONFIG_HUAWEI_WATCH_CHARGER
-static int dubai_get_capacity_rm(void)
-{
-	struct power_supply *psy = NULL;
-
-	psy = power_supply_get_by_name(BATTERY_POWER_SUPPLY_NAME);
-	if (!psy) {
-		dubai_err("Failed to get power supply: %s", BATTERY_POWER_SUPPLY_NAME);
-		return -1;
-	}
-	return dubai_get_psy_intprop(psy, POWER_SUPPLY_PROP_CAPACITY_RM, -1);
-}
-#elif defined(CONFIG_COUL_DRV)
+#ifdef CONFIG_COUL_DRV
 static int dubai_get_capacity_rm(void)
 {
 	return coul_drv_battery_rm() * hw_battery_get_series_num();
