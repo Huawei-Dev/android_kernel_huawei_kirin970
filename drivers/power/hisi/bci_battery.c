@@ -39,9 +39,6 @@
 #ifdef CONFIG_DIRECT_CHARGER
 #include <huawei_platform/power/direct_charger/direct_charger.h>
 #endif
-#ifdef CONFIG_HUAWEI_BATTERY_CAPACITY
-#include <huawei_platform/power/huawei_battery_capacity.h>
-#endif
 #ifdef CONFIG_HUAWEI_CHARGER_AP
 #include <huawei_platform/power/huawei_charger.h>
 #endif
@@ -217,17 +214,6 @@ static enum power_supply_property bk_bci_battery_props[] = {
 	POWER_SUPPLY_PROP_VOLTAGE_NOW,
 };
 
-#ifdef CONFIG_HUAWEI_BATTERY_CAPACITY
-static int bci_health(void)
-{
-	return huawei_battery_health();
-}
-
-static int bci_capacity(void)
-{
-	return huawei_battery_capacity();
-}
-#else
 static int bci_health(void)
 {
 	return coul_drv_battery_health();
@@ -237,7 +223,6 @@ static int bci_capacity(void)
 {
 	return coul_drv_battery_capacity();
 }
-#endif
 
 static int bci_temp(void)
 {

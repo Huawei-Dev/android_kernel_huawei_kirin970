@@ -24,10 +24,6 @@
 
 #define HUAWEI_BATTERY "huawei-battery"
 
-#ifdef CONFIG_HUAWEI_BATTERY_CAPACITY
-int huawei_battery_capacity(void);
-int huawei_battery_health(void);
-#else
 static inline int huawei_battery_capacity(void)
 {
 	return coul_drv_battery_capacity();
@@ -37,6 +33,5 @@ static inline int huawei_battery_health(void)
 {
 	return coul_drv_battery_health();
 }
-#endif /* CONFIG_HUAWEI_BATTERY_CAPACITY */
 
 #endif /* _HUAWEI_BATTERY_CAPACITY_H_ */

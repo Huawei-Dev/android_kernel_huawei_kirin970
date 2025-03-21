@@ -1,6 +1,5 @@
 obj-y += charger/
 obj-y += wireless/
-obj-y += battery/
 obj-y += hardware_ic/
 obj-y += hardware_channel/
 
