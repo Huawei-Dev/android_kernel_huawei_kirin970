@@ -30,7 +30,6 @@
 #include <linux/fs.h>
 #include <linux/mfd/hisi_pmic.h>
 #include <asm/memory.h>
-#include <hitest_slt.h>
 #include <securec.h>
 #include <scsi/ufs/ufs.h>
 #include <hw_cmdline_parse.h>
@@ -830,7 +829,7 @@ static int __init pcie_slt_init(void)
 	struct device *pdevice = NULL;
 	unsigned int i;
 
-	if (!is_running_kernel_slt() && !runmode_is_factory())
+	if (!runmode_is_factory())
 		return 0;
 
 	for (i = 0; i < g_rc_num; i++)

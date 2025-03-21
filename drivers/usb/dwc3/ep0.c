@@ -30,7 +30,6 @@
 #include <linux/usb/ch9.h>
 #include <linux/usb/gadget.h>
 #include <linux/usb/composite.h>
-#include <linux/hisi/hitest_slt.h>
 
 #include "core.h"
 #include "debug.h"
@@ -407,7 +406,7 @@ static int dwc3_ep0_handle_status(struct dwc3 *dwc,
 
 static int dwc3_ep0_is_dis_u1u2(struct dwc3 *dwc)
 {
-	if ((dwc->dis_u1u2_quirk != 0) || is_running_kernel_slt()) {
+	if (dwc->dis_u1u2_quirk != 0) {
 		pr_err("%s: quirk or slt, disable u1u2\n", __func__);
 		return 1;
 	}

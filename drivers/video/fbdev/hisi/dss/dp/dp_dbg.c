@@ -12,7 +12,6 @@
  */
 
 #include <linux/module.h>
-#include <linux/hisi/hitest_slt.h>
 #include "dp_dbg.h"
 #include "../hisi_fb_def.h"
 #include "../hisi_dp.h"
