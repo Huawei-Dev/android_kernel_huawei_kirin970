@@ -127,14 +127,6 @@ struct ivp_algo_info {
 	unsigned int bss_size;   /* algo bss section size */
 };
 
-#ifdef CONFIG_IVP_SMMU_V3
-enum IVP_SMMU_ID_INDEX {
-	IVP_SMMU_SID = 0,
-	IVP_SMMU_SSID,
-	IVP_SMMU_ID_MAX
-};
-#endif
-
 struct ivp_sect_info {
 	char name[MAX_NAME];
 	unsigned int index;
