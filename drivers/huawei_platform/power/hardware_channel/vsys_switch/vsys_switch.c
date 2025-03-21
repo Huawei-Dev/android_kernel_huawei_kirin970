@@ -35,10 +35,6 @@
 #include <chipset_common/hwpower/common_module/power_sysfs.h>
 #include <chipset_common/hwpower/common_module/power_dts.h>
 
-#ifdef CONFIG_HUAWEI_BATTERY_VOLTAGE
-#include <huawei_platform/power/battery_voltage.h>
-#endif
-
 #ifdef CONFIG_BCI_BATTERY
 #include <linux/power/hisi/bci_battery.h>
 #endif

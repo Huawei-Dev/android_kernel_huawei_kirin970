@@ -36,9 +36,6 @@
 #include <chipset_common/hwpower/common_module/power_dsm.h>
 #endif
 #include <chipset_common/hwpower/common_module/power_sysfs.h>
-#ifdef CONFIG_HUAWEI_BATTERY_VOLTAGE
-#include <huawei_platform/power/battery_voltage.h>
-#endif
 #ifdef CONFIG_DIRECT_CHARGER
 #include <huawei_platform/power/direct_charger/direct_charger.h>
 #endif
@@ -411,12 +408,7 @@ static int check_curr_low_capacity(int curr_capacity,
 	for (i = 0; i < CAP_LOCK_PARA_LEVEL; i++) {
 		if (curr_capacity < di->vth_correct_data[i].cap &&
 			di->prev_capacity >= di->vth_correct_data[i].cap) {
-#ifdef CONFIG_HUAWEI_BATTERY_VOLTAGE
-			/* if multi battery, get MIN voltage */
-			battery_volt = hw_battery_voltage(BAT_ID_MIN);
-#else
 			battery_volt = coul_drv_battery_voltage();
-#endif
 			if (battery_volt >= di->vth_correct_data[i].level_vol) {
 				bci_info("low capacity reported, battery_vol = %d mv, prev_capacity = %d, capacity = %d, lock_cap:%d\n",
 					battery_volt, di->prev_capacity, curr_capacity,
@@ -483,12 +475,7 @@ static int check_curr_capacity(const int curr_capacity,
 
 	/* if SOC < 2% check voltage is also low */
 	if ((curr_capacity < LOW_CAPACITY) && !di->disable_pre_vol_check) {
-#ifdef CONFIG_HUAWEI_BATTERY_VOLTAGE
-		/* if multi battery, get MIN voltage */
-		battery_volt = hw_battery_voltage(BAT_ID_MIN);
-#else
 		battery_volt = coul_drv_battery_voltage();
-#endif
 		if (battery_volt >= BAT_VOL_3500) {
 			bci_info("low capacity reported, battery_vol = %d mv, capacity = %d\n",
 				 battery_volt, curr_capacity);
@@ -554,12 +541,7 @@ static int judge_charge_status(struct bci_device_info *di,
 		break;
 	case POWER_SUPPLY_STATUS_FULL:
 		if (coul_drv_battery_current_avg() >= 0) {
-#ifdef CONFIG_HUAWEI_BATTERY_VOLTAGE
-			/* if multi battery, get MAX voltage */
-			battery_volt = hw_battery_voltage(BAT_ID_MAX);
-#else
 			battery_volt = coul_drv_battery_voltage();
-#endif
 			/* if multi battery, get MAX voltage */
 			if (battery_volt >=
 				(di->bat_max_volt - RECHG_PROTECT_THRESHOLD)) {
@@ -1510,11 +1492,7 @@ static int get_property_extra(enum power_supply_property psp,
 		break;
 	case POWER_SUPPLY_PROP_CAPACITY_FCC:
 	case POWER_SUPPLY_PROP_CHARGE_FULL:
-#ifdef CONFIG_HUAWEI_BATTERY_VOLTAGE
-		val->intval = di->bat_fcc * hw_battery_get_series_num();
-#else
 		val->intval = di->bat_fcc;
-#endif
 		break;
 	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
 		val->intval = di->bat_design_fcc;

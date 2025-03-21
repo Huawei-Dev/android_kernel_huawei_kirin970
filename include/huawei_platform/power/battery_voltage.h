@@ -73,12 +73,6 @@ struct hw_batt_vol_ops {
 	int (*get_batt_vol)(void);
 };
 
-#ifdef CONFIG_HUAWEI_BATTERY_VOLTAGE
-int hw_battery_voltage(enum hw_batt_id batt_id);
-int hw_battery_get_series_num(void);
-int hw_battery_voltage_ops_register(struct hw_batt_vol_ops *ops,
-	char *ops_name);
-#else
 static inline int hw_battery_voltage(enum hw_batt_id batt_id)
 {
 	return coul_drv_battery_voltage();
@@ -94,6 +88,5 @@ static inline int hw_battery_voltage_ops_register(struct hw_batt_vol_ops *ops,
 {
 	return 0;
 }
-#endif /* CONFIG_HUAWEI_BATTERY_VOLTAGE */
 
 #endif /* _BATTERY_VOLTAGE_H_ */
