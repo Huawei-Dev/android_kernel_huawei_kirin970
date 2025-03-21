@@ -204,7 +204,7 @@ static s32 atfd_hisi_service_efusec_smc(u64 _function_id, u64 _arg0, u64 _arg1,
 	return (s32)function_id;
 }
 
-#if defined(CONFIG_HISEE) || defined(CONFIG_MSPC)
+#ifdef CONFIG_HISEE
 
 s32 get_efuse_hisee_value(u8 *buf, u32 size, u32 timeout)
 {
@@ -807,7 +807,7 @@ static s32 set_efuse_securitydebug_value(u8 *buf, u32 size, u32 timeout)
 	if (vote_efuse_volt_flag == OK)
 		restore_efuse_volt();
 
-#if defined(CONFIG_HISEE) || defined(CONFIG_MSPC)
+#ifdef CONFIG_HISEE
 	/* start hisee otp1 write task, if secure debug is disabled */
 	if (ret == OK && efuse_secdebug_is_disabled(*(u32 *)buf) == true) {
 		pr_err("debug efuse set %x start otp\n", (*(u32 *)buf));

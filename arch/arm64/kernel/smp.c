@@ -986,7 +986,7 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
 		break;
 #endif
 
-#if defined(CONFIG_HISEE) || defined (CONFIG_MSPC)
+#ifdef CONFIG_HISEE
 	case IPI_HISEE_INFORM:
 		irq_enter();
 		hisee_active();

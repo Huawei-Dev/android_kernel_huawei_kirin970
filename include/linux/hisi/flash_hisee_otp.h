@@ -7,7 +7,7 @@
 #ifndef FLASH_HISEE_OTP_H
 #define FLASH_HISEE_OTP_H
 
-#if defined(CONFIG_HISEE) || defined(CONFIG_MSPC)
+#ifdef CONFIG_HISEE
 void creat_flash_otp_thread(void);
 #else
 static inline void creat_flash_otp_thread(void)

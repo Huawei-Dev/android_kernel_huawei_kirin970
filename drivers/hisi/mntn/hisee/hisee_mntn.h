@@ -143,10 +143,6 @@ u32 hisee_mntn_get_vote_val_atf(void);
 int hisee_mntn_can_power_up_hisee(void);
 void hisee_mntn_debug_dump(void);
 
-#ifdef CONFIG_MSPC
-u64 mspc_mntn_get_vote_val_tee(void);
-#endif
-
 int hisee_mntn_collect_vote_value_cmd(void);
 int hisee_mntn_record_dmd_info(long dmd_no, const char *dmd_info);
 void hisee_mntn_update_local_lcsmode_val(void);

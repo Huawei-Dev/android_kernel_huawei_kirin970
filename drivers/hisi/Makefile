@@ -16,7 +16,6 @@ obj-y += hhee/
 
 obj-$(CONFIG_CODEC_DSP_MISC) += da_combine_dsp/
 obj-$(CONFIG_HISEE) += hisee/
-obj-$(CONFIG_MSPC)  += mspc/
 obj-$(CONFIG_DEV_IVP) += ivp/
 obj-$(CONFIG_HISTAR_ISP) += isp/
 obj-$(CONFIG_DRMDRIVER)                         += drmdriver/
