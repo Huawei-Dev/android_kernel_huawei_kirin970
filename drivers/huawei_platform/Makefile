@@ -31,5 +31,4 @@ obj-$(CONFIG_HWDPS) += hwdps/
 obj-$(CONFIG_MEM_INSPECT) += rmeminspect/
 obj-y += comb_key/
 obj-$(CONFIG_WAKEUP) += wakeup/
-obj-$(CONFIG_HISI_EXT_NTC) += thermal/
 obj-$(CONFIG_HWSDP) += hwsdp/

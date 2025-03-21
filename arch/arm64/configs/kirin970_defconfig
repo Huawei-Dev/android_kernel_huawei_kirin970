@@ -5314,7 +5314,6 @@ CONFIG_MEM_INSPECT=y
 # Huawei memory info dump
 #
 # CONFIG_WAKEUP is not set
-# CONFIG_HISI_EXT_NTC is not set
 CONFIG_HWSDP=y
 
 #
