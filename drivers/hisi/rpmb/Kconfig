@@ -28,13 +28,6 @@ config RPMB_SET_MULTI_KEY
 	help
 	   config rpmb set multi key
 
-config RPMB_DEBUG_FS
-	bool "rpmb debugfs"
-	depends on VENDOR_RPMB && HISI_DEBUG_FS
-	default n
-	help
-	   config rpmb debug
-
 config RPMB_TIME_DEBUG
 	bool "rpmb time debug"
 	depends on VENDOR_RPMB && HISI_DEBUG_FS
