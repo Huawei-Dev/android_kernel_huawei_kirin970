@@ -38,7 +38,6 @@ source "drivers/huawei_platform/rilsim/Kconfig"
 source "drivers/huawei_platform/vendor_exception/Kconfig"
 source "drivers/huawei_platform/hwdps/Kconfig"
 source "drivers/huawei_platform/rmeminspect/Kconfig"
-source "drivers/huawei_platform/wakeup/Kconfig"
 source "drivers/huawei_platform/hwsdp/Kconfig"
 endif #HUAWEI_PLATFORM
 

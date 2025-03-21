@@ -30,5 +30,4 @@ obj-$(CONFIG_HUAWEI_VENDOR_EXCEPTION) += vendor_exception/
 obj-$(CONFIG_HWDPS) += hwdps/
 obj-$(CONFIG_MEM_INSPECT) += rmeminspect/
 obj-y += comb_key/
-obj-$(CONFIG_WAKEUP) += wakeup/
 obj-$(CONFIG_HWSDP) += hwsdp/
