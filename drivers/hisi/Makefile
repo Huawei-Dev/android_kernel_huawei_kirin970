@@ -13,7 +13,6 @@ obj-$(CONFIG_HISI_NOC)	+= noc/
 obj-$(CONFIG_BSP_SYSCOUNTER) += syscounter/
 obj-$(CONFIG_PLATFORM_SLIMBUS)+= slimbus/
 obj-y += hhee/
-obj-$(CONFIG_HISI_KERNEL_HARDEN_DEBUG) += kernel_harden_test/
 
 obj-$(CONFIG_CODEC_DSP_MISC) += da_combine_dsp/
 obj-y += l3cache/
