@@ -7,7 +7,6 @@ config DEVFREQ
 
 source "drivers/devfreq/hisi/ddr_devfreq/Kconfig"
 source "drivers/devfreq/hisi/gpu_devfreq/Kconfig"
-source "drivers/devfreq/hisi/l3c_devfreq/Kconfig"
 source "drivers/devfreq/hisi/mem_lat/Kconfig"
 source "drivers/devfreq/hisi/npu_devfreq/Kconfig"
 source "drivers/devfreq/hisi/cmfup_devfreq/Kconfig"
