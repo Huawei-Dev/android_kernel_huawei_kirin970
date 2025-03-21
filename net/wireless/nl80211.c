@@ -4509,14 +4509,6 @@ static int nl80211_send_station(struct sk_buff *msg, u32 cmd, u32 portid,
 	}
 #endif
 
-#ifdef CONFIG_HW_GET_EXT_SIG_ULDELAY
-	if (sinfo->filled & BIT(NL80211_STA_INFO_UL_DELAY)) {
-		if (nla_put_s32(msg, NL80211_STA_INFO_UL_DELAY,
-			sinfo->ul_delay))
-			goto nla_put_failure;
-	}
-#endif
-
 	PUT_SINFO_U64(T_OFFSET, t_offset);
 	PUT_SINFO_U64(RX_DROP_MISC, rx_dropped_misc);
 	PUT_SINFO_U64(BEACON_RX, rx_beacon);
@@ -4688,10 +4680,6 @@ int get_wifi_para_for_booster(struct wifi_info *w_info, int w_info_len)
 
 			if (s_info.filled & BIT(NL80211_STA_INFO_CNAHLOAD))
 				w_info[i].chload = s_info.chload;
-#endif
-#ifdef CONFIG_HW_GET_EXT_SIG_ULDELAY
-			if (s_info.filled & BIT(NL80211_STA_INFO_UL_DELAY))
-				w_info[i].ul_delay = s_info.ul_delay;
 #endif
 		}
 	}
@@ -14565,41 +14553,6 @@ void cfg80211_do_drv_private(struct net_device *dev, gfp_t gfp,
 EXPORT_SYMBOL(cfg80211_do_drv_private);
 #endif
 
-#if (defined(CONFIG_HW_WIFI_MSS) || defined(CONFIG_HW_WIFI_RSSI))
-void cfg80211_do_drv_private_params(struct net_device *dev, gfp_t gfp,
-	enum nl80211_commands command, u32 subcmd, const u8 *ie, size_t ie_len)
-{
-	struct wireless_dev *wdev = dev->ieee80211_ptr;
-	struct cfg80211_registered_device *rdev = wiphy_to_rdev(wdev->wiphy);
-	struct sk_buff *msg;
-	void *hdr;
-
-	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, gfp);
-	if (!msg)
-		return;
-
-	hdr = nl80211hdr_put(msg, 0, 0, 0, command);
-	if (!hdr) {
-		nlmsg_free(msg);
-		return;
-	}
-	if (nla_put_u32(msg, NL80211_ATTR_IFINDEX, dev->ifindex))
-		goto nla_put_failure;
-	if (nla_put_u32(msg, NL80211_ATTR_VENDOR_ID, subcmd))
-		goto nla_put_failure;
-	if (ie && nla_put(msg, NL80211_ATTR_RESP_IE, ie_len, ie))
-		goto nla_put_failure;
-	genlmsg_end(msg, hdr);
-	genlmsg_multicast_netns(&nl80211_fam, wiphy_net(&rdev->wiphy), msg, 0,
-				NL80211_MCGRP_REGULATORY, gfp);
-	return;
-
- nla_put_failure:
-	genlmsg_cancel(msg, hdr);
-	nlmsg_free(msg);
-}
-EXPORT_SYMBOL(cfg80211_do_drv_private_params);
-#endif
 static bool __nl80211_unexpected_frame(struct net_device *dev, u8 cmd,
 				       const u8 *addr, gfp_t gfp)
 {

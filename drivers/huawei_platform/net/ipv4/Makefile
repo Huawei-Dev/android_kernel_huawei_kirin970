@@ -1,4 +1,0 @@
-#
-# Makefile for Aspen project
-#
-

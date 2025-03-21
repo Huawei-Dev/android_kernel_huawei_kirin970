@@ -56,12 +56,7 @@ static void get_wifi_para(struct wifi_stat *cur, int cnt)
 		cur[i].info.snr = INVALID_NUM1;
 		cur[i].info.chload = INVALID_NUM2;
 #endif
-
-#ifdef CONFIG_HW_GET_EXT_SIG_ULDELAY
-		cur[i].info.ul_delay = w_info[i].ul_delay;
-#else
 		cur[i].info.ul_delay = INVALID_NUM1;
-#endif
 #ifdef CONFIG_HW_NETWORK_QOE
 		cur[i].info.arp_state =
 			get_wifi_arp_state(w_info[i].name, IFNAMSIZ, g_gateway[i]);

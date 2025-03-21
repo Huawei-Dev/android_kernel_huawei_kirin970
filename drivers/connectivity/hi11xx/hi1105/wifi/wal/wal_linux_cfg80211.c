@@ -1,5 +1,3 @@
-
-
 #include "wlan_types.h"
 
 #include "oal_net.h"
@@ -2967,11 +2965,6 @@ OAL_STATIC void wal_cfg80211_fill_station_info_ext(oal_station_info_stru *sta_in
 
     sta_info->filled |= BIT(NL80211_STA_INFO_CNAHLOAD);
     sta_info->chload = hmac_vap->station_info.chload;
-#endif
-
-#ifdef CONFIG_HW_GET_EXT_SIG_ULDELAY
-    sta_info->filled |= BIT(NL80211_STA_INFO_UL_DELAY);
-    sta_info->ul_delay = hmac_vap->station_info.ul_delay;
 #endif
 
     sta_info->filled |= BIT(NL80211_STA_INFO_BEACON_SIGNAL_AVG);

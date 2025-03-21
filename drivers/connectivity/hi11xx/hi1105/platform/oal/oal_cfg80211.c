@@ -1007,10 +1007,6 @@ int32_t oal_cfg80211_vendor_cmd_reply(oal_netbuf_stru *pst_skb)
 void oal_cfg80211_m2s_status_report(oal_net_device_stru *pst_netdev,
                                     oal_gfp_enum_uint8 en_gfp, uint8_t *puc_buf, uint32_t ul_len)
 {
-#ifdef CONFIG_HW_WIFI_MSS
-    /* 此接口为终端实现的内核接口，定义处用内核宏CONFIG_HW_WIFI_MSS包裹 */
-    cfg80211_drv_mss_result(pst_netdev, en_gfp, puc_buf, ul_len);
-#endif
 }
 
 #ifdef _PRE_WLAN_FEATURE_TAS_ANT_SWITCH
@@ -1021,9 +1017,6 @@ void oal_cfg80211_m2s_status_report(oal_net_device_stru *pst_netdev,
 void oal_cfg80211_tas_rssi_access_report(oal_net_device_stru *pst_netdev, oal_gfp_enum_uint8 en_gfp,
                                          uint8_t *puc_buf, uint32_t ul_len)
 {
-#ifdef CONFIG_HW_WIFI_RSSI
-    cfg80211_drv_tas_result(pst_netdev, en_gfp, puc_buf, ul_len);
-#endif
 }
 #endif
 #ifdef _PRE_WLAN_FEATURE_HID2D_TX_DROP

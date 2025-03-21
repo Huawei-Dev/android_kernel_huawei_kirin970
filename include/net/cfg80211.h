@@ -1200,10 +1200,6 @@ struct station_info {
 	s32 snr;
 	s32 chload;
 #endif
-
-#ifdef CONFIG_HW_GET_EXT_SIG_ULDELAY
-	s32 ul_delay;
-#endif
 };
 
 #ifdef CONFIG_HW_NETWORK_QOE
@@ -1222,9 +1218,6 @@ struct wifi_info {
 	s32 noise;
 	s32 snr;
 	s32 chload;
-#endif
-#ifdef CONFIG_HW_GET_EXT_SIG_ULDELAY
-	s32 ul_delay;
 #endif
 };
 #endif

@@ -1,5 +1,3 @@
-
-
 #ifdef _PRE_WLAN_CFGID_DEBUG
 
 #include "oal_ext_if.h"
@@ -6458,20 +6456,11 @@ OAL_STATIC uint32_t wal_hipriv_psm_flt_stat(oal_net_device_stru *pst_net_dev, in
 #ifdef _PRE_WLAN_FEATURE_GET_STATION_INFO_EXT
 OAL_STATIC void wal_hipriv_printf_station_info(hmac_vap_stru *hmac_vap)
 {
-#ifdef CONFIG_HW_GET_EXT_SIG_ULDELAY
-    oam_warning_log4(0, OAM_SF_ANY,
-        "{wal_hipriv_get_station_info::tid delay[%d]ms, tx drop[%d], tx pkts[%d], tx bytes[%d]}",
-        hmac_vap->station_info.ul_delay,
-        hmac_vap->station_info.tx_failed,
-        hmac_vap->station_info.tx_packets,
-        hmac_vap->station_info.tx_bytes);
-#else
     oam_warning_log3(0, OAM_SF_ANY,
         "{wal_hipriv_get_station_info::tx drop[%d], tx pkts[%d], tx bytes[%d]}",
         hmac_vap->station_info.tx_failed,
         hmac_vap->station_info.tx_packets,
         hmac_vap->station_info.tx_bytes);
-#endif
     oam_warning_log3(0, OAM_SF_ANY,
         "{wal_hipriv_get_station_info::rx pkts[%lu], rx bytes[%lu], rx drop[%lu]}",
         hmac_vap->station_info.rx_packets,

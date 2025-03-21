@@ -1,9 +1,7 @@
-
-
 #include "mac_device.h"
 #include "mac_resource.h"
 #include "hmac_vap.h"
-#include "oal_cfg80211.h" // 不能删，删了ut编不过
+#include "oal_cfg80211.h"
 #include "wlan_chip_i.h"
 #include "hmac_config.h"
 
@@ -80,9 +78,6 @@ OAL_STATIC void hmac_proc_query_set_state_info(hmac_vap_stru *hmac_vap,
 #ifdef CONFIG_HW_GET_EXT_SIG
     hmac_vap->station_info.noise = reponse_event->s_free_power;
     hmac_vap->station_info.chload = reponse_event->s_chload;
-#endif
-#ifdef CONFIG_HW_GET_EXT_SIG_ULDELAY
-    hmac_vap->station_info.ul_delay = reponse_event->uplink_dealy;
 #endif
     hmac_vap->station_info.rxrate.legacy = reponse_event->rate_info.txrx_rate.rx_rate_legacy;
     hmac_vap->station_info.txrate.mcs = reponse_event->rate_info.txrx_rate.tx_rate.mcs;

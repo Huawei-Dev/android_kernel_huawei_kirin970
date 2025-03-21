@@ -17,8 +17,7 @@
 #include <linux/gcd.h>
 #include "core.h"
 #include "rdev-ops.h"
-#if (defined(CONFIG_HW_VOWIFI) || defined(CONFIG_HW_ABS) || \
-	defined(CONFIG_HW_WIFI_MSS) || defined(CONFIG_HW_WIFI_RSSI))
+#if (defined(CONFIG_HW_VOWIFI) || defined(CONFIG_HW_ABS))
 #include "nl80211.h"
 #endif
 
@@ -979,22 +978,6 @@ void cfg80211_process_wdev_events(struct wireless_dev *wdev)
 		case EVENT_DRV_ANT:
 			cfg80211_do_drv_private(wdev->netdev, GFP_KERNEL,
 				NL80211_CMD_ANT);
-			break;
-#endif
-#ifdef CONFIG_HW_WIFI_MSS
-		case EVENT_DRV_MSS:
-#define VDR_MSS_SYNC_REPORT (300)
-			cfg80211_do_drv_private_params(wdev->netdev, GFP_KERNEL,
-				NL80211_CMD_VDR_COMMON, VDR_MSS_SYNC_REPORT,
-				ev->dc.ie, ev->dc.ie_len);
-			break;
-#endif
-#ifdef CONFIG_HW_WIFI_RSSI
-		case EVENT_DRV_TAS_RSSI:
-#define VDR_TAS_RSSI_REPORT (301)
-			cfg80211_do_drv_private_params(wdev->netdev, GFP_KERNEL,
-				NL80211_CMD_VDR_COMMON, VDR_TAS_RSSI_REPORT,
-				ev->dc.ie, ev->dc.ie_len);
 			break;
 #endif
 		case EVENT_DRV_LAST:

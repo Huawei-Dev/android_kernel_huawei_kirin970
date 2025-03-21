@@ -97,10 +97,6 @@ void
 cfg80211_do_drv_private(struct net_device *dev,
 	gfp_t gfp, enum nl80211_commands command);
 #endif
-#if (defined(CONFIG_HW_WIFI_MSS) || defined(CONFIG_HW_WIFI_RSSI))
-void cfg80211_do_drv_private_params(struct net_device *dev, gfp_t gfp,
-	enum nl80211_commands command, u32 subcmd, const u8 *ie, size_t ie_len);
-#endif
 
 #ifdef CONFIG_HW_NETWORK_QOE
 int get_wifi_para_for_booster(struct wifi_info *w_info, int w_info_len);
