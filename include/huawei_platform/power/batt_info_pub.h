@@ -22,10 +22,6 @@
 #define BATTERY_TYPE_BUFF_SIZE  6
 #define BATTERY_TYPE_SIZE       2
 
-#ifdef CONFIG_HUAWEI_BATTERY_INFORMATION
-int get_battery_type(unsigned char *name, unsigned int name_size);
-int check_battery_sn_changed(void);
-#else
 static inline int get_battery_type(unsigned char *name, unsigned int name_size)
 {
 	return -1;
@@ -35,6 +31,5 @@ static inline int check_battery_sn_changed(void)
 {
 	return -1;
 }
-#endif /* CONFIG_HUAWEI_BATTERY_INFORMATION */
 
 #endif /* _BATT_INFO_PUB_H_ */

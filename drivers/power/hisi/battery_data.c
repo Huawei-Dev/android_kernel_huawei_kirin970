@@ -25,9 +25,6 @@
 #ifdef CONFIG_HUAWEI_DSM
 #include <chipset_common/hwpower/common_module/power_dsm.h>
 #endif
-#ifdef CONFIG_HUAWEI_BATTERY_INFORMATION
-#include <huawei_platform/power/batt_info_pub.h>
-#endif
 #include <linux/power/hisi/battery_data.h>
 
 #define bat_data_debug(fmt, args...) pr_debug("[battery_data]" fmt, ## args)
@@ -84,26 +81,8 @@ static int get_battery_data_by_id_volt(unsigned int id_index,
 
 static int get_battery_data_by_id_sn(unsigned int id_index)
 {
-#ifdef CONFIG_HUAWEI_BATTERY_INFORMATION
-	int ret;
-	unsigned char id_sn[ID_SN_SIZE] = {0};
-
-	if (id_index >= g_bat_data_size)
-		return -EINVAL;
-
-	ret = get_battery_type(id_sn, ID_SN_SIZE);
-	if (ret) {
-		bat_data_err("get id_sn from ic fail!\n");
-		return -EINVAL;
-	}
-	bat_data_info("id_sn from ic is %s\n", id_sn);
-	if (!strncmp(g_p_data[id_index]->id_sn, id_sn, strlen(id_sn)))
-		return 0;
-	return -EINVAL;
-#else
 	bat_data_err("has no CONFIG_BATTERY_INFORMATION\n");
 	return -EINVAL;
-#endif
 }
 
 struct coul_battery_data *get_battery_data(unsigned int id_voltage)

@@ -13,9 +13,6 @@
  *
  */
 
-#ifdef CONFIG_HUAWEI_BATTERY_INFORMATION
-#include <huawei_platform/power/batt_info_pub.h>
-#endif
 #include <linux/power/hisi/coul/coul_event.h>
 #define ACR_CHECK_CYCLE_S               (20 * 60)
 #define ACR_MAX_BATTERY_CURRENT_MA      100
@@ -1318,9 +1315,6 @@ void clear_moved_battery_data(struct smartstar_coul_device *di)
 	di->batt_changed_flag = 1;
 	coul_core_info("battery is completely pulled out and inserted once\n");
 
-#ifdef CONFIG_HUAWEI_BATTERY_INFORMATION
-	batt_sn_changed_flag = check_battery_sn_changed();
-#endif
 	if (batt_sn_changed_flag) {
 		di->batt_chargecycles = 0;
 		di->batt_reset_flag = 1;
