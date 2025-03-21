@@ -17,7 +17,6 @@
 #include <linux/clk.h>
 #include <linux/delay.h>
 #include <linux/err.h>
-#include <linux/hisi/hisi_irq_affinity.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
 #include <linux/io.h>
@@ -754,7 +753,6 @@ static int ipc_mdev_irq_request(
 			return ret;
 		}
 		priv->idev->cmbox_info->gic_1_irq_requested++;
-		hisi_irqaffinity_register(priv->irq, IPC_IRQ_AFFINITY_CPU);
 	} else if (priv->idev->cmbox_info->cmbox_gic_2_irq == priv->irq) {
 		if (priv->idev->cmbox_info->gic_2_irq_requested)
 			return ret;
@@ -767,7 +765,6 @@ static int ipc_mdev_irq_request(
 			return ret;
 		}
 		priv->idev->cmbox_info->gic_2_irq_requested++;
-		hisi_irqaffinity_register(priv->irq, IPC_IRQ_AFFINITY_CPU);
 	} else {
 		ret = ipc_mdev_gic_irq_request(mdev, handler, p);
 		if (ret) {
@@ -775,8 +772,6 @@ static int ipc_mdev_irq_request(
 				mdev->name, priv->irq);
 			return ret;
 		}
-
-		hisi_irqaffinity_register(priv->irq, IPC_IRQ_AFFINITY_CPU);
 	}
 
 	return ret;

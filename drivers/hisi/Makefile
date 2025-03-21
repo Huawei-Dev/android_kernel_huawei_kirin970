@@ -1,6 +1,5 @@
 obj-$(CONFIG_LPM_HKADC) += adc/
 obj-$(CONFIG_HISI_CMDLINE_PARSE)	+= cmdline/
-obj-$(CONFIG_HISI_IRQ_AFFINITY) += irq_affinity/
 obj-$(CONFIG_HISILICON_PLATFORM_MAILBOX)	+= mailbox/
 obj-$(CONFIG_HISI_USB_PHY_CHIP)			+= usb_phy_chip/
 obj-$(CONFIG_DA_COMBINE_V3_CODEC)			+= da_combine/
