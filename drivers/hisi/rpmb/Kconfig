@@ -21,13 +21,6 @@ config RPMB_UFS
 	help
 	   config ufs rpmb driver
 
-config RPMB_STORAGE_INTERFACE
-	bool "storage interface"
-	depends on VENDOR_RPMB
-	default n
-	help
-	   config rpmb storage interface
-
 config RPMB_SET_MULTI_KEY
 	bool "rpmb set multi key"
 	depends on VENDOR_RPMB
