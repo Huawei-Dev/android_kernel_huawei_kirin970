@@ -49,10 +49,6 @@
 #define NUMBER_OF_BOOST_ELEMENT	0x1
 #define NUMBER_OF_PM_QOS_ELEMENT	0x2
 
-#ifdef CONFIG_PLATFORM_TELE_MNTN
-#include <linux/tele_mntn.h>
-#endif
-
 #define MODULE_NAME "DDR_DEVFREQ"
 typedef unsigned long (*calc_vote_value_func)(struct devfreq *devfreq,
 					      unsigned long freq);
@@ -210,39 +206,6 @@ static struct input_handler g_ddrfreq_input_handler = {
 };
 
 #endif /* CONFIG_INPUT_PULSE_SUPPORT */
-
-#ifdef CONFIG_PLATFORM_TELE_MNTN
-static void tele_mntn_ddrfreq_setrate(struct devfreq *devfreq,
-				      unsigned int new_freq)
-{
-	struct pwc_tele_mntn_dfs_ddr_qos_stru_s *qos = NULL;
-	struct acore_tele_mntn_dfs_ddr_qosinfo_stru_s *info = NULL;
-	struct devfreq_pm_qos_data *data = devfreq->data;
-	struct acore_tele_mntn_stru_s *p_acore_tele_mntn = NULL;
-
-	p_acore_tele_mntn = acore_tele_mntn_get();
-	if (p_acore_tele_mntn == NULL)
-		return;
-
-	qos = &p_acore_tele_mntn->dfs_ddr.qos;
-	info = &qos->info;
-	info->qos_id = (short)data->pm_qos_class;
-	if (current != NULL) {
-		info->pid = current->pid;
-		if (current->parent != NULL)
-			info->ppid = current->parent->pid;
-	}
-
-	info->new_freq = new_freq;
-	info->min_freq = (unsigned int)devfreq->min_freq;
-	info->max_freq = (unsigned int)devfreq->max_freq;
-	qos->qos_slice_time = get_slice_time();
-	(void)tele_mntn_write_log(TELE_MNTN_QOS_DDR_ACPU,
-				  sizeof(struct pwc_tele_mntn_dfs_ddr_qos_stru_s),
-				  (void *)qos);
-}
-
-#endif
 
 #ifdef CONFIG_DDR_DEVFREQ_DFX
 static void record_ddr_freq_dfx_info(unsigned long th_freq, unsigned long lat_freq, unsigned long cur_freq, unsigned long th_vote)
@@ -447,9 +410,6 @@ static int ddr_devfreq_target(struct device *dev,
 	pr_err("------- end ------\n");
 
 out:
-#ifdef CONFIG_PLATFORM_TELE_MNTN
-	tele_mntn_ddrfreq_setrate(devfreq, (unsigned int)ddev->freq);
-#endif
 	return 0;
 }
 
