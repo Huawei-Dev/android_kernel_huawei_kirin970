@@ -5100,7 +5100,6 @@ CONFIG_GATOR=m
 # CONFIG_HISI_USB_PHY_CHIP is not set
 # CONFIG_HISI_USB_PHY_DRIVER is not set
 CONFIG_TLB_CONFLICT_WORKAROUND=y
-# CONFIG_THEED is not set
 
 #
 # Huawei Platform Drivers

@@ -41,7 +41,6 @@ obj-$(CONFIG_PERF_CTRL) += perf_ctrl/
 obj-$(CONFIG_VENDOR_RPMB) += rpmb/
 obj-$(CONFIG_PERFHUB) += perfhub/
 obj-$(CONFIG_HISI_ICS_IPU_PLATFORM) += ics/
-obj-$(CONFIG_THEED) += thee/
 obj-$(CONFIG_SWITCH)        += switch/
 obj-$(CONFIG_HISI_BOOTDEVICE)   += bootdevice/
 obj-$(CONFIG_HW_CPULOAD_NOTI) += cpuload/
