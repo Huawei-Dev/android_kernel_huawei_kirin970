@@ -3087,12 +3087,6 @@ static void charge_start_charging(struct charge_device_info *di)
 	direct_charge_set_start_time();
 	charge_recharge_get_charge_time(di->recharge_para[RECHARGE_DMD_SWITCH],
 		&di->charge_start_time);
-#ifdef CONFIG_HUAWEI_SPEAKER_CHARGER
-	if (di->smart_charge_support && coul_drv_is_smart_battery()) {
-		hwlog_info("start smart battery charging\n");
-		series_batt_speaker_smart_charge_start_charging(di);
-	}
-#endif /* CONFIG_HUAWEI_SPEAKER_CHARGER */
 }
 
 static void charge_stop_charging(struct charge_device_info *di)
@@ -3197,12 +3191,6 @@ static void charge_stop_charging(struct charge_device_info *di)
 #ifdef CONFIG_CHARGER_SYS_WDG
 	charge_stop_sys_wdt();
 #endif
-#ifdef CONFIG_HUAWEI_SPEAKER_CHARGER
-	if (di->smart_charge_support && coul_drv_is_smart_battery()) {
-		hwlog_info("stop smart battery charging\n");
-		series_batt_speaker_smart_charge_stop_charging(di);
-	}
-#endif /* CONFIG_HUAWEI_SPEAKER_CHARGER */
 }
 
 extern void chip_usb_otg_bc_again(void);
@@ -4014,272 +4002,6 @@ static inline void charger_direct_charge_check(struct charge_device_info *di,
 }
 #endif
 
-#ifdef CONFIG_HUAWEI_SPEAKER_CHARGER
-static void series_batt_speaker_charge_get_current(struct charge_device_info *di)
-{
-	int power = 0;
-	int iin_val = 0;
-
-	if (!di)
-		return;
-
-	series_batt_speaker_charge_get_iin_power(&iin_val, &power);
-	di->input_current = iin_val;
-	if (!di->core_data->vterm) {
-		di->charge_current = 0;
-		hwlog_err("terminal voltage is 0\n");
-		return;
-	}
-
-	di->charge_current = (power * di->scp_cur_trans_ratio) / (100 * di->core_data->vterm);
-}
-
-static int series_batt_speaker_charge_update_vbus_voltage_check(void)
-{
-	int vbus = 0;
-
-	direct_charge_get_device_vbus(&vbus);
-	if (vbus > VBUS_VOLTAGE_7000_MV)
-		return true;
-
-	hwlog_info("series_batt_charge vbus voltage check fail, vbus=%d\n", vbus);
-	return false;
-}
-
-static void series_batt_speaker_charging_current(struct charge_device_info *di)
-{
-	static unsigned int first_in = 1;
-	int idx;
-
-	if (cancel_work_flag) {
-		hwlog_info("[%s] charge already stop\n", __func__);
-		return;
-	}
-
-	di->input_current = di->core_data->iin_ac;
-	di->charge_current = di->core_data->ichg_ac;
-	series_batt_speaker_charge_get_current(di);
-
-	if (di->scp_adp_normal_chg &&
-		direct_charge_get_abnormal_adp_flag()) {
-		/* set adaptor voltage to 5500mV for normal charge */
-		if (adaptor_cfg_for_normal_chg(5500, di->core_data->iin_nor_scp)) {
-			di->input_current = di->core_data->iin_nor_scp;
-			di->charge_current = di->core_data->ichg_nor_scp;
-		}
-	}
-
-#ifndef CONFIG_HLTHERM_RUNTEST
-	if (power_cmdline_is_factory_mode() && !coul_drv_is_battery_exist()) {
-		if (first_in) {
-			hwlog_info("facory_version and battery not exist, enable charge\n");
-			first_in = 0;
-		}
-	} else {
-#endif
-		if (di->sysfs_data.charge_limit == TRUE) {
-			di->sysfs_data.iin_thl = series_batt_speaker_charge_get_iin_limit();
-			hwlog_info("speaker charge iin thl = %d\n", di->sysfs_data.iin_thl);
-			if (di->sysfs_data.iin_thl > 0)
-				di->input_current = di->input_current < di->sysfs_data.iin_thl ?
-					di->input_current : di->sysfs_data.iin_thl;
-
-			di->charge_current = di->charge_current < di->core_data->ichg ?
-				di->charge_current : di->core_data->ichg;
-		}
-#ifndef CONFIG_HLTHERM_RUNTEST
-	}
-#endif
-	if (di->sysfs_data.inputcurrent)
-		di->input_current = min(di->input_current,
-			(unsigned int)di->sysfs_data.inputcurrent);
-
-	if (di->sysfs_data.batfet_disable == 1)
-		di->input_current = CHARGE_CURRENT_2000_MA;
-}
-
-static void series_batt_speaker_charge_vbus_voltage_check(struct charge_device_info *di)
-{
-	int ret = 0;
-	unsigned int vbus_vol = 0;
-	unsigned int vbus_ovp_cnt = 0;
-	int i;
-	unsigned int state = CHAGRE_STATE_NORMAL;
-
-	if (!di || !di->ops || !di->ops->get_vbus)
-		return;
-
-	if (di->ops->set_covn_start) {
-		ret = di->ops->set_covn_start(true);
-		if (ret) {
-			hwlog_err("set covn start fail\n");
-			return;
-		}
-	}
-
-	ret = di->ops->get_charge_state(&state);
-	if (ret < 0) {
-		hwlog_err("get_charge_state fail, ret = 0x%x\n", ret);
-		return;
-	}
-
-	for (i = 0; i < VBUS_VOL_READ_CNT; ++i) {
-		ret = di->ops->get_vbus(&vbus_vol);
-		if (ret)
-			hwlog_err("vbus vol read fail\n");
-		hwlog_info("vbus vbus_vol:%u\n", vbus_vol);
-
-		if (vbus_vol > VBUS_VOLTAGE_13400_MV) {
-			if (!(state & CHAGRE_STATE_NOT_PG))
-				vbus_ovp_cnt++; /* if power ok, then count plus one */
-			msleep(25); /* Wait for chargerIC to be in stable state */
-		} else {
-			break;
-		}
-	}
-	if (vbus_ovp_cnt == VBUS_VOL_READ_CNT) {
-		hwlog_err("vbus_vol = %u\n", vbus_vol);
-		charger_dsm_report(ERROR_VBUS_VOL_OVER_13400MV);
-	}
-}
-
-static void series_batt_speaker_charge_set_cc_cv(struct charge_device_info *di)
-{
-	unsigned int vterm = 0;
-	int ret;
-
-	/* set CC charge current */
-	ret = di->ops->set_charge_current(di->charge_current);
-	if (ret > 0) {
-		hwlog_info("charge current is out of range:%dmA\n", ret);
-		di->ops->set_charge_current(ret);
-	} else if (ret < 0) {
-		hwlog_err("set charge current fail\n");
-	}
-
-	/* set CV terminal voltage */
-	if (power_cmdline_is_factory_mode() && !coul_drv_is_battery_exist()) {
-		vterm = coul_drv_battery_vbat_max();
-		hwlog_info("facory_version and battery not exist, vterm is set to %d\n", vterm);
-	} else {
-		vterm = ((di->core_data->vterm < di->sysfs_data.vterm_rt) ?
-			di->core_data->vterm : di->sysfs_data.vterm_rt);
-	}
-	hwlog_info("set vterm %d\n", vterm);
-
-	ret = di->ops->set_terminal_voltage(vterm);
-	if (ret > 0) {
-		hwlog_info("terminal voltage is out of range:%dmV\n", ret);
-		di->ops->set_terminal_voltage(ret);
-	} else if (ret < 0) {
-		hwlog_err("set terminal voltage fail\n");
-	}
-
-	hwlog_debug("input_current is %d,charge_current is %d,terminal_voltage is %d\n",
-		di->input_current, di->charge_current, vterm);
-}
-
-static void series_batt_speaker_charge_turn_on_charging(struct charge_device_info *di)
-{
-	int ret;
-	unsigned int vterm = 0;
-
-	if (cancel_work_flag) {
-		hwlog_info("[%s] charge already stop\n", __func__);
-		return;
-	}
-
-	if (!di || !di->ops || !di->ops->set_charge_current ||
-		!di->ops->set_terminal_voltage) {
-		hwlog_err("di or ops is null\n");
-		return;
-	}
-
-	di->charge_enable = TRUE;
-	series_batt_speaker_charge_vbus_voltage_check(di);
-	/* set input current */
-	charge_set_input_current(di->input_current);
-	if (di->smart_charge_support && coul_drv_is_smart_battery()) {
-		/* smart battery charge: get cc and cv from battery */
-		hwlog_info("in smart battery charge state\n");
-	} else if (di->charge_current == CHARGE_CURRENT_0000_MA) {
-		di->charge_enable = FALSE;
-		hwlog_info("charge current is set 0mA, turn off charging\n");
-	} else {
-		series_batt_speaker_charge_set_cc_cv(di);
-	}
-	/* enable/disable charge */
-	di->charge_enable &= di->sysfs_data.charge_enable;
-	di->charge_enable &= term_err_chrg_en_flag;
-	ret = di->ops->set_charge_enable(di->charge_enable);
-	if (!di->sysfs_data.charge_enable)
-		hwlog_info("disable flags: sysnode=%d, isc=%d",
-			di->sysfs_data.disable_charger[CHARGER_SYS_NODE],
-			di->sysfs_data.disable_charger[CHARGER_FATAL_ISC_TYPE]);
-	if (ret)
-		hwlog_err("set charge enable fail\n");
-	hwlog_debug("input_current is %d,charge_current is %d,terminal_voltage is %d,charge_enable is %d\n",
-		di->input_current, di->charge_current, vterm, di->charge_enable);
-}
-
-static void series_batt_speaker_charge_update_vindpm(struct charge_device_info *di)
-{
-	int ret;
-	int vindpm = CHARGE_VOLTAGE_4520_MV;
-
-	if (cancel_work_flag) {
-		hwlog_info("[%s] charge already stop\n", __func__);
-		return;
-	}
-
-	if (series_batt_speaker_charge_update_vbus_voltage_check()) {
-		vindpm = di->scp_vindpm;
-	} else if (di->charger_source == POWER_SUPPLY_TYPE_MAINS) {
-		vindpm = di->core_data->vdpm;
-	} else if (di->charger_source == POWER_SUPPLY_TYPE_USB) {
-		if (di->core_data->vdpm > CHARGE_VOLTAGE_4520_MV)
-			vindpm = di->core_data->vdpm;
-	}
-
-	if (di->ops->set_dpm_voltage) {
-		ret = di->ops->set_dpm_voltage(vindpm);
-		if (ret > 0) {
-			hwlog_info("dpm voltage is out of range:%dmV\n", ret);
-			ret = di->ops->set_dpm_voltage(ret);
-			if (ret < 0)
-				hwlog_err("set dpm voltage fail\n");
-		} else if (ret < 0) {
-			hwlog_err("set dpm voltage fail\n");
-		}
-	}
-}
-
-static void series_batt_speaker_charge_monitor(struct charge_device_info *di)
-{
-	if (!di)
-		return;
-
-	di->core_data = charge_core_get_params();
-	if (!di->core_data) {
-		hwlog_err("series_batt_scp_charge core data is null\n");
-		return;
-	}
-	series_batt_speaker_charging_current(di);
-
-	series_batt_speaker_charge_turn_on_charging(di);
-	charge_safe_protect(di);
-
-	charge_full_handle(di);
-	series_batt_speaker_charge_update_vindpm(di);
-	charge_update_external_setting(di);
-	charge_recharge_check(di);
-
-	charge_update_status(di);
-	charge_kick_watchdog(di);
-}
-#endif /* CONFIG_HUAWEI_SPEAKER_CHARGER */
-
-/* lint -save -e* */
 static void charge_monitor_work(struct work_struct *work)
 {
 	struct charge_device_info *di = container_of(work, struct charge_device_info,
@@ -4352,10 +4074,6 @@ static void charge_monitor_work(struct work_struct *work)
 		charge_update_status(di);
 		charge_kick_watchdog(di);
 	}
-#ifdef CONFIG_HUAWEI_SPEAKER_CHARGER
-	if (series_batt_in_speaker_charging_mode())
-		series_batt_speaker_charge_monitor(di);
-#endif /* CONFIG_HUAWEI_SPEAKER_CHARGER */
 reschedule_work:
 #ifdef CONFIG_DIRECT_CHARGER
 	if (try_pd_to_scp_counter > 0)
@@ -5673,12 +5391,6 @@ static void charger_dts_read_u32(struct charge_device_info *di,
 		"increase_term_volt_en", &di->increase_term_volt_en, 0);
 	(void)power_dts_read_u32(power_dts_tag(HWLOG_TAG), np,
 		"smart_charge_support", &di->smart_charge_support, 0);
-#ifdef CONFIG_HUAWEI_SPEAKER_CHARGER
-	(void)power_dts_read_u32(power_dts_tag(HWLOG_TAG), np,
-		"scp_cur_trans_ratio", &di->scp_cur_trans_ratio, 0);
-	(void)power_dts_read_u32(power_dts_tag(HWLOG_TAG), np,
-		"scp_vindpm", &di->scp_vindpm, CHARGE_VOLTAGE_4600_MV);
-#endif /* CONFIG_HUAWEI_SPEAKER_CHARGER */
 }
 
 static inline void charger_dts_read_bool(struct device_node *np)

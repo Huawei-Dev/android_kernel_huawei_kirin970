@@ -19,10 +19,6 @@
 #ifndef _SERIES_BATT_SPEAKER_CHARGE_ADAPTER_H_
 #define _SERIES_BATT_SPEAKER_CHARGE_ADAPTER_H_
 
-#ifdef CONFIG_HUAWEI_SPEAKER_CHARGER
-int series_batt_speaker_charge_init_adapter(void);
-int series_batt_speaker_charge_check_adapter_antifake(void);
-#else
 static inline int series_batt_speaker_charge_init_adapter(void)
 {
 	return -1;
@@ -32,6 +28,5 @@ static inline int series_batt_speaker_charge_check_adapter_antifake(void)
 {
 	return -1;
 }
-#endif /* CONFIG_HUAWEI_SPEAKER_CHARGER */
 
 #endif /* _SERIES_BATT_SPEAKER_CHARGE_ADAPTER_H_ */

@@ -36,10 +36,6 @@ struct smart_charge_device_info {
 	struct delayed_work charge_work;
 };
 
-#ifdef CONFIG_HUAWEI_SPEAKER_CHARGER
-int series_batt_speaker_smart_charge_start_charging(struct charge_device_info *di);
-int series_batt_speaker_smart_charge_stop_charging(struct charge_device_info *di);
-#else
 static inline int series_batt_speaker_smart_charge_start_charging(struct charge_device_info *di)
 {
 	return -1;
@@ -49,6 +45,5 @@ static inline int series_batt_speaker_smart_charge_stop_charging(struct charge_d
 {
 	return -1;
 }
-#endif /* CONFIG_HUAWEI_SPEAKER_CHARGER */
 
 #endif /* _SERIES_BATT_SPEAKER_SMART_CHARGER_H */

@@ -29,14 +29,6 @@
 #define DC_ADAPTER_VOLTAGE_5V           5000
 #define DC_ADAPTER_VOLTAGE_10V          10000
 
-#ifdef CONFIG_HUAWEI_SPEAKER_CHARGER
-int series_batt_speaker_charge_start_charging(void);
-void series_batt_speaker_charge_stop_charging(void);
-bool series_batt_in_speaker_charging_mode(void);
-int series_batt_speaker_charge_init_adapter_and_device(void);
-int series_batt_speaker_charge_get_iin_power(int *iin_val, int *max_power);
-int series_batt_speaker_charge_get_iin_limit(void);
-#else
 static inline int series_batt_speaker_charge_start_charging(void)
 {
 	return -1;
@@ -65,6 +57,5 @@ static inline int series_batt_speaker_charge_get_iin_limit(void)
 {
 	return -1;
 }
-#endif /* CONFIG_HUAWEI_SPEAKER_CHARGER */
 
 #endif /* _SERIES_BATT_SPEAKER_CHARGER_H_ */

@@ -19,12 +19,8 @@
 #ifndef _SERIES_BATT_SPEAKER_CHARGER_CHECK_H_
 #define _SERIES_BATT_SPEAKER_CHARGER_CHECK_H_
 
-#ifdef CONFIG_HUAWEI_SPEAKER_CHARGER
-void series_batt_speaker_charge_mode_check(struct direct_charge_device *di);
-#else
 static inline void series_batt_speaker_charge_mode_check(struct direct_charge_device *di)
 {
 }
-#endif /* CONFIG_HUAWEI_SPEAKER_CHARGER */
 
 #endif /* _SERIES_BATT_SPEAKER_CHARGER_CHECK_H_ */
