@@ -95,12 +95,6 @@
 #ifdef CONFIG_HUAWEI_XENGINE
 #include <emcom/emcom_xengine.h>
 #endif
-#ifdef CONFIG_HW_NETWORK_SLICE
-#include <hwnet/booster/network_slice_route.h>
-#endif
-#ifdef CONFIG_APP_ACCELERATOR
-#include <hwnet/booster/app_accelerator.h>
-#endif
 #ifdef CONFIG_TCP_MD5SIG
 static int tcp_v4_md5_hash_hdr(char *md5_hash, const struct tcp_md5sig_key *key,
 			       __be32 daddr, __be32 saddr, const struct tcphdr *th);
@@ -180,10 +174,6 @@ int tcp_v4_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 
 #ifdef CONFIG_HUAWEI_XENGINE
 	emcom_xengine_mpflow_bind2device(sk, uaddr);
-#endif
-
-#ifdef CONFIG_HW_NETWORK_SLICE
-	slice_rules_lookup(sk, uaddr, IPPROTO_TCP);
 #endif
 
 	nexthop = daddr = usin->sin_addr.s_addr;
@@ -1634,10 +1624,6 @@ int tcp_v4_do_rcv(struct sock *sk, struct sk_buff *skb)
 #endif
 	if (sk->sk_state == TCP_ESTABLISHED) { /* Fast path */
 		struct dst_entry *dst = sk->sk_rx_dst;
-	/* tcp dl accelerator */
-#ifdef CONFIG_APP_ACCELERATOR
-		app_sock_acc_start_check(sk, skb);
-#endif
 		sock_rps_save_rxhash(sk, skb);
 		sk_mark_napi_id(sk, skb);
 		if (dst) {

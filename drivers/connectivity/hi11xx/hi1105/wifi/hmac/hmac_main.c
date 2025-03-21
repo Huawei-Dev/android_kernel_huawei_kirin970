@@ -64,11 +64,6 @@
 #include "plat_pm_wlan.h"
 #endif
 
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-#include <hwnet/ipv4/wifi_delayst.h>
-#include "mac_vap.h"
-#endif
-
 #ifdef _PRE_WLAN_FEATURE_HIEX
 #include "hmac_hiex.h"
 #endif
@@ -1117,11 +1112,6 @@ OAL_STATIC void hmac_rxdata_netbuf_delist(oal_netdev_priv_stru *netdev_priv)
 
     netbuf = oal_netbuf_delist(&netdev_priv->st_rx_netbuf_queue);
     while (netbuf != NULL) {
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-        if (DELAY_STATISTIC_SWITCH_ON && IS_NEED_RECORD_DELAY(netbuf, TP_SKB_HMAC_RX)) {
-            skbprobe_record_time(netbuf, TP_SKB_HMAC_UPLOAD);
-        }
-#endif
         oal_notice_netif_rx(netbuf);
         oal_netif_rx_ni(netbuf);
         netbuf = oal_netbuf_delist(&netdev_priv->st_rx_netbuf_queue);
@@ -1252,12 +1242,6 @@ int32_t hmac_rxdata_polling(struct napi_struct *pst_napi, int32_t l_weight)
         if (pst_netbuf == NULL) {
             break;
         }
-
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-        if (DELAY_STATISTIC_SWITCH_ON && IS_NEED_RECORD_DELAY(pst_netbuf, TP_SKB_HMAC_RX)) {
-            skbprobe_record_time(pst_netbuf, TP_SKB_HMAC_UPLOAD);
-        }
-#endif
 
         if (pst_netdev_priv->uc_gro_enable == OAL_TRUE) {
             oal_napi_gro_receive(pst_napi, pst_netbuf);

@@ -1044,9 +1044,6 @@ void oal_cfg80211_hid2d_seqnum_report(oal_net_device_stru *pst_netdev, oal_gfp_e
 void oal_cfg80211_hid2d_acs_report(oal_net_device_stru *netdev, oal_gfp_enum_uint8 gfp,
     uint8_t *buf, uint32_t len)
 {
-#ifdef CONFIG_HW_WIFI_EXT
-    cfg80211_drv_hid2d_acs_report(netdev, gfp, buf, len);
-#endif
 }
 #endif
 

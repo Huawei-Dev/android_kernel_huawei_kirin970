@@ -1,6 +1,4 @@
-
-
-#include "wbc_hw_hook.h"
+#include <hwnet/chr/wbc_hw_hook.h>
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/types.h>
@@ -29,12 +27,7 @@
 #include <linux/ipv6.h>
 #include <net/ipv6.h>
 
-#ifdef CONFIG_HW_CHR_TCP_SMALL_WIN_MONITOR
-#include <net/tcp.h>
-#include <hwnet/ipv4/tcp_small_window_chr_monitor.h>
-#endif
-
-#include "chr_netlink.h"
+#include <hwnet/chr/chr_netlink.h>
 #ifdef CONFIG_HW_NETBOOSTER_MODULE
 #include "net/netbooster/video_acceleration.h"
 #endif
@@ -71,11 +64,6 @@ static unsigned long g_abn_stamp_web_delay;
 static unsigned long g_abn_stamp_web_no_ack;
 static unsigned long g_abn_stamp_syn_no_ack;
 static unsigned long g_abn_stamp_rat_tech_change;
-/* These parameters are used to store the forbid time and count */
-#ifdef CONFIG_HW_CHR_TCP_SMALL_WIN_MONITOR
-static unsigned long g_rpt_sock_stamp;
-static unsigned long g_upload_cnt;
-#endif
 
 static bool g_rtt_flag[RNT_STAT_SIZE];
 static bool g_web_deley_flag[RNT_STAT_SIZE];
@@ -1061,90 +1049,6 @@ u32 http_response_code(const char *pstr)
 	return code;
 }
 
-#ifdef CONFIG_HW_CHR_TCP_SMALL_WIN_MONITOR
-bool tcp_need_trigger_upload(unsigned long small_win_stamp)
-{
-	if (time_after(jiffies, g_rpt_sock_stamp) &&
-		time_after(jiffies, small_win_stamp)) {
-		if (g_upload_cnt >= g_tcp_max_report_cnt) {
-			g_rpt_sock_stamp = jiffies + TCP_MAX_REPORT_TIME;
-			g_upload_cnt = 0;
-		} else {
-			g_upload_cnt += 1;
-		}
-		return true;
-	}
-	return false;
-}
-
-void tcp_sock_win_report(struct tcphdr *th, struct sock *sk)
-{
-	struct tcp_sock *sock = NULL;
-	struct http_return rtn_stat_sock[RNT_STAT_SIZE];
-
-	if ((th == NULL) || (sk == NULL))
-		return;
-
-	memset(rtn_stat_sock, 0, sizeof(struct http_return) * RNT_STAT_SIZE);
-	sock = tcp_sk(sk);
-	rtn_stat_sock[WLAN_INTERFACE].report_type = WEB_STAT;
-	rtn_stat_sock[WLAN_INTERFACE].sock_uid = get_uid_from_sock(sk);
-	rtn_stat_sock[WLAN_INTERFACE].cur_win = th->window;
-	rtn_stat_sock[WLAN_INTERFACE].win_cnt = sk->win_cnt;
-	rtn_stat_sock[WLAN_INTERFACE].free_space = tcp_space(sk);
-	rtn_stat_sock[WLAN_INTERFACE].mime_type = sk->mime_type;
-	rtn_stat_sock[WLAN_INTERFACE].tcp_srtt = sock->srtt_us;
-#ifdef CONFIG_HW_DPIMARK_MODULE
-	rtn_stat_sock[WLAN_INTERFACE].sock_dura = jiffies - sk->sk_born_stamp;
-#endif
-	pr_info("chr_notify_event: %d, %d, %d, %d, %d, %d, %d\n",
-		rtn_stat_sock[WLAN_INTERFACE].sock_uid,
-		rtn_stat_sock[WLAN_INTERFACE].sock_dura,
-		rtn_stat_sock[WLAN_INTERFACE].cur_win,
-		rtn_stat_sock[WLAN_INTERFACE].win_cnt,
-		rtn_stat_sock[WLAN_INTERFACE].free_space,
-		rtn_stat_sock[WLAN_INTERFACE].mime_type,
-		rtn_stat_sock[WLAN_INTERFACE].tcp_srtt);
-
-	chr_notify_event(CHR_WEB_STAT_EVENT, g_user_space_pid, 0,
-		rtn_stat_sock);
-
-	if (time_after(jiffies, g_rpt_sock_stamp))
-		g_rpt_sock_stamp = jiffies + g_tcp_min_report_time;
-}
-
-void tcp_win_monitor(struct sock *sk, struct tcphdr *th,
-	char *p_http_str, s64 dlen)
-{
-	unsigned int cur_win;
-
-	if (sk == NULL || th == NULL || p_http_str == NULL ||
-		get_uid_from_sock(sk) == 0)
-		return;
-
-	cur_win = (th->window) << (tcp_sk(sk)->rx_opt.rcv_wscale);
-	if (cur_win > 0 && cur_win <= g_tcp_small_window) {
-		if (sk->win_cnt == 0)
-			sk->small_win_stamp = jiffies +
-				SMALL_WIN_STAMP_RATIO * g_tcp_min_report_time;
-		++sk->win_cnt;
-		if (sk->win_cnt > g_tcp_small_win_cnt && sk->win_flag &&
-			tcp_need_trigger_upload(sk->small_win_stamp)) {
-			sk->win_flag = false;
-			tcp_sock_win_report(th, sk);
-		}
-	} else {
-		if (sk->win_cnt > g_tcp_small_win_cnt &&
-			tcp_need_trigger_upload(sk->small_win_stamp))
-			tcp_sock_win_report(th, sk);
-
-		sk->win_flag = true;
-		sk->win_cnt = 0;
-	}
-}
-
-#endif
-
 bool is_valid_data_reg_tech(void)
 {
 	switch (g_data_reg_tech) {
@@ -1290,9 +1194,6 @@ static unsigned int hook_local_out(void *ops, struct sk_buff *skb,
 			g_http_para_out.uid = get_uid_from_sock(skb->sk);
 			up_req = true;
 		} else if (is_http_para_out(dlen, p_http_str)) {
-#ifdef CONFIG_HW_CHR_TCP_SMALL_WIN_MONITOR
-			skb->sk->win_cnt = 0;
-#endif
 			set_http_para_out(is_ipv6_pkt, ip6h, iph, tcph);
 			g_http_para_out.type = HTTP_GET;
 			up_req = true;
@@ -1303,9 +1204,6 @@ static unsigned int hook_local_out(void *ops, struct sk_buff *skb,
 	if (up_req)
 		up(&g_web_stat_sync_sema);
 
-#ifdef CONFIG_HW_CHR_TCP_SMALL_WIN_MONITOR
-	tcp_win_monitor(skb->sk, tcph, p_http_str, dlen);
-#endif
 	return NF_ACCEPT;
 }
 

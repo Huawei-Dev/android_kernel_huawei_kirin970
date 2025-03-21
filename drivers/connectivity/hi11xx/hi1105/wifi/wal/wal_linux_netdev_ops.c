@@ -83,11 +83,6 @@
 #ifdef _PRE_WLAN_FEATURE_HIEX
 #include "hmac_hiex.h"
 #endif
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
-#endif
 #include "hmac_dfx.h"
 
 #undef THIS_FILE_ID
@@ -370,19 +365,6 @@ int32_t wal_netdev_open_ext(oal_net_device_stru *pst_net_dev)
     return wal_netdev_open(pst_net_dev, OAL_TRUE);
 }
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-void wal_init_sniffer_cmd_function(void)
-{
-    static int is_func_set = 0;
-    if (!is_func_set) {
-        is_func_set = 1;
-        proc_set_hipriv_func(wal_hipriv_parse_cmd);
-    }
-}
-#endif
-#endif
-
 #ifdef _PRE_WLAN_FEATURE_MONITOR
 void wal_netdev_open_en_monitor_limit(oal_net_device_stru *net_dev)
 {
@@ -397,12 +379,6 @@ void wal_netdev_open_en_monitor_limit(oal_net_device_stru *net_dev)
     if (hmac_device == NULL) {
         return;
     }
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-    // netdev_openÅäÖÃsnifferÏÂ·¢Ö¸Áî
-    wal_init_sniffer_cmd_function();
-#endif
-#endif
 
     g_continuous_disable_enable_wifi++;
     if ((hmac_device->en_monitor_mode == OAL_TRUE) &&

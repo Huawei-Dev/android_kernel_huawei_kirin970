@@ -1,6 +1,4 @@
-
-
-#include "chr_netlink.h"
+#include <hwnet/chr/chr_netlink.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>

@@ -27,9 +27,6 @@
 #include "securec.h"
 #include "plat_pm.h"
 
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-#include <hwnet/ipv4/wifi_delayst.h>
-#endif
 #undef THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_OAL_PCIE_HOST_C
 

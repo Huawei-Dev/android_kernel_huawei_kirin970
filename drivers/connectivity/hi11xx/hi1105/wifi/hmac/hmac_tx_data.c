@@ -28,16 +28,6 @@
 #include "plat_pm_wlan.h"
 #endif
 
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-#include <hwnet/ipv4/wifi_delayst.h>
-#endif
-
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
-#endif
-
 #ifdef _PRE_WLAN_FEATURE_HIEX
 #include "hmac_hiex.h"
 #include "hmac_tx_msdu_dscr.h"
@@ -1592,10 +1582,6 @@ uint32_t hmac_tx_encap(hmac_vap_stru *pst_vap, hmac_user_stru *pst_user, oal_net
         ret = hmac_frag_process(pst_vap, pst_buf, pst_tx_ctl, (uint32_t)uc_ic_header, threshold);
     }
 
-#if ((defined (PRE_WLAN_FEATURE_SNIFFER)) && (defined (CONFIG_HW_SNIFFER)))
-    proc_sniffer_write_file((const uint8_t *)pst_head, MAC_80211_QOS_FRAME_LEN,
-                            (const uint8_t *)oal_netbuf_data(pst_buf), oal_netbuf_len(pst_buf), 1);
-#endif
     return ret;
 }
 
@@ -1948,11 +1934,6 @@ static uint32_t hmac_tx_lan_to_wlan_no_tcp_opt_tx_pass_handle(mac_vap_stru *pst_
         hmac_tx_vip_info(pst_vap, data_type, pst_buf, pst_tx_ctl);
     }
 
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-    if (DELAY_STATISTIC_SWITCH_ON && IS_NEED_RECORD_DELAY(pst_buf, TP_SKB_HMAC_XMIT)) {
-        skbprobe_record_time(pst_buf, TP_SKB_HMAC_TX);
-    }
-#endif
 #ifdef _PRE_WLAN_FEATURE_HID2D_TX_DROP
     hid2d_ret = hmac_hid2d_check_tx_drop(pst_hmac_vap, pst_buf, pst_tx_ctl);
     /* 判断需要丢弃 */
@@ -2384,11 +2365,6 @@ oal_net_dev_tx_enum hmac_bridge_vap_xmit(oal_netbuf_stru *pst_buf, oal_net_devic
         oam_info_log0(pst_vap->uc_vap_id, OAM_SF_TX, "{hmac_bridge_vap_xmit::the unshare netbuf = NULL!}");
         return OAL_NETDEV_TX_OK;
     }
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-    if (DELAY_STATISTIC_SWITCH_ON && IS_NEED_RECORD_DELAY(pst_buf, TP_SKB_IP)) {
-        skbprobe_record_time(pst_buf, TP_SKB_HMAC_XMIT);
-    }
-#endif
 
     /* 将以太网过来的帧上报SDT */
     if (hmac_tx_report_eth_frame(pst_vap, pst_buf) != OAL_SUCC) {
@@ -2435,11 +2411,7 @@ oal_net_dev_tx_enum hmac_bridge_vap_xmit(oal_netbuf_stru *pst_buf, oal_net_devic
     oal_netbuf_next(pst_buf) = NULL;
     oal_netbuf_prev(pst_buf) = NULL;
 
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-    memset_s(oal_netbuf_cb(pst_buf), OAL_NETBUF_CB_ORIGIN, 0, OAL_NETBUF_CB_ORIGIN);
-#else
     memset_s(oal_netbuf_cb(pst_buf), oal_netbuf_cb_size(), 0, oal_netbuf_cb_size());
-#endif
 
     if (IS_STA(&(pst_hmac_vap->st_vap_base_info))) {
         /* 发送方向的arp_req 统计和重关联的处理 */

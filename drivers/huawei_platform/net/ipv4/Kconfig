@@ -21,7 +21,3 @@ config HW_SYN_LINEAR_RETRY
 config HW_GET_EXT_SIG_ULDELAY
 	bool "Huawei wifi add uplink delay parameter support"
 	default n
-
-config HW_WIFI_EXT
-	bool "Huawei wifi ext support"
-	default n

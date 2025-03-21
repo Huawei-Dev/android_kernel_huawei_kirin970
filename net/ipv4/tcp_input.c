@@ -80,9 +80,6 @@
 #ifdef CONFIG_HW_WIFIPRO
 #include <hwnet/ipv4/wifipro_tcp_monitor.h>
 #endif
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-#include <hwnet/ipv4/wifi_delayst.h>
-#endif
 int sysctl_tcp_fack __read_mostly;
 
 #ifdef CONFIG_HUAWEI_XENGINE
@@ -106,13 +103,6 @@ int sysctl_tcp_fack __read_mostly;
 #include <netqos_sched/netqos_sched.h>
 #endif
 
-#ifdef CONFIG_HW_PACKET_TRACKER
-#include <hwnet/booster/hw_pt.h>
-#endif
-
-#ifdef CONFIG_APP_ACCELERATOR
-#include <hwnet/booster/app_accelerator.h>
-#endif
 #ifdef CONFIG_HW_NETWORK_QOE
 #include <hwnet/booster/ip_para_collec_ex.h>
 #endif
@@ -166,10 +156,6 @@ int sysctl_tcp_autotuning __read_mostly;
 #define FLAG_NOT_DUP		(FLAG_DATA|FLAG_WIN_UPDATE|FLAG_ACKED)
 #define FLAG_CA_ALERT		(FLAG_DATA_SACKED|FLAG_ECE|FLAG_DSACKING_ACK)
 #define FLAG_FORWARD_PROGRESS	(FLAG_ACKED|FLAG_DATA_SACKED)
-#endif
-
-#ifdef CONFIG_HW_PACKET_TRACKER
-#define FLAG_DATA_IS_EATEN 1
 #endif
 
 #define TCP_REMNANT (TCP_FLAG_FIN|TCP_FLAG_URG|TCP_FLAG_SYN|TCP_FLAG_PSH)
@@ -3612,12 +3598,6 @@ static void tcp_snd_una_update(struct tcp_sock *tp, u32 ack)
 static void tcp_rcv_nxt_update(struct tcp_sock *tp, u32 seq)
 {
 	u32 delta = seq - tp->rcv_nxt;
-#ifdef CONFIG_APP_ACCELERATOR
-	struct sock *sk = (struct sock *)tp;
-
-	if (after(tp->rcv_nxt, seq) && app_acc_start_check(sk))
-		return;
-#endif
 
 	sock_owned_by_me((struct sock *)tp);
 	tp->bytes_received += delta;
@@ -3863,10 +3843,6 @@ static int tcp_ack(struct sock *sk, const struct sk_buff *skb, int flag)
 	 */
 	if (after(ack, tp->snd_nxt))
 		goto invalid_ack;
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-	if (DELAY_STATISTIC_SWITCH_ON)
-		delay_record_rcv_combine(skb, sk, TP_SKB_TYPE_TCP);
-#endif
 
 	if (after(ack, prior_snd_una)) {
 		flag |= FLAG_SND_UNA_ADVANCED;
@@ -4307,13 +4283,6 @@ static inline bool tcp_paws_discard(const struct sock *sk,
 
 static bool tcp_sequence(const struct tcp_sock *tp, u32 seq, u32 end_seq)
 {
-#ifdef CONFIG_APP_ACCELERATOR
-	struct sock *sk = (struct sock *)tp;
-
-	if (app_acc_start_check(sk))
-		return !after(seq, tp->rcv_nxt + tcp_receive_window(tp));
-#endif
-
 	return !before(end_seq, tp->rcv_wup) &&
 		!after(seq, tp->rcv_nxt + tcp_receive_window(tp));
 }
@@ -4661,12 +4630,7 @@ static bool tcp_try_coalesce(struct sock *sk,
 	/* Its possible this segment overlaps with prior segment in queue */
 	/* tcp dl accelerator */
 	if (TCP_SKB_CB(from)->seq != TCP_SKB_CB(to)->end_seq) {
-#ifdef CONFIG_APP_ACCELERATOR
-		if (!app_acc_start_check(sk))
-			return false;
-#else
 		return false;
-#endif
 	}
 
 	if (!skb_try_coalesce(to, from, fragstolen, &delta))
@@ -4675,18 +4639,9 @@ static bool tcp_try_coalesce(struct sock *sk,
 	atomic_add(delta, &sk->sk_rmem_alloc);
 	sk_mem_charge(sk, delta);
 	NET_INC_STATS(sock_net(sk), LINUX_MIB_TCPRCVCOALESCE);
-#ifdef CONFIG_APP_ACCELERATOR
-	if (!app_acc_start_check(sk) ||
-	    after(TCP_SKB_CB(from)->end_seq, TCP_SKB_CB(to)->end_seq)) {
-		TCP_SKB_CB(to)->end_seq = TCP_SKB_CB(from)->end_seq;
-		TCP_SKB_CB(to)->ack_seq = TCP_SKB_CB(from)->ack_seq;
-		TCP_SKB_CB(to)->tcp_flags |= TCP_SKB_CB(from)->tcp_flags;
-	}
-#else
 	TCP_SKB_CB(to)->end_seq = TCP_SKB_CB(from)->end_seq;
 	TCP_SKB_CB(to)->ack_seq = TCP_SKB_CB(from)->ack_seq;
 	TCP_SKB_CB(to)->tcp_flags |= TCP_SKB_CB(from)->tcp_flags;
-#endif
 
 	if (TCP_SKB_CB(from)->has_rxtstamp) {
 		TCP_SKB_CB(to)->has_rxtstamp = true;
@@ -5055,11 +5010,6 @@ err:
 #ifdef CONFIG_TCP_AUTOTUNING
 static void tcp_autotuning_cong_avoid(struct sock *sk, struct sk_buff *skb)
 {
-#ifdef CONFIG_APP_ACCELERATOR
-	if (speed_test_chr_start_check(sk))
-		speed_test_chr_dsack_num_increase();
-#endif
-
 	tcp_dsack_set(sk, TCP_SKB_CB(skb)->seq, TCP_SKB_CB(skb)->end_seq);
 	inet_csk(sk)->icsk_ack.pingpong = 0;
 }
@@ -5090,9 +5040,6 @@ static void tcp_data_queue(struct sock *sk, struct sk_buff *skb)
 #else
 	if (TCP_SKB_CB(skb)->seq == TCP_SKB_CB(skb)->end_seq) {
 #endif
-#ifdef CONFIG_HW_PACKET_TRACKER
-		hw_pt_l4_downlink_in(sk, skb, FLAG_DATA_IS_EATEN);
-#endif
 		__kfree_skb(skb);
 		return;
 	}
@@ -5110,17 +5057,7 @@ static void tcp_data_queue(struct sock *sk, struct sk_buff *skb)
 	 *  Packets in sequence go to the receive queue.
 	 *  Out of sequence packets to the out_of_order_queue.
 	 */
-	/* tcp dl accelerator */
-#ifdef CONFIG_APP_ACCELERATOR
-	if ((TCP_SKB_CB(skb)->seq == tp->rcv_nxt) ||
-	    (app_acc_start_check(sk) && before(TCP_SKB_CB(skb)->end_seq,
-	     tp->rcv_nxt + tcp_receive_window(tp)))) {
-		if (!(TCP_SKB_CB(skb)->seq == tp->rcv_nxt) &&
-		    speed_test_chr_start_check(sk))
-			speed_test_chr_max_seq_ack_num_increase();
-#else
 	if (TCP_SKB_CB(skb)->seq == tp->rcv_nxt) {
-#endif
 		if (tcp_receive_window(tp) == 0)
 			goto out_of_window;
 
@@ -5132,9 +5069,6 @@ queue_and_out:
 			goto drop;
 
 		eaten = tcp_queue_rcv(sk, skb, 0, &fragstolen);
-#ifdef CONFIG_HW_PACKET_TRACKER
-		hw_pt_l4_downlink_in(sk, skb, eaten);
-#endif
 		tcp_rcv_nxt_update(tp, TCP_SKB_CB(skb)->end_seq);
 #ifdef CONFIG_MPTCP
 		if (skb->len || mptcp_is_data_fin(skb))
@@ -5222,10 +5156,6 @@ drop:
 #ifdef CONFIG_TCP_AUTOTUNING
 	if (sysctl_tcp_autotuning && tp->rx_opt.num_sacks) {
 		if (before(end_seq, tp->selective_acks[0].end_seq)) {
-#ifdef CONFIG_APP_ACCELERATOR
-			if (!tp->rx_opt.dsack && speed_test_chr_start_check(sk))
-				speed_test_chr_dsack_num_increase();
-#endif
 			tcp_dsack_extend(sk, seq, end_seq);
 		}
 	}
@@ -6039,10 +5969,6 @@ void tcp_rcv_established(struct sock *sk, struct sk_buff *skb,
 				/* We know that such packets are checksummed
 				 * on entry.
 				 */
-#ifdef CONFIG_HW_PACKET_TRACKER
-				hw_pt_l4_downlink_in(sk, skb,
-						     FLAG_DATA_IS_EATEN);
-#endif
 				tcp_ack(sk, skb, 0);
 				__kfree_skb(skb);
 				tcp_data_snd_check(sk);
@@ -6106,9 +6032,6 @@ void tcp_rcv_established(struct sock *sk, struct sk_buff *skb,
 			__tcp_ack_snd_check(sk, 0);
 #endif /* CONFIG_TCP_ARGO */
 no_ack:
-#ifdef CONFIG_HW_PACKET_TRACKER
-			hw_pt_l4_downlink_in(sk, skb, eaten);
-#endif
 #ifdef CONFIG_HW_NETWORK_QOE
 			update_ofo_rtt_for_qoe(sk);
 			update_ofo_tstamp_for_qoe(sk);
@@ -6518,9 +6441,6 @@ static int tcp_rcv_synsent_state_process(struct sock *sk, struct sk_buff *skb,
 		smp_mb();
 
 		tcp_finish_connect(sk, skb);
-#ifdef CONFIG_HW_PACKET_TRACKER
-		hw_pt_l4_downlink_in(sk, skb, FLAG_DATA_IS_EATEN);
-#endif
 		fastopen_fail = (tp->syn_fastopen || tp->syn_data) &&
 				tcp_rcv_fastopen_synack(sk, skb, &foc);
 

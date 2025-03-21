@@ -6,11 +6,6 @@
 #include "hmac_monitor.h"
 #include "hmac_mgmt_classifier.h"
 #include "hmac_rx_data.h"
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
-#endif
 
 #undef THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_MONITOR_C
@@ -287,13 +282,6 @@ void hmac_sniffer_save_data(hmac_device_stru *hmac_device,
             rx_status->bit_ext_spatial_streams, rx_status->un_nss_rate.st_rate.bit_protocol_mode);
 #endif
         hmac_sniffer_fill_radiotap(&radiotap, rx_ctrl, rx_status, rx_statistic, payload, rate_kbps, per_rate);
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-        /* 调用终端提供的接口写入到文件 */
-        proc_sniffer_write_file((uint8_t *)&radiotap, sizeof(ieee80211_radiotap_stru),
-                                (uint8_t *)oal_netbuf_payload(temp_netbuf), pkt_len, DIRECTION_MONITOR_MODE);
-#endif
-#endif
         netbuf_num--;
     }
 

@@ -239,10 +239,6 @@ struct sock_common {
 	unsigned int    skc_netqos_tx;
 	unsigned int    skc_netqos_rx;
 #endif
-#ifdef CONFIG_HW_NETWORK_SLICE
-	int skc_slice_reported;
-	int skc_slice_binded;
-#endif
 };
 
 /**
@@ -374,11 +370,6 @@ struct sock {
 #define sk_netqos_tx		__sk_common.skc_netqos_tx
 #define sk_netqos_rx		__sk_common.skc_netqos_rx
 #endif
-#ifdef CONFIG_HW_NETWORK_SLICE
-#define sk_slice_reported	__sk_common.skc_slice_reported
-#define sk_slice_binded	__sk_common.skc_slice_binded
-#endif
-
 	socket_lock_t		sk_lock;
 	atomic_t		sk_drops;
 	int			sk_rcvlowat;
@@ -537,19 +528,8 @@ struct sock {
 		is_download_flow:1,
 		is_mp_flow_bind:1;
 #endif
-#ifdef CONFIG_HW_CHR_TCP_SMALL_WIN_MONITOR
-	unsigned int win_cnt;
-	unsigned int mime_type;
-	unsigned long small_win_stamp;
-	bool win_flag;
-#endif
 #ifdef CONFIG_CGROUP_BPF
 	char		sk_process_name[TASK_COMM_LEN];
-#endif
-
-#ifdef CONFIG_APP_ACCELERATOR
-	bool start_acc_flag;
-	u32 packet_num;
 #endif
 
 #ifdef CONFIG_HUAWEI_KSTATE

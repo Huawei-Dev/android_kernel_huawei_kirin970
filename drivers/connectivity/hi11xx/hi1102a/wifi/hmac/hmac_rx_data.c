@@ -43,9 +43,6 @@
 #ifdef CONFIG_HUAWEI_DUBAI
 #include <chipset_common/dubai/dubai.h>
 #endif
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
 
 #undef THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_RX_DATA_C
@@ -1182,12 +1179,6 @@ oal_void hmac_rx_lan_frame_classify(hmac_vap_stru *pst_vap,
     hmac_ba_update_rx_bitmap(pst_hmac_user, pst_frame_hdr);
 #endif
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-    proc_sniffer_write_file(NULL, 0, (oal_uint8 *)oal_netbuf_payload(pst_netbuf), pst_rx_ctrl->st_rx_info.us_frame_len,
-                            0);
-#endif
-
-    /* 情况一:不是AMSDU聚合，则该MPDU对应一个MSDU，同时对应一个NETBUF */
     if (pst_rx_ctrl->st_rx_info.bit_amsdu_enable == OAL_FALSE) {
         if (hmac_wapi_rx_handle(pst_vap, &pst_netbuf, pst_frame_hdr, &pst_rx_ctrl, pst_hmac_user) != OAL_SUCC) {
             return;

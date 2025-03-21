@@ -5,7 +5,7 @@
  * Create: 2019-03-19
  */
 
-#include "ip_para_collec.h"
+#include <hwnet/booster/ip_para_collec.h>
 
 #include <linux/net.h>
 #include <net/sock.h>
@@ -14,15 +14,8 @@
 #include <linux/ipv6.h>
 #include <net/tcp.h>
 
-#include "ip_para_collec_ex.h"
-#include "netlink_handle.h"
-#ifdef CONFIG_HW_NETWORK_SLICE
-#include "network_slice_management.h"
-#endif
-
-#ifdef CONFIG_STREAM_DETECT
-#include "stream_detect.h"
-#endif
+#include <hwnet/booster/ip_para_collec_ex.h>
+#include <hwnet/booster/netlink_handle.h>
 
 #define TCP_HDR_DOFF_QUAD 4
 #define TCP_HDR_IHL_QUAD 4
@@ -158,9 +151,6 @@ static bool match_flow_type(struct sock *sk, struct sk_buff *skb, u16 hook_type,
 	u32 payloadlen;
 	u8 *payload = NULL;
 
-#ifdef CONFIG_STREAM_DETECT
-	struct stream_info info = {0};
-#endif
 	struct tcphdr *th = tcp_hdr(skb);
 
 	if (!(hook_type == NF_INET_LOCAL_IN))
@@ -172,12 +162,7 @@ static bool match_flow_type(struct sock *sk, struct sk_buff *skb, u16 hook_type,
 	payloadlen = skb->len - skb_transport_offset(skb) - tcp_hdrlen(skb);
 	payload = skb_transport_header(skb) + tcp_hdrlen(skb);
 
-#ifdef CONFIG_STREAM_DETECT
-	info.dest_port = (u32)htons(th->source);
-	return is_target_stream(sk, payload, payloadlen, flow_type, info);
-#else
 	return false;
-#endif
 }
 
 static bool match_key_flow(struct key_flow_info *info, struct sock *sk, struct sk_buff *skb, u16 hook_type)
@@ -787,18 +772,6 @@ static unsigned int hook4(void *priv,
 	if (state == NULL)
 		return NF_ACCEPT;
 
-#ifdef CONFIG_HW_NETWORK_SLICE
-	if (state->hook == NF_INET_LOCAL_OUT)
-		slice_ip_para_report(skb, AF_INET);
-#endif
-
-#ifdef CONFIG_STREAM_DETECT
-	if (state->hook == NF_INET_POST_ROUTING)
-		stream_process_hook_out(skb, AF_INET);
-	if (state->hook == NF_INET_LOCAL_IN)
-		stream_process_hook_in(skb, AF_INET);
-#endif
-
 	iph = ip_hdr(skb);
 	if (iph == NULL)
 		return NF_ACCEPT;
@@ -877,18 +850,6 @@ static unsigned int hook6(void *priv,
 
 	if (state == NULL)
 		return NF_ACCEPT;
-
-#ifdef CONFIG_HW_NETWORK_SLICE
-	if (state->hook == NF_INET_LOCAL_OUT)
-		slice_ip_para_report(skb, AF_INET6);
-#endif
-
-#ifdef CONFIG_STREAM_DETECT
-	if (state->hook == NF_INET_POST_ROUTING)
-		stream_process_hook_out(skb, AF_INET6);
-	if (state->hook == NF_INET_LOCAL_IN)
-		stream_process_hook_in(skb, AF_INET6);
-#endif
 
 	iph = ipv6_hdr(skb);
 	if (iph == NULL)

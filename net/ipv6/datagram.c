@@ -34,9 +34,6 @@
 
 #include <linux/errqueue.h>
 #include <linux/uaccess.h>
-#ifdef CONFIG_HW_NETWORK_SLICE
-#include <hwnet/booster/network_slice_route.h>
-#endif
 
 static bool ipv6_mapped_addr_any(const struct in6_addr *a)
 {
@@ -280,10 +277,6 @@ int ip6_datagram_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 {
 	int res;
 
-#ifdef CONFIG_HW_NETWORK_SLICE
-	if (sk)
-		slice_rules_lookup(sk, uaddr, sk->sk_protocol);
-#endif
 	lock_sock(sk);
 	res = __ip6_datagram_connect(sk, uaddr, addr_len);
 	release_sock(sk);

@@ -41,12 +41,6 @@
 #include "plat_pm_wlan.h"
 #endif
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
-#endif
-
 #ifdef _PRE_WLAN_FEATURE_HIEX
 #include "hmac_hiex.h"
 #endif
@@ -1950,12 +1944,6 @@ uint32_t hmac_ap_up_rx_mgmt(hmac_vap_stru *hmac_vap, void *p_param)
         if ((en_blacklist_result == OAL_TRUE) && (mgmt_frm_type != WLAN_FC0_SUBTYPE_AUTH)) {
             return OAL_SUCC;
         }
-
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-        proc_sniffer_write_file(NULL, 0, mac_hdr, pst_rx_info->us_frame_len, 0);
-#endif
-#endif
 
         switch (mgmt_frm_type) {
             case WLAN_FC0_SUBTYPE_AUTH:

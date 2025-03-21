@@ -1,6 +1,4 @@
-
-
-#include "wifipro_tcp_monitor.h"
+#include <hwnet/ipv4/wifipro_tcp_monitor.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>

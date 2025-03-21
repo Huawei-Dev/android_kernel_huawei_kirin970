@@ -1,9 +1,3 @@
-/*
- * 版权所有 (c) 华为技术有限公司 2013-2020
- * 功能说明 : STA侧管理面处理
- * 作    者 : zhangheng
- * 创建日期 : 2013年6月18日
- */
 #include "wlan_spec.h"
 #include "wlan_mib.h"
 
@@ -64,11 +58,6 @@
 
 #include "hmac_btcoex.h"
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
-#endif
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
 #include "plat_pm_wlan.h"
 #endif
@@ -1065,19 +1054,9 @@ uint32_t hmac_sta_up_rx_mgmt(hmac_vap_stru *hmac_vap, void *param)
     /* Bar frame proc here */
     if (mac_get_frame_type(mac_hdr) == WLAN_FC0_TYPE_CTL) {
         if (mac_get_frame_sub_type(mac_hdr) == WLAN_FC0_SUBTYPE_BAR) {
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-            proc_sniffer_write_file(NULL, 0, mac_hdr, rx_info->us_frame_len, 0);
-#endif
-#endif
             hmac_up_rx_bar(hmac_vap, rx_ctrl, mgmt_rx_event->pst_netbuf);
         }
     } else if (mac_get_frame_type(mac_hdr) == WLAN_FC0_TYPE_MGT) {
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-        proc_sniffer_write_file(NULL, 0, mac_hdr, rx_info->us_frame_len, 0);
-#endif
-#endif
         hmac_sta_up_rx_mgmt_core_proc(hmac_vap, rx_info, mac_hdr, is_protected, mgmt_rx_event);
     }
 

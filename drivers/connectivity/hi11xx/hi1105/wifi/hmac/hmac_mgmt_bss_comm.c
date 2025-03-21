@@ -20,11 +20,6 @@
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_MGMT_BSS_COMM_C
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
-#endif
 #include "securec.h"
 #include "securectype.h"
 
@@ -1327,12 +1322,6 @@ uint32_t hmac_tx_mgmt_send_event(mac_vap_stru *pst_vap, oal_netbuf_stru *pst_mgm
     pst_ctx_stru = (dmac_tx_event_stru *)pst_event->auc_event_data;
     pst_ctx_stru->pst_netbuf = pst_mgmt_frame;
     pst_ctx_stru->us_frame_len = us_frame_len;
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-    proc_sniffer_write_file(NULL, 0, (uint8_t *)(oal_netbuf_header(pst_mgmt_frame)), us_frame_len, 1);
-#endif
-#endif
-
     ret = frw_event_dispatch_event(pst_event_mem);
     if (ret != OAL_SUCC) {
         oam_error_log1(pst_vap->uc_vap_id, OAM_SF_SCAN,

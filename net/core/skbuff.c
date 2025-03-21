@@ -77,10 +77,6 @@
 #include <linux/capability.h>
 #include <linux/user_namespace.h>
 
-#ifdef CONFIG_HW_PACKET_TRACKER
-#include <hwnet/booster/hw_pt.h>
-#endif
-
 struct kmem_cache *skbuff_head_cache __read_mostly;
 static struct kmem_cache *skbuff_fclone_cache __read_mostly;
 int sysctl_max_skb_frags __read_mostly = MAX_SKB_FRAGS;
@@ -236,9 +232,6 @@ struct sk_buff *__alloc_skb(unsigned int size, gfp_t gfp_mask,
 
 	/* make sure we initialize shinfo sequentially */
 	shinfo = skb_shinfo(skb);
-#ifdef CONFIG_HW_PACKET_TRACKER
-	hw_pt_set_skb_stamp(skb);
-#endif
 	memset(shinfo, 0, offsetof(struct skb_shared_info, dataref));
 	atomic_set(&shinfo->dataref, 1);
 

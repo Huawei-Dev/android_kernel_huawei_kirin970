@@ -22,16 +22,6 @@
 #include "oal_net.h"
 #endif
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
-#ifdef _PRE_WINDOWS_SUPPORT
-#include "wal_windows_ioctl.h"
-#else
-#include "wal_linux_ioctl.h"
-#endif
-#endif
 #undef THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_MGMT_CLASSIFIER_C
 #define MAX_VHT_MCS_NSS 4

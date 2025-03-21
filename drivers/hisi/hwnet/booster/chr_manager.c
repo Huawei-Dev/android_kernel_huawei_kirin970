@@ -5,7 +5,7 @@
  * Create: 2019-12-10
  */
 
-#include "chr_manager.h"
+#include <hwnet/booster/chr_manager.h>
 #include <linux/version.h>
 
 #ifdef CONFIG_HUAWEI_BASTET

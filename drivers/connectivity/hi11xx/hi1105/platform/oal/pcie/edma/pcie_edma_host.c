@@ -26,10 +26,6 @@
 #include "securec.h"
 #include "plat_pm.h"
 
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-#include <hwnet/ipv4/wifi_delayst.h>
-#endif
-
 OAL_STATIC int32_t oal_pcie_d2h_ringbuf_rd_update(oal_pcie_res *pst_pci_res);
 OAL_STATIC int32_t oal_pcie_d2h_ringbuf_wr_update(oal_pcie_res *pst_pci_res);
 OAL_STATIC int32_t oal_pcie_d2h_ringbuf_write(oal_pcie_res *pst_pci_res,
@@ -688,11 +684,6 @@ OAL_STATIC OAL_INLINE int32_t oal_pcie_h2d_transfer_free_netbuf(oal_pcie_res *ps
             declare_dft_trace_key_info("pcie tx done count error2", OAL_DFT_TRACE_EXCEP);
             return -OAL_EIO;
         }
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-        if (DELAY_STATISTIC_SWITCH_ON) {
-            delay_record_snd_combine(pst_netbuf);
-        }
-#endif
         /* unmap dma addr & free netbuf */
         pst_pci_res->st_tx_res[i].stat.tx_done_count++;
         pci_print_log(PCI_LOG_DBG, "h2d send netbuf ok, va:0x%p, cnt:%u",

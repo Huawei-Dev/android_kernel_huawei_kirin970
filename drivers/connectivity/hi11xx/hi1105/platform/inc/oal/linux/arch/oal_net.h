@@ -135,9 +135,6 @@ typedef iw_handler oal_iw_handler;
 #define oal_netbuf_len(_pst_buf) ((_pst_buf)->len)
 #define OAL_NETBUF_TAIL          skb_tail_pointer
 
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-#define OAL_NETBUF_CB_ORIGIN 48
-#endif
 #define oal_netdevice_ops(_pst_dev)                     ((_pst_dev)->netdev_ops)
 #define oal_netdevice_ops_open(_pst_netdev_ops)         ((_pst_netdev_ops)->ndo_open)
 #define oal_netdevice_ops_stop(_pst_netdev_ops)         ((_pst_netdev_ops)->ndo_stop)

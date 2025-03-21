@@ -55,11 +55,6 @@
 #include <emcom/emcom_xengine.h>
 #endif
 
-
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-#include <hwnet/ipv4/wifi_delayst.h>
-#endif
-
 #ifdef CONFIG_HUAWEI_FEATURE_PRINT_PID_NAME
 #include <huawei_platform/power/pid_socket/pid_socket.h>
 #endif
@@ -67,10 +62,6 @@
 #ifdef CONFIG_HW_NETQOS_SCHED
 #include <netqos_sched/netqos_sched.h>
 #include <trace/events/netqos.h>
-#endif
-
-#ifdef CONFIG_HW_PACKET_TRACKER
-#include <hwnet/booster/hw_pt.h>
 #endif
 
 /* People can turn this off for buggy TCP's found in printers etc. */
@@ -3971,10 +3962,6 @@ int tcp_connect(struct sock *sk)
 	if (err == -ECONNREFUSED)
 		return err;
 
-#ifdef CONFIG_HW_PACKET_TRACKER
-	hw_pt_set_skb_stamp(buff);
-#endif
-
 	/* We change tp->snd_nxt after the tcp_transmit_skb() call
 	 * in order to make this packet get counted in tcpOutSegs.
 	 */
@@ -4089,9 +4076,6 @@ void __tcp_send_ack(struct sock *sk, u32 rcv_nxt)
 					  TCP_DELACK_MAX, TCP_RTO_MAX);
 		return;
 	}
-#ifdef CONFIG_HW_PACKET_TRACKER
-	hw_pt_set_skb_stamp(buff);
-#endif
 
 	/* Reserve space for headers and prepare control bits. */
 	skb_reserve(buff, MAX_TCP_HEADER);
@@ -4102,11 +4086,6 @@ void __tcp_send_ack(struct sock *sk, u32 rcv_nxt)
 	 * SKB_TRUESIZE(max(1 .. 66, MAX_TCP_HEADER)) is unfortunately ~784
 	 */
 	skb_set_tcp_pure_ack(buff);
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-	if (DELAY_STATISTIC_SWITCH_ON)
-		delay_record_first_combine(sk, buff,
-			TP_SKB_DIRECT_SND, TP_SKB_TYPE_TCP);
-#endif
 	/* Send it off, this clears delayed acks for us. */
 	__tcp_transmit_skb(sk, buff, 0, (__force gfp_t)0, rcv_nxt);
 }

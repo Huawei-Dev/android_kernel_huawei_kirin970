@@ -26,10 +26,6 @@
 #include "securec.h"
 #include "plat_pm.h"
 
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-#include <hwnet/ipv4/wifi_delayst.h>
-#endif
-
 OAL_STATIC oal_pcie_region g_hi1105_pcie_asic_regions[] = {
     {   .pci_start = 0x00000000,
         .pci_end = 0x000BFFFF,

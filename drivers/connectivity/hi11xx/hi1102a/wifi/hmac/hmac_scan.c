@@ -1,8 +1,3 @@
-
-
-/*****************************************************************************
-  1 头文件包含
-*****************************************************************************/
 #include "oam_ext_if.h"
 #include "mac_ie.h"
 #include "mac_regdomain.h"
@@ -34,9 +29,6 @@
 #endif  // _PRE_WLAN_FEATURE_ROAM
 #include "oal_main.h"
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
 #undef THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_SCAN_C
 
@@ -187,10 +179,6 @@ oal_void hmac_scan_print_scanned_bss_info(oal_uint8 uc_device_id)
                                    OAM_OTA_FRAME_DIRECTION_TYPE_RX);
 
             oal_free(puc_tmp_mac_body_addr);
-            /*lint +e416*/
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-            proc_sniffer_write_file(NULL, 0, pst_bss_dscr->auc_mgmt_buff, (oal_uint16)pst_bss_dscr->ul_mgmt_len, 0);
-#endif
         }
     }
 

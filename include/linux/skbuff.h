@@ -509,11 +509,6 @@ struct skb_shared_info {
 	 * remains valid until skb destructor */
 	void *		destructor_arg;
 
-#ifdef CONFIG_HW_PACKET_TRACKER
-	unsigned long born_stamp;
-	__u32 proc_bitmask;
-#endif
-
 	/* must be last field, see pskb_expand_head() */
 	skb_frag_t	frags[MAX_SKB_FRAGS];
 };
@@ -694,17 +689,9 @@ struct sk_buff {
 	 * first. This is owned by whoever has the skb queued ATM.
 	 */
 #ifdef CONFIG_MPTCP
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-	char			cb[128] __aligned(8);
-#else
 	char			cb[80] __aligned(8);
-#endif
-#else
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-	char			cb[96] __aligned(8);
 #else
 	char			cb[48] __aligned(8);
-#endif
 #endif
 	unsigned long		_skb_refdst;
 	void			(*destructor)(struct sk_buff *skb);

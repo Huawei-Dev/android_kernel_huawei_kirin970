@@ -151,10 +151,6 @@
 #include <hwnet/booster/hw_packet_filter_bypass.h>
 #endif
 
-#ifdef CONFIG_HW_PACKET_TRACKER
-#include <hwnet/booster/hw_pt.h>
-#endif
-
 #ifdef CONFIG_HISI_BB
 #include <linux/hisi/rdr_hisi_ap_hook.h>
 #endif
@@ -176,10 +172,6 @@ static int call_netdevice_notifiers_info(unsigned long val,
 					 struct net_device *dev,
 					 struct netdev_notifier_info *info);
 static struct napi_struct *napi_by_id(unsigned int napi_id);
-
-#ifdef CONFIG_HW_DC_MODULE
-static struct hw_dc_ops g_dev_dc_ops;
-#endif
 
 #ifdef CONFIG_HW_WAUDIO_MODULE
 static struct hw_wifi_audio_ops wifi_audio_ops = {
@@ -3032,10 +3024,6 @@ static int xmit_one(struct sk_buff *skb, struct net_device *dev,
 
 	len = skb->len;
 	trace_net_dev_start_xmit(skb, dev);
-#ifdef CONFIG_HW_DC_MODULE
-	if (g_dev_dc_ops.dc_send_copy)
-		g_dev_dc_ops.dc_send_copy(skb, dev);
-#endif
 #ifdef CONFIG_HW_WAUDIO_MODULE
 	if (wifi_audio_ops.wifi_audio_skb_send_handle)
 		wifi_audio_ops.wifi_audio_skb_send_handle(skb, dev);
@@ -3057,10 +3045,6 @@ struct sk_buff *dev_hard_start_xmit(struct sk_buff *first, struct net_device *de
 		struct sk_buff *next = skb->next;
 
 		skb->next = NULL;
-
-#ifdef CONFIG_HW_PACKET_TRACKER
-		hw_pt_dev_uplink(skb, dev);
-#endif
 
 		rc = xmit_one(skb, dev, txq, next != NULL);
 		if (unlikely(!dev_xmit_complete(rc))) {
@@ -4425,15 +4409,6 @@ another_round:
 	if (wifi_audio_ops.wifi_audio_skb_receive_handle &&
 	    (wifi_audio_ops.wifi_audio_skb_receive_handle(skb) == 0))
 		return NET_RX_DROP;
-#endif
-
-#ifdef CONFIG_HW_DC_MODULE
-	if (g_dev_dc_ops.dc_receive && g_dev_dc_ops.dc_receive(skb))
-		return NET_RX_DROP;
-#endif
-
-#ifdef CONFIG_HW_PACKET_TRACKER
-	hw_pt_set_skb_stamp(skb);
 #endif
 
 	if (skb->protocol == cpu_to_be16(ETH_P_8021Q) ||
@@ -8708,26 +8683,6 @@ void func(const struct net_device *dev, const char *fmt, ...)	\
 	va_end(args);						\
 }								\
 EXPORT_SYMBOL(func);
-
-#ifdef CONFIG_HW_DC_MODULE
-int hw_register_dual_connection(struct hw_dc_ops *ops)
-{
-	if (ops == NULL)
-		return -EINVAL;
-	g_dev_dc_ops.dc_send_copy = ops->dc_send_copy;
-	g_dev_dc_ops.dc_receive = ops->dc_receive;
-	return 0;
-}
-EXPORT_SYMBOL(hw_register_dual_connection);
-
-int hw_unregister_dual_connection(void)
-{
-	g_dev_dc_ops.dc_send_copy = NULL;
-	g_dev_dc_ops.dc_receive = NULL;
-	return 0;
-}
-EXPORT_SYMBOL(hw_unregister_dual_connection);
-#endif
 
 #ifdef CONFIG_HW_WAUDIO_MODULE
 int hw_register_wifi_audio(const struct hw_wifi_audio_ops *ops)

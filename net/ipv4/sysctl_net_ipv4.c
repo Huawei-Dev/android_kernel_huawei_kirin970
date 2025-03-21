@@ -26,12 +26,6 @@
 #include <net/inet_frag.h>
 #include <net/ping.h>
 #include <net/protocol.h>
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-#include <hwnet/ipv4/wifi_delayst.h>
-#endif
-#ifdef CONFIG_HW_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
 
 static int zero;
 static int one = 1;
@@ -615,14 +609,6 @@ static struct ctl_table ipv4_table[] = {
 		.maxlen		= TCP_CA_NAME_MAX,
 		.proc_handler	= proc_tcp_congestion_control,
 	},
-#ifdef CONFIG_HW_SNIFFER
-	{
-		.procname	= "net_sniffer",
-		.mode		= 0644,
-		.maxlen		= PCAP_FILE_LEN,
-		.proc_handler	= proc_sniffer_read_01,
-	},
-#endif
 	{
 		.procname	= "tcp_workaround_signed_windows",
 		.data		= &sysctl_tcp_workaround_signed_windows,
@@ -651,15 +637,6 @@ static struct ctl_table ipv4_table[] = {
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec
 	},
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-	{
-		.procname       = "tcp_delay_filter",
-		.data           = tcp_delay_filter,
-		.maxlen         = DELAY_FILTER_NAME_MAX,
-		.mode           = 0644,
-		.proc_handler   = proc_wifi_delay_command,
-	},
-#endif
 #ifdef CONFIG_NETLABEL
 	{
 		.procname	= "cipso_cache_enable",
@@ -1349,14 +1326,13 @@ err_alloc:
 	return -ENOMEM;
 }
 
-#ifndef CONFIG_HW_SNIFFER
 /* define a null function*/
 int proc_sniffer_write_file(const char *header_buff, unsigned int header_len,
 					const char *frame_buff, unsigned int frame_len, int flag_rx_tx)
 {
 	return 0;
 }
-#endif
+
 static __net_exit void ipv4_sysctl_exit_net(struct net *net)
 {
 	struct ctl_table *table;

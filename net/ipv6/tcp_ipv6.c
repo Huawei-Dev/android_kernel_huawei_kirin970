@@ -76,9 +76,6 @@
 #ifdef CONFIG_HUAWEI_XENGINE
 #include <emcom/emcom_xengine.h>
 #endif
-#ifdef CONFIG_HW_NETWORK_SLICE
-#include <hwnet/booster/network_slice_route.h>
-#endif
 
 #ifndef CONFIG_MPTCP
 static void	tcp_v6_send_reset(const struct sock *sk, struct sk_buff *skb);
@@ -266,10 +263,6 @@ int tcp_v6_connect(struct sock *sk, struct sockaddr *uaddr,
 
 #ifdef CONFIG_HUAWEI_XENGINE
 	emcom_xengine_mpflow_ai_bind2device(sk, uaddr);
-#endif
-
-#ifdef CONFIG_HW_NETWORK_SLICE
-	slice_rules_lookup(sk, uaddr, IPPROTO_TCP);
 #endif
 
 	if (!ipv6_addr_any(&sk->sk_v6_rcv_saddr))

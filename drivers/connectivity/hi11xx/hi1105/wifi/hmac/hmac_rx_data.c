@@ -34,9 +34,6 @@
 
 #include <hmac_auto_adjust_freq.h>  // 为hmac_auto_adjust_freq.c统计收包数准备
 
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-#include <hwnet/ipv4/wifi_delayst.h>
-#endif
 #ifdef _PRE_WLAN_FEATURE_FTM
 #include "hmac_ftm.h"
 #endif
@@ -44,11 +41,6 @@
 #include "hmac_csi.h"
 #endif
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
-#endif
 #ifdef CONFIG_HUAWEI_DUBAI
 #include <chipset_common/dubai/dubai.h>
 #endif
@@ -622,12 +614,7 @@ OAL_STATIC void hmac_rx_prepare_msdu_list_to_wlan(hmac_vap_stru *pst_vap,
             oal_netbuf_free(netbuf);
             return;
         }
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-        memset_s(oal_netbuf_cb(netbuf), OAL_NETBUF_CB_ORIGIN, 0, OAL_NETBUF_CB_ORIGIN);
-#else
         memset_s(oal_netbuf_cb(netbuf), oal_netbuf_cb_size(), 0, oal_netbuf_cb_size());
-#endif
-        /* 将MSDU加入到netbuf链的最后 */
         oal_netbuf_add_to_list_tail(netbuf, netbuf_header);
     } else { /* 情况二:AMSDU聚合 */
         st_msdu_state.uc_procd_netbuf_nums = 0;
@@ -970,14 +957,9 @@ OAL_STATIC void hmac_rx_transmit_msdu_to_lan(hmac_vap_stru *pst_vap, hmac_user_s
 #endif
 
     oal_mem_netbuf_trace(netbuf, OAL_TRUE);
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-    memset_s(oal_netbuf_cb(netbuf), OAL_NETBUF_CB_ORIGIN, 0, OAL_NETBUF_CB_ORIGIN);
-#else
     memset_s(oal_netbuf_cb(netbuf), oal_netbuf_cb_size(), 0, oal_netbuf_cb_size());
-#endif
 
 #ifdef _PRE_WLAN_RR_PERFORMENCE_DEBUG
-    /* RR性能检测接收流程host转发至lan口位置打点 */
     hmac_rr_rx_h2w_timestamp();
 #endif
 
@@ -1308,11 +1290,6 @@ void hmac_rx_lan_frame_classify(hmac_vap_stru *vap, oal_netbuf_stru *netbuf, mac
     if ((pst_rx_ctrl->bit_amsdu_enable == OAL_FALSE) || (pst_rx_ctrl->bit_is_last_buffer == OAL_TRUE)) {
         hmac_ba_update_rx_bitmap(pst_hmac_user, pst_frame_hdr);
     }
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-    proc_sniffer_write_file(NULL, 0, (uint8_t *)oal_netbuf_payload(netbuf), pst_rx_ctrl->us_frame_len, 0);
-#endif
-#endif
     if (pst_rx_ctrl->bit_amsdu_enable == OAL_FALSE) {
         netbuf = hmac_rx_lan_frame_wapi_proc(vap, pst_hmac_user, netbuf, pst_frame_hdr);
         /* 情况一:不是AMSDU聚合，则该MPDU对应一个MSDU，同时对应一个NETBUF */
@@ -1806,12 +1783,7 @@ void hmac_rx_enqueue(oal_netbuf_stru *netbuf, oal_net_device_stru *net_dev)
 
 void hmac_rx_prepare_to_wlan(oal_netbuf_head_stru *netbuf_header, oal_netbuf_stru *netbuf)
 {
-#ifdef _PRE_WLAN_PKT_TIME_STAT
-    memset_s(oal_netbuf_cb(netbuf), OAL_NETBUF_CB_ORIGIN, 0, OAL_NETBUF_CB_ORIGIN);
-#else
     memset_s(oal_netbuf_cb(netbuf), oal_netbuf_cb_size(), 0, oal_netbuf_cb_size());
-#endif
-    /* 将MSDU加入到netbuf链的最后 */
     oal_netbuf_add_to_list_tail(netbuf, netbuf_header);
     return;
 }

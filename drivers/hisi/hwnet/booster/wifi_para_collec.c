@@ -5,12 +5,12 @@
  * Create: 2020-03-30.
  */
 
-#include "wifi_para_collec.h"
+#include <hwnet/booster/wifi_para_collec.h>
 
 #include <../net/wireless/rdev-ops.h>
 #include <../net/wireless/nl80211.h>
 #include <net/neighbour.h>
-#include "ip_para_collec_ex.h"
+#include <hwnet/booster/ip_para_collec_ex.h>
 
 static struct wifi_ctx *g_wifi_ctx;
 static u32 g_gateway[MAX_WIFI_NUM];

@@ -98,14 +98,6 @@ extern uint8_t BST_FG_Proc_Send_RPacket_Priority(struct sock *pstSock);
 int g_fast_grab_dscp = 0; /*fg app dscp value,get from hilink*/
 #endif
 
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-#include <hwnet/ipv4/wifi_delayst.h>
-#endif
-
-#ifdef CONFIG_HW_PACKET_TRACKER
-#include <hwnet/booster/hw_pt.h>
-#endif
-
 #ifdef CONFIG_HW_WIFIPRO
 #include <linux/snmp.h>
 #include <hwnet/ipv4/wifipro_tcp_monitor.h>
@@ -455,11 +447,6 @@ int ip_output(struct net *net, struct sock *sk, struct sk_buff *skb)
 	skb->dev = dev;
 	skb->protocol = htons(ETH_P_IP);
 
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-	if(DELAY_STATISTIC_SWITCH_ON) {
-		delay_record_ip_combine(skb,TP_SKB_DIRECT_SND);
-	}
-#endif
 	return NF_HOOK_COND(NFPROTO_IPV4, NF_INET_POST_ROUTING,
 			    net, sk, skb, NULL, dev,
 			    ip_finish_output,
@@ -610,11 +597,6 @@ static void ip_copy_metadata(struct sk_buff *to, struct sk_buff *from)
 	/* Copy the flags to each fragment. */
 	IPCB(to)->flags = IPCB(from)->flags;
 
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-	if(DELAY_STATISTIC_SWITCH_ON) {
-		memcpy_skb_cb(to,from);
-	}
-#endif
 #ifdef CONFIG_NET_SCHED
 	to->tc_index = from->tc_index;
 #endif
@@ -1619,10 +1601,6 @@ void ip_send_unicast_reply(struct sock *sk, struct sk_buff *skb,
 	struct sk_buff *nskb;
 	int err;
 	int oif;
-
-#ifdef CONFIG_HW_PACKET_TRACKER
-	hw_pt_set_skb_stamp(skb);
-#endif
 
 	if (__ip_options_echo(net, &replyopts.opt.opt, skb, sopt))
 		return;

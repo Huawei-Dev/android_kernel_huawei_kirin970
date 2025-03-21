@@ -738,9 +738,6 @@ oal_uint32 hmac_sta_wait_auth_seq2_rx(hmac_vap_stru *pst_sta, oal_void *pst_msg)
         return OAL_SUCC;
     }
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-    proc_sniffer_write_file(NULL, 0, puc_mac_hdr, pst_rx_ctrl->st_rx_info.us_frame_len, 0);
-#endif
     /* AUTH alg CHECK */
     if ((pst_sta->en_auth_mode != us_auth_alg) &&
         (pst_sta->en_auth_mode != WLAN_WITP_AUTH_AUTOMATIC)) {
@@ -838,9 +835,6 @@ oal_uint32 hmac_sta_wait_auth_seq4_rx(hmac_vap_stru *pst_sta, oal_void *p_msg)
     }
 #endif
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-    proc_sniffer_write_file(NULL, 0, puc_mac_hdr, pst_rx_ctrl->st_rx_info.us_frame_len, 0);
-#endif
     us_auth_status = mac_get_auth_status(puc_mac_hdr);
     if ((mac_get_auth_seq_num(puc_mac_hdr) == WLAN_AUTH_TRASACTION_NUM_FOUR) &&
         (us_auth_status == MAC_SUCCESSFUL_STATUSCODE)) {

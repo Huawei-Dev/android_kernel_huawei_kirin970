@@ -7,7 +7,7 @@
  * Create: 2019-04-18
  */
 
-#include "hw_packet_filter_bypass.h"
+#include <hwnet/booster/hw_packet_filter_bypass.h>
 
 #include <linux/spinlock.h>
 #include <linux/jiffies.h>

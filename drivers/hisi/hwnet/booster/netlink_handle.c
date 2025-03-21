@@ -11,10 +11,10 @@
  * Create: 2019-03-19
  */
 
-#include "netlink_handle.h"
+#include <hwnet/booster/netlink_handle.h>
 #ifdef CONFIG_HW_NETWORK_QOE
-#include "ip_para_collec_ex.h"
-#include "wifi_para_collec.h"
+#include <hwnet/booster/ip_para_collec_ex.h>
+#include <hwnet/booster/wifi_para_collec.h>
 #endif
 
 #include <linux/init.h>
@@ -33,42 +33,16 @@
 #include <linux/kthread.h>
 #include <linux/list.h>
 
-#include "tcp_para_collec.h"
+#include <hwnet/booster/tcp_para_collec.h>
 
 #ifdef CONFIG_HW_PACKET_FILTER_BYPASS
-#include "hw_packet_filter_bypass.h"
+#include <hwnet/booster/hw_packet_filter_bypass.h>
 #endif
 
-#ifdef CONFIG_HW_NETWORK_SLICE
-#include "network_slice_management.h"
-#endif
 #include "sock_destroy_handler.h"
 
-#ifdef CONFIG_HW_ICMP_PING_DETECT
-#include "icmp_ping_detect.h"
-#endif
-
-#ifdef CONFIG_TCP_CONG_ALGO_CTRL
-#include "tcp_cong_algo_ctrl.h"
-#endif
-#ifdef CONFIG_HW_PACKET_TRACKER
-#include "hw_pt.h"
-#endif
-
 #ifdef CONFIG_CHR_NETLINK_MODULE
-#include "chr_manager.h"
-#endif
-
-#ifdef CONFIG_APP_ACCELERATOR
-#include <hwnet/booster/app_accelerator.h>
-#endif
-
-#ifdef CONFIG_HW_STEADY_SPEED_STATS
-#include "hw_steady_speed.h"
-#endif
-
-#ifdef CONFIG_STREAM_DETECT
-#include "stream_detect.h"
+#include <hwnet/booster/chr_manager.h>
 #endif
 
 #undef HWLOG_TAG
@@ -135,9 +109,6 @@ const u16 cmd_map_model[CMD_NUM_MAX][MAP_ENTITY_NUM] = {
 	{SOCK_DESTROY_HANDLER_CMD, SOCK_DESTROY_HANDLER},
 	{ ICMP_PING_DETECT_CMD, ICMP_PING_DETECT },
 	/* tcp_cong_algo_ctrl ops */
-	{ UPDATE_TCP_CA_CONFIG, TCP_CONG_ALGO_CTRL },
-	{ UPDATE_UID_STATE, TCP_CONG_ALGO_CTRL },
-	{ UPDATE_DS_STATE, TCP_CONG_ALGO_CTRL },
 	{ BIND_PROCESS_TO_SLICE_CMD, NETWORK_SLICE_MANAGEMENT },
 	{ DEL_SLICE_BIND_CMD, NETWORK_SLICE_MANAGEMENT },
 	{ APP_ACCELARTER_CMD, APP_ACCELERATOR },
@@ -386,28 +357,7 @@ static const net_link_func_handler_stru s_init_comm_msg_tbl[] = {
 	{ PACKET_FILTER_BYPASS, hw_packet_filter_bypass_init, "hw_packet_filter_bypass_init" },
 #endif
 	{ TCP_PARA_COLLEC, tcp_para_collec_init, "tcp_para_collec_init" },
-#ifdef CONFIG_HW_NETWORK_SLICE
-	{ NETWORK_SLICE_MANAGEMENT, network_slice_management_init, "network_slice_management_init" },
-#endif
 	{ SOCK_DESTROY_HANDLER, sock_destroy_handler_init, "sock_destroy_handler_init" },
-#ifdef CONFIG_HW_ICMP_PING_DETECT
-	{ ICMP_PING_DETECT, icmp_ping_detect_init, "icmp_ping_detect_init" },
-#endif
-#ifdef CONFIG_TCP_CONG_ALGO_CTRL
-	{ TCP_CONG_ALGO_CTRL, hw_tcp_cong_algo_ctrl_init, "hw_tcp_cong_algo_ctrl_init" },
-#endif
-#ifdef CONFIG_HW_PACKET_TRACKER
-	{ PACKET_TRACKER, hw_pt_init, "hw_pt_init" },
-#endif
-#ifdef CONFIG_APP_ACCELERATOR
-	{ APP_ACCELERATOR, app_acc_init, "app_acc_init" },
-#endif
-#ifdef CONFIG_HW_STEADY_SPEED_STATS
-	{ STEADY_SPEED, hw_steady_speed_init, "hw_steady_speed_init" },
-#endif
-#ifdef CONFIG_STREAM_DETECT
-	{ STREAM_DETECT, stream_detect_init, "stream_detect_init" },
-#endif
 };
 
 static int __init netlink_handle_module_init(void)

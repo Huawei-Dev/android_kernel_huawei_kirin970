@@ -38,9 +38,6 @@
 #include "hmac_wmmac.h"
 #endif
 #include "plat_pm_wlan.h"
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
 #undef THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_MGMT_AP_C
 
@@ -1808,15 +1805,11 @@ oal_uint32 hmac_ap_up_rx_mgmt(hmac_vap_stru *pst_hmac_vap, oal_void *p_param)
         if (!g_hitalk_status)
 #endif
         {
-            /* 窄带APUT模式下，会造成STA无法关联，需继续定位 */
             return OAL_SUCC;
         }
     }
 #endif
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-    proc_sniffer_write_file(NULL, 0, puc_mac_hdr, pst_rx_info->us_frame_len, 0);
-#endif
     switch (uc_mgmt_frm_type) {
         case WLAN_FC0_SUBTYPE_BEACON:
         case WLAN_FC0_SUBTYPE_PROBE_RSP:

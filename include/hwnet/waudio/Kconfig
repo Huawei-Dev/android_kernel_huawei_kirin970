@@ -1,5 +1,0 @@
-config HW_WAUDIO_MODULE
-	tristate "kernel huawei custom packet wifi audio for wlan"
-	default n
-	help
-		This module adds support wifi audio feature.

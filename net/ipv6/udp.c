@@ -55,9 +55,6 @@
 #include <linux/seq_file.h>
 #include <trace/events/skb.h>
 #include "udp_impl.h"
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-#include <hwnet/ipv4/wifi_delayst.h>
-#endif
 
 #ifdef CONFIG_HW_HIDATA_HIMOS
 #include <huawei_platform/net/himos/hw_himos_udp_stats.h>
@@ -69,10 +66,6 @@
 
 #ifdef CONFIG_HW_NETWORK_QOE
 #include <hwnet/booster/ip_para_collec_ex.h>
-#endif
-
-#ifdef CONFIG_HW_NETWORK_SLICE
-#include <hwnet/booster/network_slice_route.h>
 #endif
 
 static bool udp6_lib_exact_dif_match(struct net *net, struct sk_buff *skb)
@@ -502,11 +495,6 @@ try_again:
 	err = copied;
 	if (flags & MSG_TRUNC)
 		err = ulen;
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-	if(DELAY_STATISTIC_SWITCH_ON) {
-		delay_record_rcv_combine(skb,sk,TP_SKB_TYPE_UDP);
-	}
-#endif
 	skb_consume_udp(sk, skb, peeking ? -err : err);
 	return err;
 
@@ -1282,10 +1270,6 @@ do_udp_sendmsg:
 	if (len > INT_MAX - sizeof(struct udphdr))
 		return -EMSGSIZE;
 
-#ifdef CONFIG_HW_NETWORK_SLICE
-	slice_rules_lookup(sk, (struct sockaddr *)sin6, IPPROTO_UDP);
-#endif
-
 	getfrag  =  is_udplite ?  udplite_getfrag : ip_generic_getfrag;
 	if (up->pending) {
 		/*
@@ -1446,16 +1430,7 @@ back_from_confirm:
 			alloc_skb_with_frags_stats_inc(UDPV6_SENDMSG_1_COUNT);
 #endif
 		if (!IS_ERR_OR_NULL(skb))
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-		{
-			if(DELAY_STATISTIC_SWITCH_ON) {
-				delay_record_first_combine(sk,skb,TP_SKB_DIRECT_SND,TP_SKB_TYPE_UDP);
-			}
-#endif
 			err = udp_v6_send_skb(skb, &fl6, &cork.base);
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-		}
-#endif
 		goto release_dst;
 	}
 

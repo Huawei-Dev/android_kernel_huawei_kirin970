@@ -26,10 +26,6 @@
 #undef THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_MGMT_BSS_COMM_C
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
-/* 2 全局变量定义 */
 oal_uint8 g_auc_avail_protocol_mode[WLAN_PROTOCOL_BUTT][WLAN_PROTOCOL_BUTT] = {
     {   WLAN_LEGACY_11A_MODE, WLAN_PROTOCOL_BUTT, WLAN_PROTOCOL_BUTT, WLAN_PROTOCOL_BUTT, WLAN_PROTOCOL_BUTT,
         WLAN_LEGACY_11A_MODE, WLAN_LEGACY_11A_MODE, WLAN_PROTOCOL_BUTT, WLAN_PROTOCOL_BUTT, WLAN_PROTOCOL_BUTT
@@ -1692,9 +1688,6 @@ oal_uint32 hmac_tx_mgmt_send_event(mac_vap_stru *pst_vap,
     pst_ctx_stru->pst_netbuf = pst_mgmt_frame;
     pst_ctx_stru->us_frame_len = us_frame_len;
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-    proc_sniffer_write_file (NULL, 0, (oal_uint8 *)(oal_netbuf_header(pst_mgmt_frame)), us_frame_len, 1);
-#endif
     ul_return = frw_event_dispatch_event(pst_event_mem);
     if (ul_return != OAL_SUCC) {
         OAM_WARNING_LOG1(pst_vap->uc_vap_id, OAM_SF_SCAN,

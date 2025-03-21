@@ -1,6 +1,4 @@
-
-
-#include "wbc_hw_hook.h"
+#include <hwnet/chr/wbc_hw_hook.h>
 #include <linux/string.h>
 #include <linux/netdevice.h>
 #include <linux/kernel.h>
@@ -12,7 +10,7 @@
 #include <net/ndisc.h>
 #include <net/addrconf.h>
 #include <huawei_platform/log/hw_log.h>
-#include "chr_netlink.h"
+#include <hwnet/chr/chr_netlink.h>
 
 #define WLAN_NET "wlan0"
 #define RA_DEFAULT 10

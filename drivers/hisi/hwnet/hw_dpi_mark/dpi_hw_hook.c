@@ -1,6 +1,4 @@
-
-
-#include "dpi_hw_hook.h"
+#include <hwnet/hw_dpi_mark/dpi_hw_hook.h>
 #include <linux/init.h>
 #include <linux/types.h>
 #include <linux/string.h>

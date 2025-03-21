@@ -9,11 +9,6 @@
 #include "hmac_chan_mgmt.h"
 #include "hmac_p2p.h"
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
-#endif
 #ifdef _PRE_WLAN_FEATURE_HID2D
 #include "hmac_hid2d.h"
 #endif
@@ -175,11 +170,6 @@ void hmac_scan_print_scanned_bss_info(uint8_t device_id)
                 tmp_mac_body_addr, (uint16_t)bss_dscr->mgmt_len, OAM_OTA_FRAME_DIRECTION_TYPE_RX);
             oal_free(tmp_mac_body_addr);
             /*lint +e416*/
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-            proc_sniffer_write_file(NULL, 0, bss_dscr->auc_mgmt_buff, (uint16_t)bss_dscr->mgmt_len, 0);
-#endif
-#endif
         }
     }
 

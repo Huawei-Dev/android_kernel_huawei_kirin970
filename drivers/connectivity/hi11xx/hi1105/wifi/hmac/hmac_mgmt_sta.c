@@ -60,11 +60,6 @@
 
 #include "hmac_btcoex.h"
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
-#endif
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
 #include "plat_pm_wlan.h"
 #endif
@@ -270,12 +265,6 @@ uint32_t hmac_sta_not_up_rx_mgmt(hmac_vap_stru *hmac_vap, void *param)
         oam_warning_log1(hmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_RX,
             "{wifi_wake_src:hmac_sta_not_up_rx_mgmt::wakeup mgmt type[0x%x]}", mgmt_frm_type);
     }
-#endif
-
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-    proc_sniffer_write_file(NULL, 0, mac_hdr, rx_info->us_frame_len, 0);
-#endif
 #endif
 
     switch (mgmt_frm_type) {
@@ -1148,11 +1137,6 @@ uint32_t hmac_sta_wait_asoc_rx(hmac_vap_stru *pst_hmac_sta, void *pst_msg)
         return OAL_FAIL;
     }
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#ifdef CONFIG_HW_SNIFFER
-    proc_sniffer_write_file(NULL, 0, puc_mac_hdr, pst_rx_info->us_frame_len, 0);
-#endif
-#endif
     if (hmac_sta_wait_asoc_rx_frame_para_check(pst_hmac_sta, puc_payload, us_msg_len) != OAL_SUCC) {
         return OAL_FAIL;
     }

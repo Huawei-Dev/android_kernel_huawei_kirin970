@@ -54,9 +54,6 @@
 #ifdef _PRE_WLAN_FEATURE_11V_ENABLE
 #include "hmac_11v.h"
 #endif
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
 #include "plat_pm_wlan.h"
 
 #undef THIS_FILE_ID
@@ -121,27 +118,20 @@ oal_uint32 hmac_sta_not_up_rx_mgmt(hmac_vap_stru *pst_hmac_vap_sta, oal_void *p_
 #endif
 #endif
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-    proc_sniffer_write_file(NULL, 0, puc_mac_hdr, pst_rx_info->us_frame_len, 0);
-#endif
     switch (uc_mgmt_frm_type) {
-        /* 判断接收到的管理帧类型 */
         case WLAN_FC0_SUBTYPE_PROBE_REQ:
 #ifdef _PRE_WLAN_FEATURE_P2P
-            /* 判断为P2P设备,则上报probe req帧到wpa_supplicant */
             if (!IS_LEGACY_VAP(pst_mac_vap)) {
                 hmac_rx_mgmt_send_to_host(pst_hmac_vap_sta, pst_mgmt_rx_event->pst_netbuf);
             }
             break;
 #endif
         case WLAN_FC0_SUBTYPE_ACTION | WLAN_FC0_TYPE_MGT:
-            /* 如果是Action 帧，则直接上报wpa_supplicant */
 #ifdef _PRE_WLAN_FEATURE_LOCATION_RAM
             if (oal_memcmp(puc_data + 2, g_auc_huawei_oui, MAC_OUI_LEN) == 0) { /* 2表示duration */
                 hmac_huawei_action_process(pst_hmac_vap_sta, pst_mgmt_rx_event->pst_netbuf, puc_data[2 + MAC_OUI_LEN]);
             } else
 #endif /* _PRE_WLAN_FEATURE_LOCATION */
-                /* 如果是Action 帧，则直接上报wpa_supplicant */
             {
 #ifdef _PRE_WLAN_FEATURE_FTM
                 switch (puc_data[MAC_ACTION_OFFSET_CATEGORY]) {
@@ -1210,9 +1200,6 @@ oal_uint32 hmac_sta_wait_asoc_rx(hmac_vap_stru *pst_hmac_sta, oal_void *pst_msg)
         return OAL_FAIL;
     }
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-    proc_sniffer_write_file(NULL, 0, puc_mac_hdr, pst_rx_info->us_frame_len, 0);
-#endif
     if (en_asoc_status != MAC_SUCCESSFUL_STATUSCODE) {
         OAM_WARNING_LOG1(pst_hmac_sta->st_vap_base_info.uc_vap_id, OAM_SF_ASSOC,
                          "{hmac_sta_wait_asoc_rx:: AP refuse STA assoc reason=%d.}", en_asoc_status);
@@ -2125,14 +2112,11 @@ oal_uint32 hmac_sta_up_rx_mgmt(hmac_vap_stru *pst_hmac_vap_sta, oal_void *p_para
     /* Bar frame proc here */
     if (mac_get_frame_type(puc_mac_hdr) == WLAN_FC0_TYPE_CTL) {
         uc_mgmt_frm_type = mac_get_frame_sub_type(puc_mac_hdr);
-        if ((uc_mgmt_frm_type >> 4) == WLAN_BLOCKACK_REQ) { /* 判断uc_mgmt_frm_type高4位是否等于WLAN_BLOCKACK_REQ（8） */
+        if ((uc_mgmt_frm_type >> 4) == WLAN_BLOCKACK_REQ) {
             hmac_up_rx_bar(pst_hmac_vap_sta, pst_rx_ctrl, pst_mgmt_rx_event->pst_netbuf);
         }
     }
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-    proc_sniffer_write_file(NULL, 0, puc_mac_hdr, pst_rx_info->us_frame_len, 0);
-#endif
     switch (uc_mgmt_frm_type) {
         case WLAN_FC0_SUBTYPE_DEAUTH:
         case WLAN_FC0_SUBTYPE_DISASSOC:

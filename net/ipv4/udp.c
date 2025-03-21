@@ -116,10 +116,6 @@
 #include <net/sock_reuseport.h>
 #include <net/addrconf.h>
 
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-#include <hwnet/ipv4/wifi_delayst.h>
-#endif
-
 #ifdef CONFIG_DOZE_FILTER
 #include <huawei_platform/power/wifi_filter/wifi_filter.h>
 #endif
@@ -142,12 +138,6 @@
 
 #ifdef CONFIG_HW_NETWORK_QOE
 #include <hwnet/booster/ip_para_collec_ex.h>
-#endif
-#ifdef CONFIG_HW_NETWORK_SLICE
-#include <hwnet/booster/network_slice_route.h>
-#endif
-#ifdef CONFIG_HW_PACKET_TRACKER
-#include <hwnet/booster/hw_pt.h>
 #endif
 struct udp_table udp_table __read_mostly;
 EXPORT_SYMBOL(udp_table);
@@ -926,11 +916,6 @@ int udp_push_pending_frames(struct sock *sk)
 	skb = ip_finish_skb(sk, fl4);
 	if (!skb)
 		goto out;
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-	if (DELAY_STATISTIC_SWITCH_ON)
-		delay_record_first_combine(sk, skb,
-			TP_SKB_DIRECT_SND, TP_SKB_TYPE_UDP);
-#endif
 	err = udp_send_skb(skb, fl4, &inet->cork.base);
 
 out:
@@ -1001,9 +986,6 @@ int udp_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
 #ifdef CONFIG_HUAWEI_XENGINE
 	bool is_accelerate = false;
 	struct sockaddr_in mpflow_usin = {0};
-#endif
-#ifdef CONFIG_HW_NETWORK_SLICE
-	struct sockaddr_in slice_usin = {0};
 #endif
 
 #ifdef CONFIG_MPTCP_EPC
@@ -1085,13 +1067,6 @@ int udp_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
 		 */
 		connected = 1;
 	}
-
-#ifdef CONFIG_HW_NETWORK_SLICE
-	slice_usin.sin_addr.s_addr = daddr;
-	slice_usin.sin_port = dport;
-	slice_usin.sin_family = AF_INET;
-	slice_rules_lookup(sk, (struct sockaddr *)&slice_usin, IPPROTO_UDP);
-#endif
 
 #ifdef CONFIG_MPTCP_EPC
 	mutp_tot_len = (server_addr->sin_addr.s_addr != 0 && server_addr->sin_port != 0) ?
@@ -1231,24 +1206,7 @@ back_from_confirm:
 			alloc_skb_with_frags_stats_inc(UDP_SENDMSG_1_COUNT);
 #endif
 		if (!IS_ERR_OR_NULL(skb))
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-		{
-			if (DELAY_STATISTIC_SWITCH_ON)
-				delay_record_first_combine(sk, skb,
-					TP_SKB_DIRECT_SND, TP_SKB_TYPE_UDP);
-#endif
-#ifdef CONFIG_HW_PACKET_TRACKER
-			{
-				hw_pt_set_skb_stamp(skb);
-#endif
 				err = udp_send_skb(skb, fl4, &cork);
-#ifdef CONFIG_HW_PACKET_TRACKER
-			}
-#endif
-
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-		}
-#endif
 		goto out;
 	}
 
@@ -1892,14 +1850,7 @@ try_again:
 	err = copied;
 	if (flags & MSG_TRUNC)
 		err = ulen;
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-	if (DELAY_STATISTIC_SWITCH_ON)
-		delay_record_rcv_combine(skb, sk, TP_SKB_TYPE_UDP);
-#endif
 
-#ifdef CONFIG_HW_PACKET_TRACKER
-	hw_pt_l4_downlink_out(sk, skb);
-#endif
 	skb_consume_udp(sk, skb, peeking ? -err : err);
 	return err;
 
@@ -2166,9 +2117,6 @@ static int udp_queue_rcv_skb(struct sock *sk, struct sk_buff *skb)
 		goto drop;
 
 	udp_csum_pull_header(skb);
-#ifdef CONFIG_HW_PACKET_TRACKER
-	hw_pt_l4_downlink_in(sk, skb, false);
-#endif
 	ipv4_pktinfo_prepare(sk, skb);
 	return __udp_queue_rcv_skb(sk, skb);
 

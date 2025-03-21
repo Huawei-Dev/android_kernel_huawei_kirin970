@@ -30,9 +30,6 @@
 #include "hmac_statistic_data_flow.h"
 #include "plat_pm_wlan.h"
 
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-#include <hwnet/ipv4/sysctl_sniffer.h>
-#endif
 #include "hmac_config.h"
 #include "securec.h"
 #include "hmac_tx_opt.h"
@@ -1315,19 +1312,11 @@ OAL_INLINE oal_uint32 hmac_tx_encap(hmac_vap_stru *pst_vap,
                 }
             }
 #endif
-        /* 更新frame长度 */
         pst_tx_ctl->us_mpdu_len = (oal_uint16)oal_netbuf_get_len(pst_buf);
-
-        /* 非amsdu聚合帧，记录mpdu字节数，不包括snap */
         pst_tx_ctl->us_mpdu_bytes = pst_tx_ctl->us_mpdu_len - SNAP_LLC_FRAME_LEN;
-#ifdef _PRE_WLAN_FEATURE_SNIFFER
-        proc_sniffer_write_file((const oal_uint8 *)pst_hdr, MAC_80211_QOS_FRAME_LEN,
-                                (const oal_uint8 *)oal_netbuf_data(pst_buf), pst_tx_ctl->us_mpdu_len, 1);
-#endif
     }
 
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
-    /* mac头部在skb中时，netbuf的data指针指向mac头。但是mac_set_snap函数中已经将data指针指向了llc头。因此这里要重新push到mac头。 */
     if (pst_tx_ctl->bit_80211_mac_head_type == 1) {
         oal_netbuf_push(pst_buf, MAC_80211_QOS_HTC_4ADDR_FRAME_LEN);
     }

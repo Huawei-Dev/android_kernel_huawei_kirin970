@@ -48,11 +48,7 @@
 #define POST_STR_LEN 4
 
 #define MULTIPLE (1000 / HZ)
-#ifndef CONFIG_CHR_MTK_NETLINK
 #define WEB_DS_NET "rmnet"
-#else
-#define WEB_DS_NET "ccmni"
-#endif
 
 #define WEB_DS_NET_LEN 5
 
@@ -86,10 +82,6 @@
 #define IPV6_ADD_P3 2
 #define IPV6_ADD_P4 3
 
-#ifdef CONFIG_HW_CHR_TCP_SMALL_WIN_MONITOR
-#define TCP_MAX_REPORT_TIME (30 * 60 * HZ)
-#define SMALL_WIN_STAMP_RATIO 10
-#endif
 #define MAX_VALID_NS 65534000000L
 #define RIL_RADIO_TECHNOLOGY_LTE 13
 #define RIL_RADIO_TECHNOLOGY_LTE_CA 19

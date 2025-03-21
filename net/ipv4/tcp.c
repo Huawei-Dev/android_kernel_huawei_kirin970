@@ -297,10 +297,6 @@
 #include <hwnet/chr/chr_interface.h>
 #endif
 
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-#include <hwnet/ipv4/wifi_delayst.h>
-#endif
-
 #ifdef CONFIG_TCP_NODELAY
 #include <linux/blk-cgroup.h>
 #endif
@@ -309,9 +305,6 @@
 #include <emcom/emcom_xengine.h>
 #endif
 
-#ifdef CONFIG_APP_ACCELERATOR
-#include <hwnet/booster/app_accelerator.h>
-#endif
 #ifdef CONFIG_HW_NETWORK_QOE
 #include <hwnet/booster/ip_para_collec_ex.h>
 #endif
@@ -511,10 +504,6 @@ void tcp_init_sock(struct sock *sk)
 	 * efficiently to them.  -DaveM
 	 */
 	tp->snd_cwnd = TCP_INIT_CWND;
-
-#ifdef CONFIG_APP_ACCELERATOR
-	update_sock_send_win(sk);
-#endif
 
 	/* There's a bubble in the pipe until at least the first ACK. */
 	tp->app_limited = ~0U;
@@ -1149,11 +1138,6 @@ new_segment:
 						  skb_queue_empty(&sk->sk_write_queue));
 			if (!skb)
 				goto wait_for_memory;
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-			if (DELAY_STATISTIC_SWITCH_ON)
-				delay_record_first_combine(sk, skb,
-					TP_SKB_DIRECT_SND, TP_SKB_TYPE_TCP);
-#endif
 			skb_entail(sk, skb);
 			copy = size_goal;
 		}
@@ -1549,12 +1533,6 @@ new_segment:
 						  first_skb);
 			if (!skb)
 				goto wait_for_memory;
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-			if (DELAY_STATISTIC_SWITCH_ON)
-				delay_record_first_combine(sk, skb,
-					TP_SKB_DIRECT_SND, TP_SKB_TYPE_TCP);
-
-#endif
 			process_backlog = true;
 #ifdef CONFIG_MPTCP
 			/*
@@ -1827,16 +1805,9 @@ void tcp_cleanup_rbuf(struct sock *sk, int copied)
 
 	struct sk_buff *skb = skb_peek(&sk->sk_receive_queue);
 
-#ifdef CONFIG_APP_ACCELERATOR
-	if (!app_acc_start_check(sk))
-		WARN(skb && !before(tp->copied_seq, TCP_SKB_CB(skb)->end_seq),
-		     "cleanup rbuf bug: copied %X seq %X rcvnxt %X\n",
-		     tp->copied_seq, TCP_SKB_CB(skb)->end_seq, tp->rcv_nxt);
-#else
 	WARN(skb && !before(tp->copied_seq, TCP_SKB_CB(skb)->end_seq),
 		"cleanup rbuf bug: copied %X seq %X rcvnxt %X\n",
 		tp->copied_seq, TCP_SKB_CB(skb)->end_seq, tp->rcv_nxt);
-#endif
 	if (inet_csk_ack_scheduled(sk)) {
 		const struct inet_connection_sock *icsk = inet_csk(sk);
 		   /* Delayed ACKs frequently hit locked sockets during bulk
@@ -2163,26 +2134,11 @@ int tcp_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock,
 			/* Now that we have two receive queues this
 			 * shouldn't happen.
 			 */
-			/* tcp dl accelerator */
-#ifdef CONFIG_APP_ACCELERATOR
-			if (before(*seq, TCP_SKB_CB(skb)->seq)) {
-				if (app_acc_start_check(sk)) {
-					*seq = TCP_SKB_CB(skb)->seq;
-				} else {
-					WARN(true, //lint !e1564
-					     "C %X, seq %X, nxt %X, fl %X\n",
-					     *seq, TCP_SKB_CB(skb)->seq,
-					     tp->rcv_nxt, flags);
-					break;
-				}
-			}
-#else
 			if (WARN(before(*seq, TCP_SKB_CB(skb)->seq),
 				 "TCP recvmsg # bug: copied %X, seq %X, nxt %X, fl %X\n",
 				 *seq, TCP_SKB_CB(skb)->seq, tp->rcv_nxt,
 				 flags))
 				break;
-#endif
 
 #ifdef CONFIG_CHR_NETLINK_MODULE
 			chr_update_buf_time(ktime_to_ns(skb->tstamp), SOL_TCP);
@@ -2193,20 +2149,10 @@ int tcp_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock,
 				pr_err_once("%s: found a SYN, please report !\n", __func__);
 				offset--;
 			}
-#ifdef CONFIG_APP_ACCELERATOR
-			if (offset >= skb->len && app_acc_start_check(sk)) {
-				offset = 0;
-				*seq = TCP_SKB_CB(skb)->seq;
-			}
-#endif
 			if (offset < skb->len)
 				goto found_ok_skb;
 			if (TCP_SKB_CB(skb)->tcp_flags & TCPHDR_FIN)
 				goto found_fin_ok;
-#ifdef CONFIG_WIFI_DELAY_STATISTIC
-			if (DELAY_STATISTIC_SWITCH_ON)
-				delay_record_rcv_combine(skb, sk, TP_SKB_TYPE_TCP);
-#endif
 			WARN(!(flags & MSG_PEEK),
 			     "TCP recvmsg seq # bug 2: copied %X, seq %X, rcvnxt %X, fl %X\n",
 			     *seq, TCP_SKB_CB(skb)->seq, tp->rcv_nxt, flags);
