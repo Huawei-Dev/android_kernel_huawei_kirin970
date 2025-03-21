@@ -4,5 +4,4 @@ obj-y += gpu_devfreq/
 obj-y += npu_devfreq/
 obj-y += mem_lat/
 obj-y += cmfup_devfreq/
-obj-$(CONFIG_ARM64_DSU_PCTRL_DEVFREQ)      += dsu_pctrl/
 obj-$(CONFIG_L3C_DEVFREQ)      	   += l3c_devfreq/

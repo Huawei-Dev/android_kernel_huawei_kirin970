@@ -993,10 +993,6 @@ struct task_struct {
 	u64 last_wake_ts;
 #endif
 
-#ifdef CONFIG_L3CACHE_PARTITION_CTRL
-	unsigned int l3c_part;
-#endif
-
 #ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
 	struct util_clamp		uclamp;
 #endif

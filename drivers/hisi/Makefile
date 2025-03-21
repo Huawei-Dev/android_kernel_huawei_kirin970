@@ -15,7 +15,6 @@ obj-$(CONFIG_PLATFORM_SLIMBUS)+= slimbus/
 obj-y += hhee/
 
 obj-$(CONFIG_CODEC_DSP_MISC) += da_combine_dsp/
-obj-y += l3cache/
 obj-$(CONFIG_HISEE) += hisee/
 obj-$(CONFIG_MSPC)  += mspc/
 obj-$(CONFIG_DEV_IVP) += ivp/

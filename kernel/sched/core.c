@@ -75,11 +75,6 @@
 #include <linux/huawei_hung_task.h>
 #endif
 
-#ifdef CONFIG_L3CACHE_PARTITION_CTRL
-#include <linux/hisi/l3cache_partition_ctrl.h>
-#endif
-
-
 DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
 
 #ifdef CONFIG_ED_TASK
@@ -2888,11 +2883,6 @@ void sched_exit(struct task_struct *p)
 	_sched_set_group_id(p, DEFAULT_RTG_GRP_ID);
 #endif
 
-#ifdef CONFIG_L3CACHE_PARTITION_CTRL
-	if (p->l3c_part)
-		set_partition_control(0x0);
-#endif
-
 	rq = task_rq_lock(p, &flags);
 
 #ifdef CONFIG_SCHED_TOP_TASK
@@ -3257,10 +3247,6 @@ void wake_up_new_task(struct task_struct *p)
 	raw_spin_lock_irqsave(&p->pi_lock, rf.flags);
 
 	p->state = TASK_RUNNING;
-
-#ifdef CONFIG_L3CACHE_PARTITION_CTRL
-	p->l3c_part = 0;
-#endif
 
 #ifdef CONFIG_RENDER_RT
 	add_waker_to_render_rthread(p);
@@ -4369,11 +4355,6 @@ static void __sched notrace __schedule(bool preempt)
 		walt_update_task_ravg(next, rq, PICK_NEXT_TASK, wallclock, 0);
 #ifdef CONFIG_HISI_EAS_SCHED
 		sugov_check_freq_update(cpu);
-#endif
-
-#ifdef CONFIG_L3CACHE_PARTITION_CTRL
-		if (next->l3c_part)
-			set_task_partition_control(next->l3c_part, rq->cluster->id);
 #endif
 
 #ifdef CONFIG_HUAWEI_SCHED_VIP

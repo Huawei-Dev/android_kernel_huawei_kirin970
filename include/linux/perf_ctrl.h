@@ -24,7 +24,6 @@
 #include <linux/render_rt.h>
 #include <linux/sched_perf_ctrl.h>
 #include <linux/cpufreq_perf_ctrl.h>
-#include <linux/hisi/l3cache_partition_ctrl.h>
 
 #define PERF_CTRL_MAGIC 'x'
 
@@ -96,6 +95,11 @@ struct drg_dev_freq {
 };
 
 static inline int perf_ctrl_get_drg_dev_freq(void __user *uarg)
+{
+	return -EFAULT;
+}
+
+static inline int perf_ctrl_set_task_l3c_part(void __user *uarg)
 {
 	return -EFAULT;
 }
