@@ -1,3 +1,0 @@
-config LPCPU_PMU_DUMP
-       bool "lpcpu pmu dump tool"
-       default n

@@ -5066,11 +5066,6 @@ CONFIG_HKIP_CFI_HARDEN=y
 # CONFIG_HKIP_PROTECT_CRED is not set
 
 #
-# ATF BL2 LOG
-#
-# CONFIG_LPCPU_PMU_DUMP is not set
-
-#
 # Kernel Harden
 #
 CONFIG_HISI_SECS_CTRL=y
