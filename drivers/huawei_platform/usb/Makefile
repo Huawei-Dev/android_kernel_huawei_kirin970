@@ -6,4 +6,3 @@ obj-$(CONFIG_TCPC_CLASS) += pd/
 obj-$(CONFIG_SUPERSWITCH) += superswitch/
 obj-$(CONFIG_POGO_PIN) += hw_pogopin/
 obj-$(CONFIG_HUAWEI_YCABLE) += hw_ycable/
-obj-$(CONFIG_HUAWEI_HISHOW) += hw_hishow/

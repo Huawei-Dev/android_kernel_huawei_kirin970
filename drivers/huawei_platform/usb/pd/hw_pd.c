@@ -58,10 +58,6 @@
 #include <huawei_platform/power/wireless/wireless_charger.h>
 #endif
 
-#ifdef CONFIG_HUAWEI_HISHOW
-#include <huawei_platform/usb/hw_hishow.h>
-#endif
-
 #include "ana_hs_kit/ana_hs.h"
 #include "huawei_platform/audio/usb_analog_hs_interface.h"
 #include "huawei_platform/audio/usb_audio_power.h"
