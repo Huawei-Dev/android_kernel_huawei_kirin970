@@ -60,14 +60,8 @@ struct hipp_common_s {
 int __attribute__((weak)) do_ippsmmu_enable(__attribute__((unused)) unsigned int mode) { return 0; }
 int __attribute__((weak)) do_ippsmmu_disable(__attribute__((unused)) unsigned int mode) { return 0; }
 
-#if defined( CONFIG_HISPIPP_V300) || defined( CONFIG_HISPIPP_V320) || defined(CONFIG_HISPIPP_V350)
-struct hipp_common_s *hipp_common_register(unsigned int type,
-	struct device *dev);
-int hipp_common_unregister(unsigned int type);
-#else
 static inline struct hipp_common_s *hipp_common_register(
 	unsigned int type, struct device *dev) { return NULL; }
 static inline int hipp_common_unregister(unsigned int type) { return 0; }
-#endif
 
 #endif /* _LINUX_HIPP_COMMON_H_ */
