@@ -34,7 +34,6 @@ ifneq (,$(findstring $(CONFIG_HISI_BALONG_MODEM),y m))
 obj-y += modem/
 endif
 endif
-obj-y += max_power/
 obj-y += hisi_lmk/
 obj-$(CONFIG_PERFHUB) += perfhub/
 obj-$(CONFIG_JPU_SUPPORT) += jpu/

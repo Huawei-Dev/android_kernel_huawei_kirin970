@@ -5039,11 +5039,6 @@ CONFIG_HISI_TIMEKEEPER=y
 # CONFIG_HISI_LPM3_DEBUG is not set
 
 #
-# lpcpu max power options
-#
-# CONFIG_LPCPU_MAX_POWER is not set
-
-#
 # HHEE options
 #
 CONFIG_HHEE=y
