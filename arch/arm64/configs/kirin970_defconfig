@@ -4896,7 +4896,6 @@ CONFIG_HW_VOTE=y
 #
 # Onsys AVS Options
 #
-# CONFIG_ONSYS_AVS is not set
 CONFIG_HISI_INC_MODEM_CONFIG=y
 
 #

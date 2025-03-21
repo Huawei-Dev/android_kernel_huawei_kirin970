@@ -197,22 +197,6 @@ static struct pm_qos_object freq_link_level_pm_qos = {
 };
 #endif
 
-#ifdef CONFIG_ONSYS_AVS
-static BLOCKING_NOTIFIER_HEAD(onsys_avs_ctrl_notifier);
-static struct pm_qos_constraints onsys_avs_ctrl_constraints = {
-	.list = PLIST_HEAD_INIT(onsys_avs_ctrl_constraints.list),
-	.target_value = PM_QOS_ONSYS_AVS_LEVEL_DEFAULT_VALUE,
-	.default_value = PM_QOS_ONSYS_AVS_LEVEL_DEFAULT_VALUE,
-	.no_constraint_value = PM_QOS_ONSYS_AVS_LEVEL_DEFAULT_VALUE,
-	.type = PM_QOS_MIN,
-	.notifiers = &onsys_avs_ctrl_notifier,
-};
-static struct pm_qos_object onsys_avs_ctrl_level_pm_qos = {
-	.constraints = &onsys_avs_ctrl_constraints,
-	.name = "onsys_avs_ctrl_level",
-};
-#endif
-
 #ifdef CONFIG_NPUFREQ_PM_QOS
 static BLOCKING_NOTIFIER_HEAD(hisi_npu_freq_dnlimit_notifier);
 static struct pm_qos_constraints hisi_npu_freq_dnlimit_constraints = {
@@ -289,9 +273,6 @@ static struct pm_qos_object *pm_qos_array[] = {
 #endif
 #ifdef CONFIG_LPCPU_FREQ_LINK
 	&freq_link_level_pm_qos,
-#endif
-#ifdef CONFIG_ONSYS_AVS
-	&onsys_avs_ctrl_level_pm_qos,
 #endif
 #ifdef CONFIG_NPUFREQ_PM_QOS
 	&hisi_npu_freq_dnlimit_pm_qos,

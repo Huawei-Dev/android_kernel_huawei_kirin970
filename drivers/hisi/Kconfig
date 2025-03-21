@@ -42,7 +42,6 @@ source "drivers/hisi/jpu/Kconfig"
 source "drivers/hisi/pm/Kconfig"
 source "drivers/hisi/hisi_lmk/Kconfig"
 source "drivers/hisi/hw_vote/Kconfig"
-source "drivers/hisi/onsys_avs/Kconfig"
 if HISI_INC_MODEM_CONFIG
 -source "drivers/hisi/modem/Kconfig"
 endif
