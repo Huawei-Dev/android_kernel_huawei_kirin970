@@ -22,9 +22,3 @@ obj-$(CONFIG_QCOM_WCNSS_PIL)		+= qcom_wcnss_pil.o
 qcom_wcnss_pil-y			+= qcom_wcnss.o
 qcom_wcnss_pil-y			+= qcom_wcnss_iris.o
 obj-$(CONFIG_ST_REMOTEPROC)		+= st_remoteproc.o
-ifeq ($(CONFIG_HISP_DEBUG), y)
-	subdir-ccflags-y += -DDEBUG_HISP
-endif
-ifeq ($(CONFIG_HISP_SMMU_BYPASS_DEBUG), y)
-	subdir-ccflags-y += -DISP_DEBUG_MMU_BYPASS
-endif

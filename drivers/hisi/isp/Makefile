@@ -1,10 +1,3 @@
-#ifneq ($(TARGET_BUILD_VARIANT),user)
-#ifneq ($(kcov),true)
-ifeq ($(CONFIG_HISP_DEBUG), y)
-subdir-ccflags-y += -DDEBUG_HISP
-#endif
-endif
-
 ifeq ($(es_low_freq),true)
 subdir-ccflags-y += -DCONFIG_ES_ISP_LOW_FREQ
 endif
