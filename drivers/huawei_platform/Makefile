@@ -48,4 +48,3 @@ obj-$(CONFIG_WAKEUP) += wakeup/
 obj-$(CONFIG_MULTICHIP_SKYTONE) += multichip_skytone/
 obj-$(CONFIG_HISI_EXT_NTC) += thermal/
 obj-$(CONFIG_HWSDP) += hwsdp/
-obj-$(CONFIG_HUAWEI_BLPWM) += blpwm/

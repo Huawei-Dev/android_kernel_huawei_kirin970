@@ -52,7 +52,6 @@ source "drivers/huawei_platform/wakeup/Kconfig"
 source "drivers/huawei_platform/multichip_skytone/Kconfig"
 source "drivers/huawei_platform/thermal/Kconfig"
 source "drivers/huawei_platform/hwsdp/Kconfig"
-source "drivers/huawei_platform/blpwm/Kconfig"
 endif #HUAWEI_PLATFORM
 
 endmenu

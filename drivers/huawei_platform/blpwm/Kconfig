@@ -1,5 +1,0 @@
-config HUAWEI_BLPWM
-	default n
-	  bool "blpwm"
-	help
-	  only open on eng mode.

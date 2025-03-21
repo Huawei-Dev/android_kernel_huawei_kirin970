@@ -5343,7 +5343,6 @@ CONFIG_MEM_INSPECT=y
 # CONFIG_MULTICHIP_SKYTONE is not set
 # CONFIG_HISI_EXT_NTC is not set
 CONFIG_HWSDP=y
-# CONFIG_HUAWEI_BLPWM is not set
 
 #
 # Huawei Armpc Platform Drivers
