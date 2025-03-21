@@ -38,7 +38,6 @@ obj-$(CONFIG_DP_AUX_SWITCH) += dp_aux_switch/
 obj-$(CONFIG_HW_DP_SOURCE) += dp_source/
 obj-$(CONFIG_HUAWEI_VENDOR_EXCEPTION) += vendor_exception/
 obj-$(CONFIG_HWDPS) += hwdps/
-obj-$(CONFIG_CARD_TRAY_GPIO_DETECT) += card_tray/
 obj-$(CONFIG_MEM_INSPECT) += rmeminspect/
 obj-$(CONFIG_HUAWEI_MEMINFO_DUMP) += pmeminfo/
 obj-y   += hw_peripheral/
