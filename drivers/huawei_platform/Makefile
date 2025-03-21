@@ -15,7 +15,6 @@ obj-$(CONFIG_HW_WIFI)   += net/
 obj-y   += power/
 obj-y += hwpower/
 obj-$(CONFIG_HUAWEI_DSM) += recovery/
-obj-$(CONFIG_HUAWEI_DSM_KIRIN_CHIPSETS) += kirin_chipsets/
 obj-$(CONFIG_HUAWEI_SENSORS_INPUT_INFO)   += sensor/
 obj-y   += storage/
 obj-$(CONFIG_HUAWEI_TS)   += touthscreen/
