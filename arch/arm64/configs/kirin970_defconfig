@@ -5136,7 +5136,6 @@ CONFIG_HISI_ICS_IPU_PLATFORM=y
 # 'Cambricon IPU Driver' and 'HISI NPU V200 Support' are mutually exclusive, only one choice!
 #
 CONFIG_HISI_ICS_IPU=y
-# CONFIG_HISI_NPU_V200 is not set
 
 #
 # NPU Drivers
