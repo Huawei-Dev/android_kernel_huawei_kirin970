@@ -44,12 +44,6 @@
 
 #include "zram_drv.h"
 
-#ifdef CONFIG_HP_CORE
-#include "hp/hyperhold.h"
-#include <linux/memcontrol.h>
-#include <linux/hyperhold_inf.h>
-#endif
-
 static DEFINE_IDR(zram_index_idr);
 /* idr index must be protected */
 static DEFINE_MUTEX(zram_index_mutex);
@@ -597,10 +591,6 @@ static ssize_t idle_store(struct device *dev,
 		if (zram_allocated(zram, index) &&
 				!zram_test_flag(zram, index, ZRAM_UNDER_WB) &&
 				!zram_test_flag(zram, index, idle_flag)) {
-#ifdef CONFIG_HP_CORE
-			if (idle_flag == ZRAM_IDLE)
-				hyperhold_idle_inc(zram, index);
-#endif
 			zram_set_flag(zram, index, idle_flag);
 			atomic64_inc(idle_flag_pages);
 		}
@@ -1133,13 +1123,6 @@ static ssize_t writeback_store(struct device *dev,
 	if (mode == -1)
 		return -EINVAL;
 
-#ifdef CONFIG_HP_CORE
-	if (mode == IDLE_WRITEBACK) {
-		hyperhold_idle_reclaim();
-		return len;
-	}
-	return -EINVAL;
-#endif
 	down_read(&zram->init_lock);
 	if (!init_done(zram)) {
 		ret = -EINVAL;
@@ -1382,9 +1365,6 @@ static void zram_debugfs_destroy(void)
 static void zram_accessed(struct zram *zram, u32 index)
 {
 	if (zram_test_flag(zram, index, ZRAM_IDLE)) {
-#ifdef CONFIG_HP_CORE
-		hyperhold_idle_dec(zram, index);
-#endif
 		zram_clear_flag(zram, index, ZRAM_IDLE);
 		atomic64_dec(&zram->stats.idle_pages);
 	}
@@ -1482,9 +1462,6 @@ static void zram_debugfs_destroy(void) {};
 static void zram_accessed(struct zram *zram, u32 index)
 {
 	if (zram_test_flag(zram, index, ZRAM_IDLE)) {
-#ifdef CONFIG_HP_CORE
-		hyperhold_idle_dec(zram, index);
-#endif
 		zram_clear_flag(zram, index, ZRAM_IDLE);
 		atomic64_dec(&zram->stats.idle_pages);
 	}
@@ -1729,9 +1706,6 @@ static void zram_free_page(struct zram *zram, size_t index)
 #ifdef CONFIG_ZRAM_MEMORY_TRACKING
 	zram->table[index].ac_time = 0;
 #endif
-#ifdef CONFIG_HP_CORE
-	hyperhold_untrack(zram, index);
-#endif
 	if (zram_test_flag(zram, index, ZRAM_IDLE)) {
 		zram_clear_flag(zram, index, ZRAM_IDLE);
 		atomic64_dec(&zram->stats.idle_pages);
@@ -1793,17 +1767,6 @@ static int __zram_bvec_read(struct zram *zram, struct page *page, u32 index,
 	void *src, *dst;
 
 	zram_slot_lock(zram, index);
-#ifdef CONFIG_HP_CORE
-	if (likely(!bio)) {
-		ret = hyperhold_fault_out(zram, index);
-		if (unlikely(ret)) {
-			pr_err("search in hyperhold failed! err=%d, page=%u\n",
-				ret, index);
-			zram_slot_unlock(zram, index);
-			return ret;
-		}
-	}
-#endif
 	if (zram_test_flag(zram, index, ZRAM_WB)) {
 		struct bio_vec bvec;
 
@@ -1995,19 +1958,11 @@ non_compress:
 	 * from the slow path and handle has already been allocated.
 	 */
 	if (!handle) {
-#ifdef CONFIG_HP_CORE
-		handle = zram_zsmalloc(zram->mem_pool, comp_len,
-				__GFP_KSWAPD_RECLAIM |
-				__GFP_NOWARN |
-				__GFP_HIGHMEM |
-				__GFP_MOVABLE);
-#else
 		handle = zs_malloc(zram->mem_pool, comp_len,
 				__GFP_KSWAPD_RECLAIM |
 				__GFP_NOWARN |
 				__GFP_HIGHMEM |
 				__GFP_MOVABLE);
-#endif
 	}
 	if (!handle) {
 		zcomp_stream_put(zram->comp);
@@ -2015,15 +1970,9 @@ non_compress:
 		zram_put_indirect_handle(zram, last, false);
 #endif
 		atomic64_inc(&zram->stats.writestall);
-#ifdef CONFIG_HP_CORE
-		handle = zram_zsmalloc(zram->mem_pool, comp_len,
-				GFP_NOIO | __GFP_HIGHMEM |
-				__GFP_MOVABLE);
-#else
 		handle = zs_malloc(zram->mem_pool, comp_len,
 				GFP_NOIO | __GFP_HIGHMEM |
 				__GFP_MOVABLE);
-#endif
 		if (handle)
 			goto compress_again;
 		return -ENOMEM;
@@ -2098,12 +2047,6 @@ out:
 #endif
 		zram_set_obj_size(zram, index, comp_len);
 	}
-
-#ifdef CONFIG_HP_CORE
-	hyperhold_track(zram, index, page->mem_cgroup);
-	if (page->mem_cgroup)
-		inc_memcg_zram_swapout_cnt(page->mem_cgroup);
-#endif
 
 	zram_slot_unlock(zram, index);
 
@@ -2203,9 +2146,6 @@ static int zram_bvec_rw(struct zram *zram, struct bio_vec *bvec, u32 index,
 	int rw_acct = is_write ? REQ_OP_WRITE : REQ_OP_READ;
 	struct request_queue *q = zram->disk->queue;
 	int ret;
-#ifdef CONFIG_HP_CORE
-	struct mem_cgroup *memcg = NULL;
-#endif
 
 	generic_start_io_acct(q, rw_acct, bvec->bv_len >> SECTOR_SHIFT,
 			&zram->disk->part0);
@@ -2213,15 +2153,6 @@ static int zram_bvec_rw(struct zram *zram, struct bio_vec *bvec, u32 index,
 	if (!is_write) {
 		atomic64_inc(&zram->stats.num_reads);
 		ret = zram_bvec_read(zram, bvec, index, offset, bio);
-#ifdef CONFIG_HP_CORE
-		if (likely(ret == 0)) {
-			rcu_read_lock();
-			memcg = mem_cgroup_from_task(current);
-			if (memcg)
-				inc_memcg_zram_swapin_cnt(memcg);
-			rcu_read_unlock();
-		}
-#endif
 		flush_dcache_page(bvec->bv_page);
 	} else {
 		atomic64_inc(&zram->stats.num_writes);
@@ -2323,13 +2254,6 @@ static void zram_slot_free_notify(struct block_device *bdev,
 		atomic64_inc(&zram->stats.miss_free);
 		return;
 	}
-#ifdef CONFIG_HP_CORE
-	if (!hyperhold_delete(zram, index)) {
-		zram_slot_unlock(zram, index);
-		atomic64_inc(&zram->stats.miss_free);
-		return;
-	}
-#endif
 	zram_free_page(zram, index);
 	zram_slot_unlock(zram, index);
 }
@@ -2462,9 +2386,6 @@ static ssize_t disksize_store(struct device *dev,
 	revalidate_disk(zram->disk);
 	up_write(&zram->init_lock);
 
-#ifdef CONFIG_HP_CORE
-	hyperhold_init(zram);
-#endif
 	return len;
 
 #ifdef CONFIG_ZRAM_DEDUP
@@ -2569,13 +2490,6 @@ static DEVICE_ATTR_RW(dedup_enable);
 #ifdef CONFIG_ZRAM_NON_COMPRESS
 static DEVICE_ATTR_RW(noncompress_enable);
 #endif
-#ifdef CONFIG_HP_CORE
-static DEVICE_ATTR_RW(hyperhold_enable);
-#ifdef CONFIG_HISI_DEBUG_FS
-static DEVICE_ATTR_RW(hyperhold_ft);
-#endif
-static DEVICE_ATTR_RO(hyperhold_report);
-#endif
 
 static struct attribute *zram_disk_attrs[] = {
 	&dev_attr_disksize.attr,
@@ -2608,13 +2522,6 @@ static struct attribute *zram_disk_attrs[] = {
 	&dev_attr_bd_stat.attr,
 #endif
 	&dev_attr_debug_stat.attr,
-#ifdef CONFIG_HP_CORE
-	&dev_attr_hyperhold_enable.attr,
-#ifdef CONFIG_HISI_DEBUG_FS
-	&dev_attr_hyperhold_ft.attr,
-#endif
-	&dev_attr_hyperhold_report.attr,
-#endif
 	NULL,
 };
 

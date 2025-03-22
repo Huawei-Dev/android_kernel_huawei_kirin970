@@ -198,23 +198,6 @@ static void scsi_unlock_floptical(struct scsi_device *sdev,
 			 SCSI_TIMEOUT, 3, NULL);
 }
 
-#ifdef CONFIG_HP_CORE
-static int scsi_health_query(struct request_queue *q, u8 *pre_eol_info,
-	u8 *life_time_est_a, u8 *life_time_est_b)
-{
-	struct scsi_device *sdev = q->queuedata;
-
-	if (sdev->type != TYPE_DISK || !sdev->host->hostt->get_health_info)
-		return -EINVAL;
-
-	if (sdev->host->host_self_blocked || sdev->sdev_state != SDEV_RUNNING)
-		return -EINVAL;
-
-	return sdev->host->hostt->get_health_info(sdev, pre_eol_info,
-		life_time_est_a, life_time_est_b);
-}
-#endif
-
 /**
  * scsi_alloc_sdev - allocate and setup a scsi_Device
  * @starget: which target to allocate a &scsi_device for
@@ -316,11 +299,6 @@ static struct scsi_device *scsi_alloc_sdev(struct scsi_target *starget,
 	*/
 	blk_queue_set_inline_crypto_flag(sdev->request_queue, shost->crypto_enabled);
 #endif
-#ifdef CONFIG_HP_CORE
-	blk_dev_health_query_register(sdev->request_queue,
-		shost->hostt->get_health_info ? scsi_health_query : NULL);
-#endif
-
 	scsi_change_queue_depth(sdev, sdev->host->cmd_per_lun ?
 					sdev->host->cmd_per_lun : 1);
 

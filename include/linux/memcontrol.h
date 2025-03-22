@@ -256,41 +256,6 @@ struct mem_cgroup {
 	/* Legacy tcp memory accounting */
 	bool			tcpmem_active;
 	int			tcpmem_pressure;
-#ifdef CONFIG_HP_CORE
-	unsigned long zram_lru;
-	unsigned long ext_lru;
-	struct list_head link_list;
-	spinlock_t zram_init_lock;
-	struct zram *zram;
-
-	atomic64_t zram_stored_size;
-	atomic64_t zram_page_size;
-	unsigned long zram_watermark;
-
-	atomic_t hyperhold_extcnt;
-	atomic_t hyperhold_peakextcnt;
-
-	atomic64_t hyperhold_stored_pages;
-	atomic64_t hyperhold_stored_size;
-	atomic64_t hyperhold_ext_notify_free;
-
-	atomic64_t hyperhold_outcnt;
-	atomic64_t hyperhold_incnt;
-	atomic64_t hyperhold_allfaultcnt;
-	atomic64_t hyperhold_faultcnt;
-
-	atomic64_t hyperhold_outextcnt;
-	atomic64_t hyperhold_inextcnt;
-
-	atomic64_t zram_idle_size;
-	atomic64_t zram_idle_page;
-
-	atomic64_t zram_swapout_cnt;
-	atomic64_t zram_swapin_cnt;
-
-	bool in_swapin;
-	bool force_swapout;
-#endif
 
 #ifndef CONFIG_SLOB
         /* Index in the kmem_cache->memcg_params.memcg_caches array */

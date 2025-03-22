@@ -1831,9 +1831,6 @@ static inline bool is_percpu_thread(void)
 #define PFA_SPEC_SSB_DISABLE		3	/* Speculative Store Bypass disabled */
 #define PFA_SPEC_SSB_FORCE_DISABLE	4	/* Speculative Store Bypass force disabled*/
 #define PFA_LMK_WAITING  5      /* Lowmemorykiller is waiting */
-#ifdef CONFIG_HP_CORE
-#define PFA_HYPERHOLD_IDLE_RECLAIM 6
-#endif
 
 #define PFA_SLEEP_ON_THROTL	25
 #define PFA_FLUSHER		26
@@ -1865,12 +1862,6 @@ TASK_PFA_SET(SPREAD_SLAB, spread_slab)
 TASK_PFA_CLEAR(SPREAD_SLAB, spread_slab)
 TASK_PFA_TEST(LMK_WAITING, lmk_waiting)
 TASK_PFA_SET(LMK_WAITING, lmk_waiting)
-
-#ifdef CONFIG_HP_CORE
-TASK_PFA_TEST(HYPERHOLD_IDLE_RECLAIM, hyperhold_idle_reclaim)
-TASK_PFA_SET(HYPERHOLD_IDLE_RECLAIM, hyperhold_idle_reclaim)
-TASK_PFA_CLEAR(HYPERHOLD_IDLE_RECLAIM, hyperhold_idle_reclaim)
-#endif
 
 TASK_PFA_TEST(SPEC_SSB_DISABLE, spec_ssb_disable)
 TASK_PFA_SET(SPEC_SSB_DISABLE, spec_ssb_disable)

@@ -108,9 +108,6 @@
 #define GLOBAL_SYSTEM_GID KGIDT_INIT(1000)
 #endif
 
-#ifdef CONFIG_HP_CORE
-#include <linux/hyperhold_inf.h>
-#endif
 /* NOTE:
  *	Implementing inode permission operations in /proc is almost
  *	certainly an error.  Permission checks need to happen during
@@ -3227,12 +3224,6 @@ static int proc_pid_patch_state(struct seq_file *m, struct pid_namespace *ns,
 }
 #endif /* CONFIG_LIVEPATCH */
 
-#ifdef CONFIG_HP_CORE
-struct task_struct *get_task_from_proc(struct inode *inode)
-{
-	return get_pid_task(proc_pid(inode), PIDTYPE_PID);
-}
-#endif
 /*
  * Thread groups
  */
@@ -3281,9 +3272,6 @@ static const struct pid_entry tgid_base_stuff[] = {
 	REG("reclaim", S_IWUSR, proc_reclaim_operations),
 #ifdef CONFIG_HISI_SWAP_ZDATA
 	ONE("reclaim_result", S_IRUSR|S_IRGRP, process_reclaim_result_read),
-#endif
-#if defined(CONFIG_HP_CORE) && defined(CONFIG_HISI_DEBUG_FS)
-	REG("hyperhold", S_IWUSR, proc_hyperhold_operations),
 #endif
 #endif
 #ifdef CONFIG_PROC_PAGE_MONITOR

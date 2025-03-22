@@ -63,11 +63,6 @@ enum zram_pageflags {
 #ifdef CONFIG_ZRAM_DEDUP
 	ZRAM_INDIRECT_HANDLE,
 #endif
-#ifdef CONFIG_HP_CORE
-	ZRAM_BATCHING_OUT,
-	ZRAM_FROM_HYPERHOLD,
-	ZRAM_MCGID_CLEAR,
-#endif
 	ZRAM_IDLE_FAST,	/* not accessed page since last idle_fast marking */
 	__NR_ZRAM_PAGEFLAGS,
 };
@@ -169,13 +164,10 @@ struct zram {
 	unsigned long pre_wb_limit_time;
 	unsigned long *bitmap;
 #endif
-#if (defined CONFIG_ZRAM_WRITEBACK) || (defined CONFIG_HP_CORE)
+#ifdef CONFIG_ZRAM_WRITEBACK
 	struct block_device *bdev;
 	unsigned int old_block_size;
 	unsigned long nr_pages;
-#endif
-#ifdef CONFIG_HP_CORE
-	struct hyperhold_area *area;
 #endif
 #ifdef CONFIG_ZRAM_MEMORY_TRACKING
 	struct dentry *debugfs_dir;

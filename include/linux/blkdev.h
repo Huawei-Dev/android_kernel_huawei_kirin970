@@ -648,11 +648,6 @@ typedef int (*lld_tz_ctrl_fn)(
 	struct request_queue *q, int desc_id, uint8_t index);
 typedef int (*blk_direct_flush_fn)(struct request_queue *);
 
-#ifdef CONFIG_HP_CORE
-typedef int (*lld_query_health_fn)(struct request_queue *q,
-	u8 *pre_eol_info, u8 *life_time_est_a, u8 *life_time_est_b);
-#endif
-
 #ifdef CONFIG_MAS_BLK
 enum blk_lld_base {
 	BLK_LLD_QUEUE_BASE = 0,
@@ -1181,10 +1176,6 @@ struct request_queue {
 	struct list_head	icq_list;
 #ifdef CONFIG_SCSI_UFS_INLINE_CRYPTO
 	int inline_crypt_support;
-#endif
-#ifdef CONFIG_HP_CORE
-	/* query api of health */
-	lld_query_health_fn health_query;
 #endif
 
 #ifdef CONFIG_MAS_BLK
@@ -2980,12 +2971,6 @@ void mas_blk_inline_crypto_bio_split_post(struct bio *bio);
 void mas_blk_inline_crypto_req_init(struct request *rq);
 #endif
 
-#ifdef CONFIG_HP_CORE
-void blk_dev_health_query_register(
-	struct request_queue *q, lld_query_health_fn func);
-int blk_dev_health_query(struct block_device *bi_bdev,
-	u8 *pre_eol_info, u8 *life_time_est_a, u8 *life_time_est_b);
-#endif
 #ifdef CONFIG_MAS_BLK
 void blk_queue_dump_register(
 	struct request_queue *q, lld_dump_status_fn func);

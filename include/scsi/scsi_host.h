@@ -104,10 +104,6 @@ struct scsi_host_template {
 	int (*get_tz_info)(struct scsi_device *dev, u32 type, u8 *buf,
 			   u32 size);
 	int (*tz_ctrl)(struct scsi_device *dev, int desc_id, uint8_t index);
-#ifdef CONFIG_HP_CORE
-	int (*get_health_info)(struct scsi_device *sdev,
-		u8 *pre_eol_info, u8 *life_time_est_a, u8 *life_time_est_b);
-#endif
 #ifdef CONFIG_SCSI_UFS_UNISTORE
 	int (*dev_pwron_info_sync)(struct scsi_device *dev,
 		struct stor_dev_pwron_info *stor_info,

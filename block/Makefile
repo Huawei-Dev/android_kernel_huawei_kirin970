@@ -22,7 +22,6 @@ obj-$(CONFIG_MAS_BLK_DEBUG) += mas_blk_ft.o
 obj-$(CONFIG_MAS_BKOPS) += mas_bkops_core.o mas_bkops_sysfs.o mas_bkops_core_interface.o \
 					mas_bkops_sysfs_interface.o
 obj-$(CONFIG_SCSI_UFS_INLINE_CRYPTO) += mas_blk_inline_crypt.o
-obj-$(CONFIG_HP_CORE) += mas_blk_hyperhold.o
 obj-$(CONFIG_BOUNCE)		+= bounce.o
 obj-$(CONFIG_BLK_SCSI_REQUEST)	+= scsi_ioctl.o
 obj-$(CONFIG_BLK_DEV_BSG)	+= bsg.o

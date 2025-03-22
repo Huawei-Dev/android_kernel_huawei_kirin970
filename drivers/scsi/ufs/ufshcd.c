@@ -443,11 +443,6 @@ void ufshcd_check_init_mode(struct ufs_hba *hba, int err);
 #ifdef CONFIG_SCSI_UFS_HI1861_VCMD
 static void ufshcd_device_capbitlity_config(struct ufs_hba *hba);
 #endif
-#ifdef CONFIG_HP_CORE
-static int ufshcd_get_health_info(struct scsi_device *sdev,
-	u8 *pre_eol_info, u8 *life_time_est_a, u8 *life_time_est_b);
-#endif
-
 static void ufshcd_custom_upiu_build(struct ufs_hba *hba,
 				     struct ufshcd_lrb *lrbp);
 static void ufshcd_update_dev_cmd_lun(struct ufs_hba *hba,
@@ -7853,9 +7848,6 @@ static struct scsi_host_template ufshcd_driver_template = {
 	.eh_timed_out		= ufshcd_eh_timed_out,
 #ifdef CONFIG_MAS_BLK
 	.dump_status		= ufshcd_dump_status,
-#ifdef CONFIG_HP_CORE
-	.get_health_info	= ufshcd_get_health_info,
-#endif
 	.direct_flush		= ufshcd_direct_flush,
 #if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
 	.send_request_sense_directly = ufshcd_send_request_sense_directly,
@@ -10645,38 +10637,6 @@ int ufshcd_read_device_health_desc(struct ufs_hba *hba,
 {
 		return ufshcd_read_desc(hba, QUERY_DESC_IDN_HEALTH, 0, buf, size);
 }
-
-#ifdef CONFIG_HP_CORE
-static int ufshcd_get_health_info(struct scsi_device *sdev,
-	u8 *pre_eol_info, u8 *life_time_est_a, u8 *life_time_est_b)
-{
-	int ret;
-	struct ufs_hba *hba = NULL;
-	u8 buff[QUERY_DESC_HEALTH_MAX_SIZE];
-
-	if ((!sdev) || (!pre_eol_info) || (!life_time_est_a) ||
-		(!life_time_est_b))
-		return -EFAULT;
-
-	hba = shost_priv(sdev->host);
-	if (!hba)
-		return -EFAULT;
-
-	ret = ufshcd_read_device_health_desc(hba, buff,
-		QUERY_DESC_HEALTH_MAX_SIZE);
-	if (ret) {
-		dev_err(hba->dev, "%s: Failed getting device health info\n",
-			__func__);
-		return ret;
-	}
-
-	*pre_eol_info = buff[HEALTH_DEVICE_DESC_PARAM_PREEOL];
-	*life_time_est_a = buff[HEALTH_DEVICE_DESC_PARAM_LIFETIMEA];
-	*life_time_est_b = buff[HEALTH_DEVICE_DESC_PARAM_LIFETIMEB];
-
-	return 0;
-}
-#endif
 
 static void __ufshcd_print_doorbell(struct ufs_hba *hba, u32 tm_doorbell,
 		u32 tr_doorbell, char *s)
