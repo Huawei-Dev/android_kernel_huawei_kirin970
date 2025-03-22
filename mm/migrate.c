@@ -1452,30 +1452,6 @@ int migrate_pages(struct list_head *from, new_page_t get_new_page,
 
 		list_for_each_entry_safe(page, page2, from, lru) {
 			cond_resched();
-#ifdef CONFIG_VM_COPY
-			if (PageVMcpy(page)) {
-				int is_file;
-
-				if (PageLRU(page))
-					ClearPageLRU(page);
-				if (PageIsolated(page))
-					__ClearPageIsolated(page);
-				list_del(&page->lru);
-				is_file = page_is_file_cache(page);
-#ifdef CONFIG_ISOLATE_COUNT
-				mod_node_page_state(page_pgdat(page),
-						NR_ISOLATED_ANON,
-						-hpage_nr_pages(page));
-#else
-				mod_node_page_state(page_pgdat(page),
-						NR_ISOLATED_ANON + is_file,
-						-hpage_nr_pages(page));
-#endif
-				mem_cgroup_uncharge(page);
-				put_page(page);
-				continue;
-			}
-#endif
 			if (PageHuge(page))
 				rc = unmap_and_move_huge_page(get_new_page,
 						put_new_page, private, page,

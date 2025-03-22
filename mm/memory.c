@@ -79,10 +79,6 @@
 #include <asm/tlbflush.h>
 #include <asm/pgtable.h>
 
-#ifdef CONFIG_VM_COPY
-#include <linux/vm_copy.h>
-#endif
-
 #include "internal.h"
 
 #ifdef CONFIG_HW_CGROUP_WORKINGSET
@@ -2943,10 +2939,6 @@ static int wp_page_copy(struct vm_fault *vmf)
 #endif
 	} else {
 		gfp_t gfp_flags = GFP_HIGHUSER_MOVABLE | ___GFP_CMA;
-#ifdef CONFIG_VM_COPY
-		if (vma->ext_flags & VM_COPY_COW)
-			gfp_flags &= ~___GFP_CMA;
-#endif
 		new_page = alloc_page_vma(gfp_flags, vma, vmf->address);
 		if (!new_page)
 #ifdef CONFIG_SPECULATIVE_PAGE_FAULT
@@ -2969,11 +2961,6 @@ static int wp_page_copy(struct vm_fault *vmf)
 		}
 	}
 
-#ifdef CONFIG_VM_COPY
-	/* vm_copy cow new page for device should be uncharge to memcg */
-	if (vma->ext_flags & VM_COPY_COW)
-		goto bypass_try_charge;
-#endif
 	if (mem_cgroup_try_charge(new_page, mm, GFP_KERNEL, &memcg, false))
 #ifdef CONFIG_SPECULATIVE_PAGE_FAULT
 		goto out_free_new;
@@ -2981,18 +2968,8 @@ static int wp_page_copy(struct vm_fault *vmf)
 		goto oom_free_new;
 #endif
 
-#ifdef CONFIG_VM_COPY
-bypass_try_charge:
-	if (page_is_cma(new_page))
-		mask_vma_ext_flags(vma, VM_COPY_CMA);
-#endif
 	__SetPageUptodate(new_page);
 
-#ifdef CONFIG_VM_COPY
-	if (vma->ext_flags & VM_COPY_COW)
-		mmu_notifier_invalidate_range_start_vmcpy(mm, vma,
-					mmun_start, mmun_end);
-#endif
 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
 
 	/*
@@ -3031,25 +3008,10 @@ bypass_try_charge:
 		 * thread doing COW.
 		 */
 		ptep_clear_flush_notify(vma, vmf->address, vmf->pte);
-#ifdef CONFIG_VM_COPY
-		if (vma->ext_flags & VM_COPY_COW) {
-			dec_mm_counter_fast(mm,
-					mm_counter_file(old_page));
-			inc_mm_counter_fast(vma->vm_mm,
-					mm_counter_file(new_page));
-			page_add_file_rmap(new_page, false);
-			goto rmap_next;
-		}
-#endif
 #ifdef CONFIG_SPECULATIVE_PAGE_FAULT
 		__page_add_new_anon_rmap(new_page, vma, vmf->address, false);
 #else
 		page_add_new_anon_rmap(new_page, vma, vmf->address, false);
-#endif
-#ifdef CONFIG_VM_COPY
-rmap_next:
-		if (vma->ext_flags & VM_COPY_COW)
-			goto uncharge_and_not_add_lru;
 #endif
 		mem_cgroup_commit_charge(new_page, memcg, false, false);
 #ifdef CONFIG_SPECULATIVE_PAGE_FAULT
@@ -3058,19 +3020,11 @@ rmap_next:
 		lru_cache_add_active_or_unevictable(new_page, vma);
 #endif
 
-#ifdef CONFIG_VM_COPY
-uncharge_and_not_add_lru:
-#endif
 		/*
 		 * We call the notify macro here because, when using secondary
 		 * mmu page tables (such as kvm shadow page tables), we want the
 		 * new page to be mapped directly into the secondary page table.
 		 */
-#ifdef CONFIG_VM_COPY
-		if (vma->ext_flags & VM_COPY_COW)
-			mmu_notifier_change_pte_vmcpy(mm, vma,
-					vmf->address, entry);
-#endif
 		set_pte_at_notify(mm, vmf->address, vmf->pte, entry);
 		update_mmu_cache(vma, vmf->address, vmf->pte);
 		if (old_page) {
@@ -3103,12 +3057,7 @@ uncharge_and_not_add_lru:
 		new_page = old_page;
 		page_copied = 1;
 	} else {
-#ifdef CONFIG_VM_COPY /* ENABLE CONFIG_VM_COPY */
-		if (!(vma->ext_flags & VM_COPY_COW))
-			mem_cgroup_cancel_charge(new_page, memcg, false);
-#else /* DISABLE CONFIG_VM_COPY */
 		mem_cgroup_cancel_charge(new_page, memcg, false);
-#endif /* END CONFIG_VM_COPY */
 	}
 
 	if (new_page)
@@ -3116,11 +3065,6 @@ uncharge_and_not_add_lru:
 
 	pte_unmap_unlock(vmf->pte, vmf->ptl);
 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
-#ifdef CONFIG_VM_COPY
-	if (vma->ext_flags & VM_COPY_COW)
-		mmu_notifier_invalidate_range_end_vmcpy(mm, vma,
-					mmun_start, mmun_end);
-#endif
 	if (old_page) {
 		/*
 		 * Don't let another task, with possibly unlocked vma,
@@ -3138,22 +3082,10 @@ uncharge_and_not_add_lru:
 		}
 		put_page(old_page);
 	}
-#ifdef CONFIG_VM_COPY
-	if (old_page && PageVMcpy(old_page))
-		__count_vm_event(VM_COPY_COW_PAGE);
-#endif
 	return page_copied ? VM_FAULT_WRITE : 0;
 #ifdef CONFIG_SPECULATIVE_PAGE_FAULT
 out_uncharge:
-#ifdef CONFIG_VM_COPY /* ENABLE CONFIG_VM_COPY */
-	if (vma->ext_flags & VM_COPY_COW)
-		mmu_notifier_invalidate_range_end_vmcpy(mm, vma,
-					mmun_start, mmun_end);
-	else
-		mem_cgroup_cancel_charge(new_page, memcg, false);
-#else	/* DISABLE CONFIG_VM_COPY  */
 	mem_cgroup_cancel_charge(new_page, memcg, false);
-#endif /* END_CONFIG_VM_COPY */
 #endif
 #ifdef CONFIG_SPECULATIVE_PAGE_FAULT
 out_free_new:
@@ -3306,18 +3238,6 @@ static int do_wp_page(struct vm_fault *vmf)
 		if ((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
 #endif
 				     (VM_WRITE|VM_SHARED)) {
-#ifdef CONFIG_VM_COPY
-			/* special page should not be shared for vm_copy.
-			 * VM_WRITE & VM_SHARED mean share to write,
-			 * vm_copy do not support share to write.
-			 * trying to write vm_copy page, copy_on_write
-			 * happen.
-			 */
-			if (vma->ext_flags & VM_COPY_COW) {
-				pte_unmap_unlock(vmf->pte, vmf->ptl);
-				return wp_page_copy(vmf);
-			}
-#endif
 			return wp_pfn_shared(vmf);
 		}
 		pte_unmap_unlock(vmf->pte, vmf->ptl);
@@ -3378,14 +3298,6 @@ static int do_wp_page(struct vm_fault *vmf)
 	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
 #endif
 					(VM_WRITE|VM_SHARED))) {
-#ifdef CONFIG_VM_COPY
-		/* should not be shared for vm_copy page */
-		if (vma->ext_flags & VM_COPY_COW) {
-			get_page(vmf->page);
-			pte_unmap_unlock(vmf->pte, vmf->ptl);
-			return wp_page_copy(vmf);
-		}
-#endif
 		return wp_page_shared(vmf);
 	}
 
@@ -3702,10 +3614,6 @@ int do_swap_page(struct vm_fault *vmf)
 		lru_cache_add_active_or_unevictable(page, vma);
 #endif
 	}
-#ifdef CONFIG_VM_COPY
-	if (page_is_cma(page))
-		mask_vma_ext_flags(vma, VM_COPY_CMA);
-#endif
 
 	swap_free(entry);
 	if (mem_cgroup_swap_full(page) ||
@@ -3906,10 +3814,6 @@ static int do_anonymous_page(struct vm_fault *vmf)
 	page_add_new_anon_rmap(page, vma, vmf->address, false);
 	mem_cgroup_commit_charge(page, memcg, false, false);
 	lru_cache_add_active_or_unevictable(page, vma);
-#endif
-#ifdef CONFIG_VM_COPY
-	if (page_is_cma(page))
-		mask_vma_ext_flags(vma, VM_COPY_CMA);
 #endif
 setpte:
 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, entry);
@@ -4223,19 +4127,6 @@ int alloc_set_pte(struct vm_fault *vmf, struct mem_cgroup *memcg,
 		inc_mm_counter_fast(vma->vm_mm, mm_counter_file(page));
 		page_add_file_rmap(page, false);
 	}
-#ifdef CONFIG_VM_COPY
-	if ((vmf->cow_page == page) && (vma->ext_flags & VM_COPY_COW)) {
-		const unsigned long mmun_start = vmf->address & PAGE_MASK;
-		const unsigned long mmun_end = mmun_start + PAGE_SIZE;
-
-		mmu_notifier_invalidate_range_start_vmcpy(vma->vm_mm, vma,
-					mmun_start, mmun_end);
-		mmu_notifier_change_pte_vmcpy(vma->vm_mm, vma,
-					vmf->address, entry);
-		mmu_notifier_invalidate_range_end_vmcpy(vma->vm_mm, vma,
-					mmun_start, mmun_end);
-	}
-#endif
 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, entry);
 
 	/* no need to invalidate: a not-present page won't be cached */
@@ -4275,10 +4166,6 @@ int finish_fault(struct vm_fault *vmf)
 	else
 		page = vmf->page;
 
-#ifdef CONFIG_VM_COPY
-	if (page_is_cma(page))
-		mask_vma_ext_flags(vma, VM_COPY_CMA);
-#endif
 	/*
 	 * check even for read faults because we might have lost our CoWed
 	 * page

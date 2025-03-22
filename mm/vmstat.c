@@ -1254,11 +1254,6 @@ const char * const vmstat_text[] = {
 	"speculative_pgfault",
 #endif
 #endif /* CONFIG_VM_EVENTS_COUNTERS */
-#ifdef CONFIG_VM_COPY
-	"vm_copy_total_page",
-	"vm_copy_cow_page",
-	"vm_copy_free_page",
-#endif
 };
 #endif /* CONFIG_PROC_FS || CONFIG_SYSFS || CONFIG_NUMA */
 

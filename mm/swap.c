@@ -117,10 +117,6 @@ void __put_page(struct page *page)
 		return;
 	}
 
-#ifdef CONFIG_VM_COPY
-	if (PageVMcpy(page))
-		__count_vm_event(VM_COPY_FREE_PAGE);
-#endif
 	if (unlikely(PageCompound(page)))
 		__put_compound_page(page);
 	else
@@ -893,10 +889,6 @@ void release_pages(struct page **pages, int nr, bool cold)
 			put_zone_device_private_or_public_page(page);
 			continue;
 		}
-#ifdef CONFIG_VM_COPY
-		if (PageVMcpy(page))
-			__count_vm_event(VM_COPY_FREE_PAGE);
-#endif
 
 		page = compound_head(page);
 		if (!put_page_testzero(page))

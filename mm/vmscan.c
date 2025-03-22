@@ -1048,11 +1048,6 @@ unsigned long shrink_page_list(struct list_head *page_list,
 		}
 #endif
 
-#ifdef CONFIG_VM_COPY
-		/* vmcopy page should not be shrinked */
-		if (PageVMcpy(page))
-			goto keep;
-#endif
 #ifdef CONFIG_MM_PAGECACHE_DEBUG
 		if (unlikely(pagecache_dump & BIT_MM_SHRINK_INACTIVE_DUMP)) {
 			d_mapping = page_mapping(page);
@@ -1764,11 +1759,6 @@ unsigned long isolate_lru_pages(unsigned long nr_to_scan,
 	unsigned long skipped = 0;
 	unsigned long scan, total_scan, nr_pages;
 	LIST_HEAD(pages_skipped);
-#ifdef CONFIG_VM_COPY
-	unsigned long nr_vmcpy_pages = 0;
-	unsigned long nr_zone_vmcpy[MAX_NR_ZONES] = { 0 };
-	LIST_HEAD(vmcpy_isolate);
-#endif
 #ifdef CONFIG_TASK_PROTECT_LRU
 	bool is_file, flag = false;
 	struct page *check;
@@ -1787,19 +1777,6 @@ unsigned long isolate_lru_pages(unsigned long nr_to_scan,
 
 		VM_BUG_ON_PAGE(!PageLRU(page), page);
 
-#ifdef CONFIG_VM_COPY
-		if (PageVMcpy(page)) {
-			unsigned long vmcpy_pages;
-
-			if (PageLRU(page))
-				ClearPageLRU(page);
-			vmcpy_pages = hpage_nr_pages(page);
-			nr_vmcpy_pages += vmcpy_pages;
-			nr_zone_vmcpy[page_zonenum(page)] += vmcpy_pages;
-			list_move(&page->lru, &vmcpy_isolate);
-			continue;
-		}
-#endif
 		if (page_zonenum(page) > sc->reclaim_idx) {
 			list_move(&page->lru, &pages_skipped);
 			nr_skipped[page_zonenum(page)]++;
@@ -1904,20 +1881,6 @@ unsigned long isolate_lru_pages(unsigned long nr_to_scan,
 	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, nr_to_scan,
 				    total_scan, skipped, nr_taken, mode, lru);
 	update_lru_sizes(lruvec, lru, nr_zone_taken);
-#ifdef CONFIG_VM_COPY
-	if (!list_empty(&vmcpy_isolate)) {
-		struct page *vmcpy_page, *next;
-		struct pglist_data *pgdat = lruvec_pgdat(lruvec);
-
-		update_lru_sizes(lruvec, lru, nr_zone_vmcpy);
-
-		spin_unlock_irq(&pgdat->lru_lock);
-		mem_cgroup_uncharge_list(&vmcpy_isolate);
-		spin_lock_irq(&pgdat->lru_lock);
-		list_for_each_entry_safe(vmcpy_page, next, &vmcpy_isolate, lru)
-			list_del(&vmcpy_page->lru);
-	}
-#endif
 
 	return nr_taken;
 }
@@ -2334,16 +2297,6 @@ unsigned int move_active_pages_to_lru(struct lruvec *lruvec,
 		page = lru_to_page(list);
 		lruvec = mem_cgroup_page_lruvec(page, pgdat);
 
-#ifdef CONFIG_VM_COPY
-		if (PageVMcpy(page)) {
-			if (PageLRU(page))
-				ClearPageLRU(page);
-			list_del(&page->lru);
-			mem_cgroup_uncharge(page);
-			put_page(page);
-			continue;
-		}
-#endif
 		VM_BUG_ON_PAGE(PageLRU(page), page);
 		SetPageLRU(page);
 

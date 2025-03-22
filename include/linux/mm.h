@@ -221,13 +221,6 @@ extern unsigned int kobjsize(const void *objp);
 #define VM_NOHUGEPAGE	0x40000000	/* MADV_NOHUGEPAGE marked this vma */
 #define VM_MERGEABLE	0x80000000	/* KSM may merge identical pages */
 
-#ifdef CONFIG_VM_COPY
-#define NO_VM_COPY	0x00000001	/* bypass vm_copy */
-#define VM_COPY_COW	0x00000002	/* vm_copy cow for dev */
-#define VM_COPY_DONE	0x00000004	/* vm_copy done */
-#define VM_COPY_CMA	0x00000008	/* contain cma page */
-#endif
-
 #ifdef CONFIG_ARCH_USES_HIGH_VMA_FLAGS
 #define VM_HIGH_ARCH_BIT_0	32	/* bit only usable on 64-bit architectures */
 #define VM_HIGH_ARCH_BIT_1	33	/* bit only usable on 64-bit architectures */

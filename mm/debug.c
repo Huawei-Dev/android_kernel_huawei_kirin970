@@ -40,9 +40,6 @@ const struct trace_print_flags pageflag_names[] = {
 	{1UL << PG_drv,                    "drv"            },
 #endif
 	{1UL << PG_gpu,                    "gpu"            },
-#ifdef CONFIG_VM_COPY
-	{1UL << PG_vmcpy,                  "vmcpy"          },
-#endif
 #ifdef CONFIG_HISI_CMA_DEBUG
 	{1UL << PG_cmapin,                 "cmapin"         },
 #endif

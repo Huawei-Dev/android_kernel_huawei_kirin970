@@ -4353,10 +4353,6 @@ void __free_pages(struct page *page, unsigned int order)
 {
 	VM_BUG_ON_PAGE(PageLRU(page) || !page_count(page), page);
 	BUG_ON(PageLRU(page) || !page_count(page));
-#ifdef CONFIG_VM_COPY
-	if (PageVMcpy(page))
-		__count_vm_event(VM_COPY_FREE_PAGE);
-#endif
 	if (put_page_testzero(page)) {
 		page_trace_hook(__GFP_HIGHMEM, (unsigned char)MEM_FREE, _RET_IP_, page, order);/*lint !e571*/
 		if (order == 0)

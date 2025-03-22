@@ -127,9 +127,6 @@ enum pageflags {
 	PG_zspage,
 	PG_drv,
 #endif
-#ifdef CONFIG_VM_COPY
-	PG_vmcpy,
-#endif
 #ifdef CONFIG_ZRAM_NON_COMPRESS
 	PG_non_compress,
 #endif
@@ -442,9 +439,6 @@ PAGEFLAG(Drv, drv, PF_ANY)
 
 PAGEFLAG(GPU, gpu, PF_ANY)
 
-#ifdef CONFIG_VM_COPY
-PAGEFLAG(VMcpy, vmcpy, PF_ANY)
-#endif
 /*
  * On an anonymous page mapped into a user virtual memory area,
  * page->mapping points to its anon_vma, not to a struct address_space;

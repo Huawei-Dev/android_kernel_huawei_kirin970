@@ -203,14 +203,6 @@ config MEMORY_HOTREMOVE
 	depends on MEMORY_HOTPLUG && ARCH_ENABLE_MEMORY_HOTREMOVE
 	depends on MIGRATION
 
-config VM_COPY
-	bool "Allow vm_copy"
-	select MMU_NOTIFIER
-	help
-	  vm_copy is a feature in order to replace memcpy for some
-	  situations. vm_copy map dst to src by modifying the page
-	  table. When src or dst modified, copy on write happen.
-
 # Heavily threaded applications may benefit from splitting the mm-wide
 # page_table_lock, so that faults on different parts of the user address
 # space can be handled with less contention: split it at this NR_CPUS.

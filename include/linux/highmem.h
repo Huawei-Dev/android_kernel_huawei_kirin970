@@ -193,10 +193,6 @@ alloc_zeroed_user_highpage_movable(struct vm_area_struct *vma,
 		return page;
 	}
 #endif
-#ifdef CONFIG_VM_COPY
-	if (vma->ext_flags & VM_COPY_COW)
-		gfp_flags &= ~___GFP_CMA;
-#endif
 	return __alloc_zeroed_user_highpage(gfp_flags, vma, vaddr);
 }
 

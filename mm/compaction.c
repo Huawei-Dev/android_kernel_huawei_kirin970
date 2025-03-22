@@ -851,21 +851,6 @@ isolate_migratepages_block(struct compact_control *cc, unsigned long low_pfn,
 
 		lruvec = mem_cgroup_page_lruvec(page, zone->zone_pgdat);
 
-#ifdef CONFIG_VM_COPY
-		/* vm_copy page for device should be delete
-		 * form lru list and uncharge from memcg
-		 */
-		if (PageVMcpy(page)) {
-			if (PageLRU(page))
-				ClearPageLRU(page);
-			if (PageIsolated(page))
-				__ClearPageIsolated(page);
-			del_page_from_lru_list(page, lruvec, page_lru(page));
-
-			mem_cgroup_uncharge(page);
-			continue;
-		}
-#endif
 		/* Try isolate the page */
 		if (__isolate_lru_page(page, isolate_mode) != 0)
 			goto isolate_fail;
