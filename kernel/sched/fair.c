@@ -7631,72 +7631,6 @@ find_idlest_group_cpu(struct sched_group *group, struct task_struct *p, int this
 }
 
 #ifdef CONFIG_HISI_EAS_SCHED
-#ifdef CONFIG_SCHED_RTG
-static inline int find_rtg_cpu(struct task_struct *p, struct cpumask *preferred_cpus)
-{
-	int i;
-	cpumask_t search_cpus = CPU_MASK_NONE;
-	int max_spare_cap_cpu =-1;
-	unsigned long max_spare_cap = 0;
-	int idle_backup_cpu = -1;
-
-	cpumask_and(&search_cpus, &p->cpus_allowed, cpu_online_mask);
-#ifdef CONFIG_CPU_ISOLATION_OPT
-	cpumask_andnot(&search_cpus, &search_cpus, cpu_isolated_mask);
-#endif
-
-	/* search the perferred idle cpu */
-	for_each_cpu_and(i, &search_cpus, preferred_cpus) {
-		if (is_reserved(i))
-			continue;
-
-		if (idle_cpu(i) || (i == task_cpu(p) && p->state == TASK_RUNNING)) {
-			trace_find_rtg_cpu(p, preferred_cpus, "prefer_idle", i);
-			return i;
-		}
-	}
-
-	for_each_cpu(i, &search_cpus) {
-		unsigned long spare_cap;
-
-		if (walt_cpu_high_irqload(i))
-			continue;
-
-		if (is_reserved(i))
-			continue;
-
-		/* take the Active LB CPU as idle_backup_cpu */
-		if (idle_cpu(i) || (i == task_cpu(p) && p->state == TASK_RUNNING)) {
-			/* find the idle_backup_cpu with max capacity */
-			if (idle_backup_cpu == -1 ||
-				capacity_orig_of(i) > capacity_orig_of(idle_backup_cpu))
-				idle_backup_cpu = i;
-
-			continue;
-		}
-
-		/* skip little cores for max_spare cpus */
-		if (test_slow_cpu(i))
-			continue;
-
-		spare_cap = capacity_spare_without(i, p);
-		if (spare_cap > max_spare_cap) {
-			max_spare_cap = spare_cap;
-			max_spare_cap_cpu = i;
-		}
-	}
-
-	if (idle_backup_cpu != -1) {
-		trace_find_rtg_cpu(p, preferred_cpus, "idle_backup", idle_backup_cpu);
-		return idle_backup_cpu;
-	}
-
-	trace_find_rtg_cpu(p, preferred_cpus, "max_spare", max_spare_cap_cpu);
-
-	return max_spare_cap_cpu;
-}
-#endif
-
 #ifdef CONFIG_HUAWEI_SCHED_VIP
 int find_lowest_vip_cpu(struct task_struct *p,
 			struct cpumask *search_cpus)
@@ -9022,16 +8956,6 @@ static bool cpu_overutilized_for_lb(int cpu)
 static inline unsigned int
 hisi_capacity_margin_general(struct task_struct *p, int cpu)
 {
-#ifdef CONFIG_SCHED_RTG
-	struct related_thread_group *grp = NULL;
-
-	rcu_read_lock();
-	grp = task_related_thread_group(p);
-	rcu_read_unlock();
-	if (grp && grp->preferred_cluster)
-		return grp->capacity_margin;
-#endif
-
 	if (p->sched_class == &rt_sched_class)
 		return RT_CAPACITY_MARGIN;
 	else
@@ -9511,10 +9435,6 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
 	int want_affine = 0;
 	int want_energy = 0;
 	int sync = wake_flags & WF_SYNC;
-#ifdef CONFIG_SCHED_RTG
-	struct cpumask *rtg_target = NULL;
-#endif
-
 #ifdef CONFIG_HUAWEI_SCHED_VIP
 	if (p->vip_prio) {
 		int vip_cpu = find_vip_cpu(p);
@@ -9525,16 +9445,6 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
 			return prev_cpu;
 	}
 #endif
-#ifdef CONFIG_SCHED_RTG
-	rtg_target = find_rtg_target(p);
-	if (rtg_target) {
-		int rtg_cpu = find_rtg_cpu(p, rtg_target);
-
-		if (rtg_cpu != -1)
-			return rtg_cpu;
-	}
-#endif
-
 	rcu_read_lock();
 
 #ifdef CONFIG_HISI_EAS_SCHED
@@ -13872,14 +13782,6 @@ void check_for_migration(struct rq *rq, struct task_struct *p)
 	int active_balance = 0;
 	int cpu = task_cpu(p);
 	bool need_down_migrate = false;
-#ifdef CONFIG_SCHED_RTG
-	struct cpumask *rtg_target = find_rtg_target(p);
-
-	if (rtg_target &&
-	    (capacity_orig_of(cpu) >
-	     capacity_orig_of(cpumask_first(rtg_target))))
-		need_down_migrate = true;
-#endif
 
 	if (rq->misfit_task_load || need_down_migrate) {
 		if (rq->curr->state != TASK_RUNNING ||
@@ -13888,32 +13790,9 @@ void check_for_migration(struct rq *rq, struct task_struct *p)
 
 		raw_spin_lock(&migration_lock);
 
-#ifdef CONFIG_SCHED_RTG
-		if (rtg_target && need_down_migrate) {
-			new_cpu = find_rtg_cpu(p, rtg_target);
-
-			if (new_cpu != -1 &&
-			    cpumask_test_cpu(new_cpu, rtg_target) &&
-			    idle_cpu(new_cpu))
-				goto do_active_balance;
-
-			goto out_unlock;
-		}
-#endif
 #ifdef CONFIG_HUAWEI_SCHED_VIP
 		if (p->vip_prio) {
 			new_cpu = find_vip_cpu(p);
-			if (new_cpu != -1 &&
-			    capacity_orig_of(new_cpu) > capacity_orig_of(cpu))
-				goto do_active_balance;
-
-			goto out_unlock;
-		}
-#endif
-#ifdef CONFIG_SCHED_RTG
-		if (rtg_target) {
-			new_cpu = find_rtg_cpu(p, rtg_target);
-
 			if (new_cpu != -1 &&
 			    capacity_orig_of(new_cpu) > capacity_orig_of(cpu))
 				goto do_active_balance;

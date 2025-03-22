@@ -143,18 +143,6 @@ config SCHED_STAT_YIELD
 	depends on PERF_CTRL
 	default n
 
-config SCHED_FRAME_NO_FORCE_FAST_DOWN
-	bool "Schedutil frame_update do not force skip_min_sample_time"
-	depends on !SCHED_DEPRECATED
-	default y
-	help
-	  Boosted scene like appstart do not want cpu to fast ramp
-	  down. Frame sched should not break it. This option won't
-	  set skip_min_sample_time for freq update marked by
-	  sched_set_group_normalized_util() if userspace has
-	  configured fast_ramp_down to 0.
-	  Please say Y.
-
 config RENDER_RT
 	bool "render realted thread"
 	depends on SCHED_WALT

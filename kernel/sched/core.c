@@ -47,7 +47,6 @@
 #include <trace/events/sched.h>
 #include "walt.h"
 #include "tune.h"
-#include <linux/hisi_rtg.h>
 
 #ifdef CONFIG_CORE_CTRL
 #include <linux/core_ctl.h>
@@ -75,44 +74,6 @@
 DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
 
 #ifdef CONFIG_ED_TASK
-#ifdef CONFIG_SCHED_RTG
-static inline bool is_rtg_ed_task(struct rq *rq, struct task_struct *p, u64 wall)
-{
-	struct related_thread_group *grp = NULL;
-	struct sched_cluster *prefer_cluster = NULL;
-	int cpu = cpu_of(rq);
-
-	rcu_read_lock();
-	grp = task_related_thread_group(p);
-	rcu_read_unlock();
-
-	if (!grp)
-		return false;
-	prefer_cluster = grp->preferred_cluster;
-	if (!prefer_cluster)
-		return false;
-	if (!grp->ed_enabled)
-		return false;
-
-	/* if the task running on perferred cluster, then igore */
-	if (cpumask_test_cpu(cpu, &prefer_cluster->cpus) ||
-	    capacity_orig_of(cpu) > capacity_orig_of(cpumask_first(&prefer_cluster->cpus)))
-		return false;
-
-	if (p->last_wake_wait_sum >= grp->ed_task_waiting_duration)
-		return true;
-
-	if (wall - p->last_wake_ts >= grp->ed_task_running_duration)
-		return true;
-
-	if (is_new_task(p) && wall - p->last_wake_ts >=
-				grp->ed_new_task_running_duration)
-		return true;
-
-	return false;
-}
-#endif /* CONFIG_SCHED_RTG */
-
 #ifdef CONFIG_SCHED_RUNNING_TASK_ROTATION
 #define ED_TASK_SHORT_DURATION 8000000 /* 8ms */
 #endif
@@ -134,12 +95,6 @@ static inline bool is_ed_task(struct rq *rq, struct task_struct *p, u64 wall)
 #endif
 		return false;
 	}
-#endif
-
-#ifdef CONFIG_SCHED_RTG
-	/* handle rtg task */
-	if (is_rtg_ed_task(rq, p, wall))
-		return true;
 #endif
 
 	if (schedtune_prefer_idle(p)) {
@@ -1065,41 +1020,6 @@ unsigned int get_task_min_util(struct task_struct *p)
 {
 	return p->uclamp.min_util;
 }
-
-#ifdef CONFIG_SCHED_RTG
-int set_task_rtg_min_freq(struct task_struct *p, unsigned int freq)
-{
-	unsigned int cluster_cpu;
-	struct related_thread_group *grp = NULL;
-	struct sched_cluster *prefer_cluster = NULL;
-	int ret;
-	unsigned int util;
-
-	if (!p)
-		return -EINVAL;
-
-	rcu_read_lock();
-	grp = task_related_thread_group(p);
-	rcu_read_unlock();
-
-	if (!grp)
-		return -ENODEV;
-	prefer_cluster = grp->preferred_cluster;
-	if (!prefer_cluster)
-		return -ENODEV;
-
-	grp->us_set_min_freq = freq;
-
-	cluster_cpu = cpumask_first(&prefer_cluster->cpus);
-	sugov_mark_util_change(cluster_cpu, FORCE_UPDATE);
-
-	util = freq_to_util(cluster_cpu, freq);
-	ret = set_task_min_util(p, util);
-
-	sugov_check_freq_update(cluster_cpu);
-	return ret;
-}
-#endif
 
 static void add_freq_request(struct rq *rq, struct task_struct *p)
 {
@@ -2876,10 +2796,6 @@ void sched_exit(struct task_struct *p)
 	struct rq_flags flags;
 	struct rq *rq;
 
-#ifdef CONFIG_SCHED_RTG
-	_sched_set_group_id(p, DEFAULT_RTG_GRP_ID);
-#endif
-
 	rq = task_rq_lock(p, &flags);
 
 #ifdef CONFIG_SCHED_TOP_TASK
@@ -3225,10 +3141,6 @@ void wake_up_new_task(struct task_struct *p)
 
 #ifdef CONFIG_RENDER_RT
 	add_render_rthread(p);
-#endif
-
-#ifdef CONFIG_SCHED_RTG
-	add_new_task_to_grp(p);
 #endif
 
 	raw_spin_lock_irqsave(&p->pi_lock, rf.flags);
@@ -3890,9 +3802,6 @@ void scheduler_tick(void)
 			wallclock, 0);
 	update_rq_clock(rq);
 	curr->sched_class->task_tick(rq, curr, 0);
-#ifdef CONFIG_SCHED_RTG
-	sched_update_rtg_tick(curr);
-#endif
 	cpu_load_update_active(rq);
 	calc_global_load_tick(rq);
 #ifdef CONFIG_ED_TASK
@@ -7182,11 +7091,6 @@ void __init sched_init(void)
 		init_rq_hrtick(rq);
 		atomic_set(&rq->nr_iowait, 0);
 	}
-
-#ifdef CONFIG_SCHED_RTG
-	i = alloc_related_thread_groups();
-	BUG_ON(i);
-#endif
 
 	set_load_weight(&init_task);
 

@@ -1183,30 +1183,6 @@ config MIGRATION_NOTIFY
 	help
 	  tasks migration notify frequency change.
 
-config SCHED_RTG
-	bool "related threads group"
-	depends on HISI_EAS_SCHED
-	depends on SCHED_WALT
-	default n
-	help
-	  set ux related threads into a group.
-
-config SCHED_RTG_DEBUG
-	bool "related threads group debug"
-	depends on SCHED_RTG
-	depends on HISI_DEBUG_FS
-	default n
-	help
-	  related threads group debugfs.
-
-config SCHED_CGROUP_RTG
-	bool "related threads group"
-	depends on SCHED_RTG
-	depends on SCHED_TUNE
-	default n
-	help
-	  set schedtune group tasks into a rtg.
-
 config 32BIT_COMPAT
 	bool "supporting 32bit compat"
 	default n

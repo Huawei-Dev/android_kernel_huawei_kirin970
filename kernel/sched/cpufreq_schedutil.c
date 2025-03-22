@@ -27,8 +27,6 @@
 #include <trace/events/cpufreq_schedutil.h>
 #endif
 
-#include <linux/hisi_rtg.h>
-
 unsigned long boosted_cpu_util(int cpu);
 
 #ifdef CONFIG_CPU_FREQ_GOV_SCHEDUTIL_OPT
@@ -194,10 +192,6 @@ struct sugov_policy {
 	unsigned int max_cpu;
 	unsigned int iowait_boost;
 	u64 last_iowait;
-#ifdef CONFIG_SCHED_RTG
-	unsigned long rtg_util;
-	unsigned int rtg_freq;
-#endif
 #ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
 	unsigned int min_util;
 #endif
@@ -456,9 +450,6 @@ static unsigned int eval_target_freq(struct sugov_policy *sg_policy,
 	}
 
 	new_freq = max(sg_policy->iowait_boost, new_freq);
-#ifdef CONFIG_SCHED_RTG
-	new_freq = max(sg_policy->rtg_freq, new_freq);
-#endif
 #ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
 	new_freq = max(util_to_freq(sg_policy->max_cpu, sg_policy->min_util),
 			new_freq);
@@ -976,11 +967,6 @@ static unsigned int sugov_next_freq_shared_policy(struct sugov_policy *sg_policy
 		i++;
 	}
 
-#ifdef CONFIG_SCHED_RTG
-	sched_get_max_group_util(policy->cpus, &sg_policy->rtg_util, &sg_policy->rtg_freq);
-	util = max(sg_policy->rtg_util, util);
-#endif
-
 	return get_next_freq(sg_policy, util, max);
 }
 
@@ -1198,16 +1184,6 @@ void sugov_mark_util_change(int cpu, unsigned int flags)
 		skip_min_sample_time = true;
 		skip_hispeed_logic = true;
 	}
-
-#ifdef CONFIG_SCHED_RTG
-	if (flags & FRAME_UPDATE) {
-#ifdef CONFIG_SCHED_FRAME_NO_FORCE_FAST_DOWN
-		if (sg_policy->tunables->fast_ramp_down)
-#endif
-			skip_min_sample_time = true;
-		skip_hispeed_logic = true;
-	}
-#endif
 
 #ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
 	if (flags & (SET_MIN_UTIL | ENQUEUE_MIN_UTIL))

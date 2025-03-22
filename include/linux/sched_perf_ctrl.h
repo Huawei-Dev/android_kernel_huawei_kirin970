@@ -82,16 +82,6 @@ static inline int perf_ctrl_set_task_util(void __user *uarg)
 }
 int perf_ctrl_get_related_tid(void __user *uarg);
 
-#ifdef CONFIG_SCHED_RTG
-int perf_ctrl_set_task_rtg(void __user *uarg);
-int perf_ctrl_set_rtg_cpus(void __user *uarg);
-int perf_ctrl_set_rtg_freq(void __user *uarg);
-int perf_ctrl_set_rtg_freq_update_interval(void __user *uarg);
-int perf_ctrl_set_rtg_util_invalid_interval(void __user *uarg);
-int perf_ctrl_set_rtg_load_mode(void __user *uarg);
-int perf_ctrl_set_rtg_ed_params(void __user *uarg);
-int perf_ctrl_set_task_rtg_min_freq(void __user *uarg);
-#else
 static inline int perf_ctrl_set_task_rtg(void __user *uarg)
 {
 	return -EFAULT;
@@ -124,7 +114,6 @@ static inline int perf_ctrl_set_task_rtg_min_freq(void __user *uarg)
 {
 	return -EFAULT;
 }
-#endif
 
 #ifdef CONFIG_HUAWEI_SCHED_VIP
 int perf_ctrl_set_vip_prio(void __user *uarg);

@@ -672,10 +672,6 @@ struct ravg {
 	u32 load_sum_history[RAVG_HIST_SIZE_MAX];
 	u32 prev_load, curr_load;
 #endif
-#ifdef CONFIG_SCHED_RTG
-	u64 curr_window_load, prev_window_load;
-	u64 curr_window_exec, prev_window_exec;
-#endif
 };
 #endif
 
@@ -974,11 +970,6 @@ struct task_struct {
 
 #ifdef CONFIG_SCHED_RUNNING_AVG
 	bool heavy_task;
-#endif
-
-#ifdef CONFIG_SCHED_RTG
-	struct related_thread_group *grp;
-	struct list_head grp_list;
 #endif
 
 #ifdef CONFIG_ED_TASK
@@ -2242,10 +2233,6 @@ unsigned int get_task_min_util(struct task_struct *p);
 
 int set_task_max_util(struct task_struct *p, unsigned int max_util);
 unsigned int get_task_max_util(struct task_struct *p);
-
-#if defined(CONFIG_SCHED_HISI_UTIL_CLAMP) && defined(CONFIG_SCHED_RTG)
-int set_task_rtg_min_freq(struct task_struct *p, unsigned int freq);
-#endif
 
 #ifdef CONFIG_CPUSET_TASKS_CROWDED_WORKAROUND
 bool cpus_overloaded(struct cpumask *mask);

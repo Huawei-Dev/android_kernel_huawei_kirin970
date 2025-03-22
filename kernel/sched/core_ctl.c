@@ -26,7 +26,6 @@
 #include <linux/cpumask.h>
 #include <linux/topology.h>
 #include <linux/cpufreq.h>
-#include <linux/hisi_rtg.h>
 #include <linux/kthread.h>
 #include <linux/percpu.h>
 #include <linux/math64.h>
@@ -786,7 +785,7 @@ int update_misfit_task(void)
 
 			cluster_id = topology_physical_package_id(
 					cluster->first_cpu);
-			rtg_nr_running = get_cluster_grp_running(cluster_id);
+			rtg_nr_running = 0;
 			if (rtg_nr_running > cluster->task_thres) {
 				rtg_nr_running -= cluster->task_thres;
 				temp->nrrun = max(temp->nrrun, rtg_nr_running);

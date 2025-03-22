@@ -11,7 +11,6 @@
 #include "tune.h"
 
 #include "walt.h"
-#include <linux/hisi_rtg.h>
 #include <linux/interrupt.h>
 
 int sched_rr_timeslice = RR_TIMESLICE;
@@ -1670,14 +1669,6 @@ static struct task_struct *pick_highest_pushable_task(struct rq *rq, int cpu)
 
 static DEFINE_PER_CPU(cpumask_var_t, local_cpu_mask);
 
-#ifdef CONFIG_SCHED_RTG
-static unsigned int rtg_up_migration_util_filter = 25;
-static inline bool hisi_favor_little_core(struct task_struct *p)
-{
-	return task_util(p) * 100 < capacity_orig_of(0) * rtg_up_migration_util_filter;
-}
-#endif
-
 static int find_lowest_rq(struct task_struct *task)
 {
 	struct sched_domain *sd;
@@ -1693,9 +1684,6 @@ static int find_lowest_rq(struct task_struct *task)
 	int target_cpu_idle_idx = INT_MAX;
 	int cpu_idle_idx = -1;
 	int prev_cpu = task_cpu(task);
-#ifdef CONFIG_SCHED_RTG
-	struct cpumask *rtg_target = NULL;
-#endif
 	struct sched_group *sg, *sg_target, *sg_backup;
 	bool boosted = schedtune_task_boost(task) > 0;
 	bool prefer_idle = schedtune_prefer_idle(task) > 0;
@@ -1720,9 +1708,6 @@ static int find_lowest_rq(struct task_struct *task)
 		target_capacity = ULONG_MAX;
 
 		rcu_read_lock();
-#ifdef CONFIG_SCHED_RTG
-		rtg_target = find_rtg_target(task);
-#endif
 		sd = rcu_dereference(per_cpu(sd_ea, 0));
 		if (!sd) {
 			rcu_read_unlock();
@@ -1746,27 +1731,6 @@ static int find_lowest_rq(struct task_struct *task)
 			}
 
 			cpu = group_first_cpu(sg);
-
-#ifdef CONFIG_SCHED_RTG
-			/* honor the rtg tasks */
-			if (rtg_target) {
-				if (cpumask_test_cpu(cpu, rtg_target)) {
-					sg_target = sg;
-					break;
-				}
-
-				/* active LB or big_task favor cpus with more capacity */
-				if (task->state == TASK_RUNNING || boosted || !hisi_favor_little_core(task)) {
-					if (capacity_orig_of(cpu) > capacity_orig_of(cpumask_any(rtg_target))) {
-						sg_target = sg;
-						break;
-					} else {
-						sg_backup = sg;
-						continue;
-					}
-				}
-			}
-#endif
 
 			/*
 			 * 1. add margin to support task migration.
