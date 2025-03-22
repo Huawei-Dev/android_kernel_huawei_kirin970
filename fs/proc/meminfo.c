@@ -106,9 +106,6 @@ static int meminfo_proc_show(struct seq_file *m, void *v)
 	show_val_kb(m, "MmapCopy:       ",
 		    (unsigned long)atomic_long_read(&mmap_pages_allocated));
 #endif
-#ifdef CONFIG_KZEROD
-	show_val_kb(m, "ZeroedFree:     ", kzerod_get_zeroed_size());
-#endif
 	show_val_kb(m, "SwapTotal:      ", i.totalswap);
 	show_val_kb(m, "SwapFree:       ", i.freeswap);
 	show_val_kb(m, "Dirty:          ",

@@ -183,16 +183,6 @@ alloc_zeroed_user_highpage_movable(struct vm_area_struct *vma,
 					unsigned long vaddr)
 {
 	gfp_t gfp_flags = __GFP_MOVABLE | ___GFP_CMA;
-#ifdef CONFIG_KZEROD
-	struct page *page = NULL;
-
-	mod_node_page_state(&contig_page_data, NR_ZERO_PAGE_ALLOC_TOTAL, 1);
-	page = alloc_zeroed_page();
-	if (page) {
-		mod_node_page_state(&contig_page_data, NR_ZERO_PAGE_ALLOC_PREZERO, 1);
-		return page;
-	}
-#endif
 	return __alloc_zeroed_user_highpage(gfp_flags, vma, vaddr);
 }
 

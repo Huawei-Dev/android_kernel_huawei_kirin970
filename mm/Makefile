@@ -110,4 +110,3 @@ obj-$(CONFIG_MM_PAGECACHE_DEBUG) += pagecache_debug.o
 obj-$(CONFIG_HISI_MM) += hisi/
 obj-$(CONFIG_PROCESS_RECLAIM)	+= process_reclaim.o
 obj-$(CONFIG_HW_XRECLAIMER)	+= xreclaimer/
-obj-$(CONFIG_KZEROD)	+= kzerod.o
