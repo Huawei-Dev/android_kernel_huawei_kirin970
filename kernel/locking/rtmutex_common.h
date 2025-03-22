@@ -34,15 +34,6 @@ struct rt_mutex_waiter {
 	struct pid		*deadlock_task_pid;
 	struct rt_mutex		*deadlock_lock;
 #endif
-#ifdef CONFIG_HW_FUTEX_PI
-	int major_only;
-#ifdef CONFIG_HW_QOS_THREAD
-	int qos;
-#endif
-#ifdef CONFIG_HUAWEI_SCHED_VIP
-	unsigned int vip_prio;
-#endif
-#endif
 	int prio;
 	u64 deadline;
 };

@@ -69,9 +69,6 @@
 #include <linux/bootmem.h>
 #include <linux/fault-inject.h>
 #include <chipset_common/security/kshield.h>
-#ifdef CONFIG_HW_FUTEX_PI
-#include <chipset_common/linux/hw_pi.h>
-#endif
 
 #include <asm/futex.h>
 
@@ -4212,9 +4209,7 @@ static int __init futex_init(void)
 		plist_head_init(&futex_queues[i].chain);
 		spin_lock_init(&futex_queues[i].lock);
 	}
-#ifdef CONFIG_HW_FUTEX_PI
-	g_hw_futex_pi_enabled = (futex_cmpxchg_enabled ? SUPPORT_FUTEX_PI : 0);
-#endif
+
 	return 0;
 }
 core_initcall(futex_init);

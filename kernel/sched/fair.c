@@ -5694,9 +5694,6 @@ int set_vip_prio(struct task_struct *p, unsigned int prio)
 	}
 
 	p->vip_prio = prio;
-#ifdef CONFIG_HW_FUTEX_PI
-	p->normal_vip_prio = prio;
-#endif
 
 	if (queued_in_vip_list)
 		enqueue_hisi_vip_thread(rq, p);

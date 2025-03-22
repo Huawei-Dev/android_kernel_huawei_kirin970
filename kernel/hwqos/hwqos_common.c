@@ -225,32 +225,6 @@ int get_task_qos(struct task_struct *task)
 	return qos;
 }
 
-#ifdef CONFIG_HW_FUTEX_PI
-int get_task_normal_qos(struct task_struct *task)
-{
-	unsigned int i;
-	int qos_trans;
-	int qos;
-
-	if (unlikely(!QOS_SCHED_SET_ENABLE))
-		return VALUE_QOS_INVALID;
-	if (unlikely(!task))
-		return VALUE_QOS_INVALID;
-	qos = get_task_set_qos_inner(task);
-	if (qos == VALUE_QOS_CRITICAL)
-		return qos;
-	for (i = DYNAMIC_QOS_BINDER; i < DYNAMIC_QOS_TYPE_MAX; i++) {
-		if (i == DYNAMIC_QOS_FUTEX)
-			continue;
-		qos_trans = get_trans_qos_by_type(task, i);
-		qos = (qos > qos_trans) ? qos : qos_trans;
-		if (qos == VALUE_QOS_CRITICAL)
-			break;
-	}
-	return qos;
-}
-#endif
-
 #ifdef CONFIG_HUAWEI_SCHED_VIP
 static void dynamic_vip_prio_enqueue(struct task_struct *task,
 	struct task_struct *from, unsigned int type)

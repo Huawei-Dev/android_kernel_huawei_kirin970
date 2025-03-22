@@ -69,9 +69,6 @@
 #ifdef CONFIG_HKIP_PRMEM
 #include <linux/hisi/prmem.h>
 #endif
-#ifdef CONFIG_HW_FUTEX_PI
-#include <chipset_common/linux/hw_pi.h>
-#endif
 
 #include <linux/uaccess.h>
 #include <asm/processor.h>
@@ -386,15 +383,6 @@ static struct ctl_table kern_table[] = {
 		.maxlen       = sizeof(unsigned int),
 		.mode         = 0644,
 		.proc_handler = proc_dointvec,
-	},
-#endif
-#ifdef CONFIG_HW_FUTEX_PI
-	{
-		.procname     = "hw_futex_pi_enabled",
-		.data         = &g_hw_futex_pi_enabled,
-		.maxlen       = sizeof(unsigned int),
-		.mode         = S_IRUSR | S_IWUSR,
-		.proc_handler = proc_douintvec,
 	},
 #endif
 	{

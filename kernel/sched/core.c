@@ -29,9 +29,6 @@
 #include <linux/syscalls.h>
 #include <linux/scs.h>
 #include <linux/delay.h>
-#ifdef CONFIG_HW_FUTEX_PI
-#include <chipset_common/linux/hw_pi.h>
-#endif
 
 #include <asm/switch_to.h>
 #include <asm/tlb.h>
@@ -2923,9 +2920,6 @@ static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
 #ifdef CONFIG_HUAWEI_SCHED_VIP
 	INIT_LIST_HEAD(&p->hisi_vip_entry);
 	p->vip_prio = 0;
-#ifdef CONFIG_HW_FUTEX_PI
-	p->normal_vip_prio = 0;
-#endif
 #endif
 
 #ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
@@ -4667,10 +4661,6 @@ void rt_mutex_setprio(struct task_struct *p, struct task_struct *pi_task)
 	const struct sched_class *prev_class;
 	struct rq_flags rf;
 	struct rq *rq;
-#ifdef CONFIG_HW_FUTEX_PI
-	unsigned int vip_prio = rt_mutex_calculate_vip_prio(p, pi_task);
-	struct rt_mutex_waiter *waiter = pi_task ? task_top_pi_waiter(p) : NULL;
-#endif
 
 	/* XXX used to be waiter->prio, not waiter->task->prio */
 	prio = __rt_effective_prio(pi_task, p->normal_prio);
@@ -4678,12 +4668,7 @@ void rt_mutex_setprio(struct task_struct *p, struct task_struct *pi_task)
 	/*
 	 * If nothing changed; bail early.
 	 */
-#ifdef CONFIG_HW_FUTEX_PI
-	if (p->pi_top_task == pi_task && rt_mutex_mix_prio_equal(
-	    p, prio, vip_prio, waiter))
-#else
 	if (p->pi_top_task == pi_task && prio == p->prio && !dl_prio(prio))
-#endif
 		return;
 
 	rq = __task_rq_lock(p, &rf);
@@ -4703,11 +4688,7 @@ void rt_mutex_setprio(struct task_struct *p, struct task_struct *pi_task)
 	/*
 	 * For FIFO/RR we only need to set prio, if that matches we're done.
 	 */
-#ifdef CONFIG_HW_FUTEX_PI
-	if (rt_mutex_mix_prio_equal(p, prio, vip_prio, waiter))
-#else
 	if (prio == p->prio && !dl_prio(prio))
-#endif
 		goto out_unlock;
 
 	/*
@@ -4775,7 +4756,7 @@ void rt_mutex_setprio(struct task_struct *p, struct task_struct *pi_task)
 	}
 
 	p->prio = prio;
-#if defined(CONFIG_HW_FUTEX_PI) && defined(CONFIG_HUAWEI_SCHED_VIP)
+#ifdef CONFIG_HUAWEI_SCHED_VIP
 	if (likely(is_hw_futex_pi_enabled()) && (p->vip_prio != vip_prio)) {
 		trace_sched_pi_setvipprio(p, p->vip_prio, vip_prio);
 		p->vip_prio = vip_prio;

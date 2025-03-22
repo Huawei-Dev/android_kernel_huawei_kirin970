@@ -915,9 +915,6 @@ struct task_struct {
 	u64 dynamic_vip_start;
 #endif
 #ifdef CONFIG_HUAWEI_SCHED_VIP
-#ifdef CONFIG_HW_FUTEX_PI
-	unsigned int normal_vip_prio;
-#endif
 	unsigned int vip_prio;
 	struct list_head hisi_vip_entry;
 	u64 hisi_vip_last_queued;

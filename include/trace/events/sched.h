@@ -647,64 +647,6 @@ TRACE_EVENT(sched_pi_setprio,
 			__entry->oldprio, __entry->newprio)
 );
 
-#ifdef CONFIG_HW_FUTEX_PI
-#ifdef CONFIG_HW_QOS_THREAD
-TRACE_EVENT(sched_pi_setqos,
-
-	TP_PROTO(struct task_struct *tsk, int oldqos, int newqos),
-
-	TP_ARGS(tsk, oldqos, newqos),
-
-	TP_STRUCT__entry(
-		__array(char, comm, TASK_COMM_LEN)
-		__field(pid_t, pid)
-		__field(int, oldqos)
-		__field(int, newqos)
-	),
-
-	TP_fast_assign(
-		memcpy(__entry->comm, tsk->comm, TASK_COMM_LEN);
-		__entry->pid = tsk->pid;
-		__entry->oldqos = oldqos;
-		__entry->newqos	= newqos;
-		/* XXX SCHED_DEADLINE bits missing */
-	),
-
-	TP_printk("comm=%s pid=%d oldqos=%d newqos=%d",
-			__entry->comm, __entry->pid,
-			__entry->oldqos, __entry->newqos)
-);
-#endif
-
-#ifdef CONFIG_HUAWEI_SCHED_VIP
-TRACE_EVENT(sched_pi_setvipprio,
-
-	TP_PROTO(struct task_struct *tsk, int oldvipprio, int newvipprio),
-
-	TP_ARGS(tsk, oldvipprio, newvipprio),
-
-	TP_STRUCT__entry(
-		__array(char, comm, TASK_COMM_LEN)
-		__field(pid_t, pid)
-		__field(int, oldvipprio)
-		__field(int, newvipprio)
-	),
-
-	TP_fast_assign(
-		memcpy(__entry->comm, tsk->comm, TASK_COMM_LEN);
-		__entry->pid = tsk->pid;
-		__entry->oldvipprio = oldvipprio;
-		__entry->newvipprio = newvipprio;
-		/* XXX SCHED_DEADLINE bits missing */
-	),
-
-	TP_printk("comm=%s pid=%d oldvipprio=%d newvipprio=%d",
-			__entry->comm, __entry->pid,
-			__entry->oldvipprio, __entry->newvipprio)
-);
-#endif
-#endif
-
 #ifdef CONFIG_DETECT_HUNG_TASK
 TRACE_EVENT(sched_process_hang,
 	TP_PROTO(struct task_struct *tsk),

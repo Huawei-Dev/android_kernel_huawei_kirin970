@@ -31,9 +31,6 @@ void set_task_qos_by_pid(struct task_struct *task, int qos);
 int get_task_set_qos(struct task_struct *task);
 int get_task_trans_qos(struct transact_qos *tq);
 int get_task_qos(struct task_struct *task);
-#ifdef CONFIG_HW_FUTEX_PI
-int get_task_normal_qos(struct task_struct *task);
-#endif
 bool dynamic_qos_enqueue(struct task_struct *task,
 	struct task_struct *from, unsigned int type);
 void dynamic_qos_dequeue(struct task_struct *task, unsigned int type);

@@ -124,7 +124,6 @@ obj-$(CONFIG_HW_QOS_THREAD) += hwqos/
 obj-$(CONFIG_HW_VIP_THREAD) += cpu_netlink/
 
 obj-$(CONFIG_HW_CGROUP_WORKINGSET) += cgroup_workingset/
-obj-$(CONFIG_HW_FUTEX_PI) += hw_pi/
 
 $(obj)/configs.o: $(obj)/config_data.h
 

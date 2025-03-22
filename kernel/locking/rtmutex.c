@@ -18,9 +18,6 @@
 #include <linux/sched/wake_q.h>
 #include <linux/sched/debug.h>
 #include <linux/timer.h>
-#ifdef CONFIG_HW_FUTEX_PI
-#include <chipset_common/linux/hw_pi.h>
-#endif
 
 #include "rtmutex_common.h"
 
@@ -230,21 +227,13 @@ static inline bool unlock_rt_mutex_safe(struct rt_mutex *lock,
 /*
  * Only use with rt_mutex_waiter_{less,equal}()
  */
-#ifndef CONFIG_HW_FUTEX_PI
 #define task_to_waiter(p)	\
 	&(struct rt_mutex_waiter){ .prio = (p)->prio, .deadline = (p)->dl.deadline }
-#endif
 
 static inline int
 rt_mutex_waiter_less(struct rt_mutex_waiter *left,
 		     struct rt_mutex_waiter *right)
 {
-#ifdef CONFIG_HW_FUTEX_PI
-	int ret = hw_rt_mutex_waiter_less(left, right);
-	if (ret >= 0)
-		return ret;
-#endif
-
 	if (left->prio < right->prio)
 		return 1;
 
@@ -264,12 +253,6 @@ static inline int
 rt_mutex_waiter_equal(struct rt_mutex_waiter *left,
 		      struct rt_mutex_waiter *right)
 {
-#ifdef CONFIG_HW_FUTEX_PI
-	int ret = hw_rt_mutex_waiter_equal(left, right);
-	if (ret >= 0)
-		return ret;
-#endif
-
 	if (left->prio != right->prio)
 		return 0;
 
@@ -698,10 +681,6 @@ static int rt_mutex_adjust_prio_chain(struct task_struct *task,
 	 */
 	waiter->prio = task->prio;
 	waiter->deadline = task->dl.deadline;
-#ifdef CONFIG_HW_FUTEX_PI
-	rt_mutex_waiter_fill_additional_infos(waiter, task, false);
-#endif
-
 	rt_mutex_enqueue(lock, waiter);
 
 	/* [8] Release the task */
@@ -975,9 +954,6 @@ static int task_blocks_on_rt_mutex(struct rt_mutex *lock,
 	waiter->lock = lock;
 	waiter->prio = task->prio;
 	waiter->deadline = task->dl.deadline;
-#ifdef CONFIG_HW_FUTEX_PI
-	rt_mutex_waiter_fill_additional_infos(waiter, task, true);
-#endif
 
 	/* Get the top priority waiter on the lock */
 	if (rt_mutex_has_waiters(lock))
@@ -1778,15 +1754,9 @@ int __rt_mutex_start_proxy_lock(struct rt_mutex *lock,
 	if (try_to_take_rt_mutex(lock, task, NULL))
 		return 1;
 
-#ifdef CONFIG_HW_FUTEX_PI
-	ret = task_blocks_on_rt_mutex(lock, waiter, task,
-	    likely(is_hw_futex_pi_enabled()) ? RT_MUTEX_MIN_CHAINWALK :
-	    RT_MUTEX_FULL_CHAINWALK);
-#else
 	/* We enforce deadlock detection for futexes */
 	ret = task_blocks_on_rt_mutex(lock, waiter, task,
 				      RT_MUTEX_FULL_CHAINWALK);
-#endif
 
 	if (ret && !rt_mutex_owner(lock)) {
 		/*
