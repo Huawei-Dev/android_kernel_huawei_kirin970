@@ -1527,17 +1527,7 @@ static ssize_t aio_read(struct kiocb *req, struct iocb *iocb, bool vectored,
 	ret = rw_verify_area(READ, file, &req->ki_pos, iov_iter_count(&iter));
 
 	if (!ret) {
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		ret = rw_begin(file);
-		if (ret) {
-			kfree(iovec);
-			return ret;
-		}
-#endif
 		ret = aio_ret(req, call_read_iter(file, req, &iter));
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		rw_finish(READ, file);
-#endif
 	}
 	kfree(iovec);
 	return ret;
@@ -1561,13 +1551,6 @@ static ssize_t aio_write(struct kiocb *req, struct iocb *iocb, bool vectored,
 		return ret;
 	ret = rw_verify_area(WRITE, file, &req->ki_pos, iov_iter_count(&iter));
 	if (!ret) {
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		ret = rw_begin(file);
-		if (ret) {
-			kfree(iovec);
-			return ret;
-		}
-#endif
 		req->ki_flags |= IOCB_WRITE;
 		file_start_write(file);
 		ret = aio_ret(req, call_write_iter(file, req, &iter));
@@ -1578,9 +1561,6 @@ static ssize_t aio_write(struct kiocb *req, struct iocb *iocb, bool vectored,
 		 */
 		if (S_ISREG(file_inode(file)->i_mode))
 			__sb_writers_release(file_inode(file)->i_sb, SB_FREEZE_WRITE);
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		rw_finish(WRITE, file);
-#endif
 	}
 	kfree(iovec);
 	return ret;

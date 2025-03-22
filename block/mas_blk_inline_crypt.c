@@ -57,9 +57,6 @@ void mas_blk_inline_crypto_init_request_from_bio(
 	req->ci_key = bio->ci_key;
 	req->ci_key_len = bio->ci_key_len;
 	req->ci_key_index = bio->ci_key_index;
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	req->ci_metadata = bio->ci_metadata;
-#endif
 }
 
 bool mas_blk_inline_crypto_bio_merge_allow(
@@ -128,9 +125,6 @@ void mas_blk_inline_crypto_bio_split_pre(struct bio *bio, struct bio *split)
 	split->ci_key_len = bio->ci_key_len;
 	split->ci_key_index = bio->ci_key_index;
 	split->index = bio->index;
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	split->ci_metadata = bio->ci_metadata;
-#endif
 }
 
 void mas_blk_inline_crypto_bio_split_post(struct bio *bio)
@@ -149,8 +143,5 @@ void mas_blk_inline_crypto_req_init(struct request *rq)
 	rq->ci_key = NULL;
 	rq->ci_key_len = 0;
 	rq->ci_key_index = -1;
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	rq->ci_metadata = NULL;
-#endif
 }
 

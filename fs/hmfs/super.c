@@ -3655,11 +3655,7 @@ try_onemore:
 	sb->s_op = &f2fs_sops;
 
 	sbi->encryption_ver = 0;
-#if defined(CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3)
-	sbi->encryption_ver = 3;
-#elif defined(CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2)
-	sbi->encryption_ver = 2;
-#elif defined(CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO)
+#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO
 	sbi->encryption_ver = 1;
 #endif
 

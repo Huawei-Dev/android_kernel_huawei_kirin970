@@ -96,14 +96,6 @@ static int f2fs_create_sdp_encryption_context_from_policy(struct inode *inode,
 	if (policy->flags & ~FS_POLICY_FLAGS_VALID)
 		return -EINVAL;
 
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	if (S_ISREG(inode->i_mode) && (inode->i_crypt_info) &&
-	    i_size_read(inode)) {
-		pr_err("f2fs_sdp %s: inode(%lu) the file is not null in FBE3, can not set sdp.\n",
-		       __func__, inode->i_ino);
-		return -EINVAL;
-	}
-#endif
 	if (S_ISREG(inode->i_mode)) {
 		memcpy(master_key_descriptor_tmp, policy->master_key_descriptor,
 			FS_KEY_DESCRIPTOR_SIZE);
@@ -494,13 +486,6 @@ int f2fs_inode_check_sdp_keyring(u8 *descriptor, int enforce)
 	}
 
 	master_sdp_key = (struct fscrypt_sdp_key *)ukp->data;
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-
-	if (master_sdp_key->sdpclass != FSCRYPT_SDP_SECE_CLASS 
-			&& master_sdp_key->sdpclass != FSCRYPT_SDP_ECE_CLASS) {
-		goto out;
-	}
-#else
 
 	if (master_sdp_key->sdpclass == FSCRYPT_SDP_SECE_CLASS) {
 		if (enforce == 1) {
@@ -514,7 +499,6 @@ int f2fs_inode_check_sdp_keyring(u8 *descriptor, int enforce)
 	} else if (master_sdp_key->sdpclass != FSCRYPT_SDP_ECE_CLASS) {
 		goto out;
 	}
-#endif
 
 	res = 0;
 out:

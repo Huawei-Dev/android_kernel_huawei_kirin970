@@ -1870,18 +1870,6 @@ static int scsi_dispatch_cmd(struct scsi_cmnd *cmd)
 	rtn = host->hostt->queuecommand(host, cmd);
 	if (rtn) {
 		trace_scsi_dispatch_cmd_error(cmd, rtn);
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		/*
-		 * only when io from ece file under screen-locking,
-		 * this return value shall be negative
-		 */
-		if (rtn < 0) {
-			/* print level 3 */
-			SCSI_LOG_MLQUEUE(3, scmd_printk(KERN_INFO, cmd,
-				"queuecommand : ece request rejected\n"));
-			return rtn;
-		}
-#endif
 		if (rtn != SCSI_MLQUEUE_DEVICE_BUSY &&
 		    rtn != SCSI_MLQUEUE_TARGET_BUSY)
 			rtn = SCSI_MLQUEUE_HOST_BUSY;
@@ -2161,12 +2149,6 @@ static blk_status_t scsi_queue_rq(struct blk_mq_hw_ctx *hctx,
 
 	reason = scsi_dispatch_cmd(cmd);
 	if (unlikely(reason)) {
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		if (reason < 0) {
-			ret = BLK_STS_NOTSUPP;
-			goto out_dec_host_busy;
-		}
-#endif
 		scsi_set_blocked(cmd, reason);
 		ret = BLK_STS_RESOURCE;
 		goto out_dec_host_busy;

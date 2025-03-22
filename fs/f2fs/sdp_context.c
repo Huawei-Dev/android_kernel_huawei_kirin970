@@ -106,10 +106,6 @@ out_unlock:
 const struct f2fs_sdp_fscrypt_operations f2fs_sdp_cryptops = {
 	.get_sdp_context = f2fs_get_sdp_context,
 	.set_sdp_context = f2fs_set_sdp_context,
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	.get_sdp_metadata_context = f2fs_get_sdp_metadata_context,
-	.set_sdp_metadata_context = f2fs_set_sdp_metadata_context,
-#endif
 	.update_sdp_context = f2fs_update_sdp_context,
 	.update_context = f2fs_update_context,
 	.get_sdp_encrypt_flags = f2fs_get_sdp_encrypt_flags,

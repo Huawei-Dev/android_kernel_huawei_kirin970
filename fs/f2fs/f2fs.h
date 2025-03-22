@@ -1310,9 +1310,6 @@ struct f2fs_io_info {
 	void *ci_key;
 	int ci_key_len;
 	int ci_key_index;
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	unsigned char *metadata;
-#endif
 #endif
 
 #ifdef CONFIG_F2FS_TURBO_ZONE_V2

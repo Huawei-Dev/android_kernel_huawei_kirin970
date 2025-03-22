@@ -19,10 +19,6 @@
 #include "xattr.h"
 #include "sdp_internal.h"
 
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-#include "sdp_metadata.h"
-#endif
-
 #ifdef CONFIG_HWDPS
 #include <huawei_platform/hwdps/hwdps_defines.h>
 #endif
@@ -91,15 +87,6 @@ f2fs_do_get_keyring_payload(u8 *descriptor, u8 *raw, int *size, bool filepubkey)
 		}
 	} else if (ukp->datalen == sizeof(struct fscrypt_sdp_key)) {
 		mst_sdp = (struct fscrypt_sdp_key *)ukp->data;
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		if ((mst_sdp->sdpclass == FSCRYPT_SDP_ECE_CLASS
-			|| mst_sdp->sdpclass == FSCRYPT_SDP_SECE_CLASS)
-			&& mst_sdp->size == FS_AES_256_GCM_KEY_SIZE) {
-			*size = mst_sdp->size;
-			memcpy(raw, mst_sdp->raw, mst_sdp->size);
-			res = 0;
-		}
-#else
 		if (mst_sdp->sdpclass == FSCRYPT_SDP_ECE_CLASS
 			&& mst_sdp->size == FS_AES_256_GCM_KEY_SIZE) {
 			*size = mst_sdp->size;
@@ -116,67 +103,12 @@ f2fs_do_get_keyring_payload(u8 *descriptor, u8 *raw, int *size, bool filepubkey)
 					mst_sdp->pubkeysize);
 			res = 0;
 		}
-#endif
 	}
 out:
 	up_read(&keyring_key->sem);
 	key_put(keyring_key);
 	return res;
 }
-
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2
-int f2fs_do_get_keyindex(u8 *descriptor, int *keyindex)
-{
-	int res = -EKEYREVOKED;
-	struct key *keyring_key = NULL;
-	const struct user_key_payload *ukp;
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	struct fscrypt_sdp_key *master_key = NULL;
-#else
-	struct fscrypt_key *master_key = NULL;
-#endif
-
-	keyring_key = fscrypt_request_key(descriptor, FS_KEY_DESC_PREFIX,
-			FS_KEY_DESC_PREFIX_SIZE);
-	if (IS_ERR(keyring_key))
-		return PTR_ERR(keyring_key);
-
-	down_read(&keyring_key->sem);
-	if (keyring_key->type != &key_type_logon)
-		goto out;
-
-	ukp = user_key_payload_locked(keyring_key);
-	if (!ukp) {
-		/* key was revoked before we acquired its semaphore */
-		res = -EKEYREVOKED;
-		goto out;
-	}
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	if (ukp->datalen == sizeof(struct fscrypt_sdp_key)) {
-		master_key = (struct fscrypt_sdp_key *)ukp->data;
-		if (master_key->size == FS_AES_256_GCM_KEY_SIZE) {
-			*keyindex = (int)(*(master_key->raw
-						+ FS_KEY_INDEX_OFFSET) & 0xff);
-			res = 0;
-		}
-	}
-#else
-	if (ukp->datalen == sizeof(struct fscrypt_key)) {
-		master_key = (struct fscrypt_key *)ukp->data;
-		if (master_key->size == FS_AES_256_GCM_KEY_SIZE) {
-			*keyindex = (int)(*(master_key->raw
-						+ FS_KEY_INDEX_OFFSET) & 0xff);
-			res = 0;
-		}
-	}
-#endif
-
-out:
-	up_read(&keyring_key->sem);
-	key_put(keyring_key);
-	return res;
-}
-#endif
 
 static int f2fs_determine_cipher_type(struct fscrypt_info *ci,
 						   const char **cipher_str_ret,
@@ -279,15 +211,11 @@ f2fs_get_ece_crypt_info_from_context(struct inode *inode,
 	int keyindex;
 
 	if (inherit_key) {
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		return -EINVAL;
-#else
 		res = f2fs_do_get_fek(ctx->master_key_descriptor, ctx->nonce, fek,
 							  ctx->iv, 0);
 		if (res)
 			return res;
 		memcpy(iv, ctx->iv, FS_KEY_DERIVATION_IV_SIZE);
-#endif
 	} else {
 		res = f2fs_inode_get_sdp_encrypt_flags(inode, fs_data, &flag);
 		if (res)
@@ -302,21 +230,6 @@ f2fs_get_ece_crypt_info_from_context(struct inode *inode,
 			get_random_bytes(iv, FS_KEY_DERIVATION_IV_SIZE);
 		}
 	}
-
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	res = f2fs_do_get_keyindex(sdp_ctx->master_key_descriptor, &keyindex);
-#else
-	res = f2fs_do_get_keyindex(ctx->master_key_descriptor, &keyindex);
-#endif
-	if (res)
-		return res;
-	crypt_info->ci_key_index = keyindex;
-	if (crypt_info->ci_key_index < 0 || crypt_info->ci_key_index > 31) {
-		pr_err("ece_key %s: %d\n", __func__, crypt_info->ci_key_index);
-		return -EINVAL;
-	}
-#endif
 
 	res = f2fs_derive_ctfm_from_fek(crypt_info, fek);
 	if (res) {
@@ -389,15 +302,6 @@ static int f2fs_get_sdp_ece_crypt_info(struct inode *inode, void *fs_data)
 		goto out;
 	}
 	crypt_info->ci_hw_enc_flag = F2FS_XATTR_SDP_ECE_ENABLE_FLAG;
-
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	res = f2fs_get_sdp_ece_metadata(inode, sb, crypt_info, fs_data, flag);
-	if (unlikely(res)) {
-		pr_err("[FBE3]%s: inode %lu get ece metadata failed, res %d\n",
-		       __func__, inode->i_ino, res);
-		goto out;
-	}
-#endif
 
 	if (cmpxchg(&inode->i_crypt_info, NULL, crypt_info) == NULL)
 		crypt_info = NULL;
@@ -509,16 +413,11 @@ static int f2fs_get_sece_crypt_info_from_context(
 	int keyindex;
 
 	if (inherit_key) {
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		pr_err("f2fs_sdp:The file has content in crypt v3");
-		return -EINVAL;
-#else
 		res = f2fs_do_get_fek(ctx->master_key_descriptor, ctx->nonce,
 				      fek, ctx->iv, 0);
 		if (res)
 			goto out;
 		memcpy(iv, ctx->iv, FS_KEY_DERIVATION_IV_SIZE);
-#endif
 	} else {
 		res = f2fs_inode_get_sdp_encrypt_flags(inode, fs_data, &flag);
 		if (res) {
@@ -526,12 +425,7 @@ static int f2fs_get_sece_crypt_info_from_context(
 			goto out;
 		}
 		if (F2FS_INODE_IS_ENABLED_SDP_SECE_ENCRYPTION(flag)) {
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-			res = f2fs_do_get_fek(sdp_ctx->master_key_descriptor,
-					      sdp_ctx->nonce, fek, sdp_ctx->iv, 0);
-#else
 			res = f2fs_do_get_sece_fek(sdp_ctx, fek, 1);
-#endif
 			if (res) {
 				pr_err("f2fs_sdp:get key failed res: %d", res);
 				goto out;
@@ -541,25 +435,6 @@ static int f2fs_get_sece_crypt_info_from_context(
 			get_random_bytes(iv, FS_KEY_DERIVATION_IV_SIZE);
 		}
 	}
-
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	res = f2fs_do_get_keyindex(sdp_ctx->master_key_descriptor, &keyindex);
-#else
-	res = f2fs_do_get_keyindex(ctx->master_key_descriptor, &keyindex);
-#endif
-	if (res) {
-		pr_err("f2fs_sdp:get index failed res: %d", res);
-		goto out;
-	}
-	crypt_info->ci_key_index = keyindex;
-	if (crypt_info->ci_key_index < 0 || crypt_info->ci_key_index > 31) {
-		pr_err("sece_class %s: %d\n", __func__,
-		       crypt_info->ci_key_index);
-		res = -EINVAL;
-		goto out;
-	}
-#endif
 
 	res = f2fs_derive_ctfm_from_fek(crypt_info, fek);
 	if (res) {
@@ -572,12 +447,7 @@ static int f2fs_get_sece_crypt_info_from_context(
 		goto out;
 
 	memcpy(sdp_ctx->iv, iv,  FS_KEY_DERIVATION_IV_SIZE);
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	res = f2fs_do_get_fek(sdp_ctx->master_key_descriptor,
-					      sdp_ctx->nonce, fek, sdp_ctx->iv, 1);
-#else
 	res = f2fs_do_set_sece_fek(sdp_ctx, fek);
-#endif
 	if (res)
 		pr_err("f2fs_sdp %s: error %d (inode %lu) encrypt sece key failed\n",
 		       __func__, res, inode->i_ino);
@@ -636,14 +506,6 @@ static int f2fs_get_sdp_sece_crypt_info(struct inode *inode, void *fs_data)
 		goto out;
 	}
 	crypt_info->ci_hw_enc_flag  = F2FS_XATTR_SDP_SECE_ENABLE_FLAG;
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	res = f2fs_get_sdp_sece_metadata(inode, sb, crypt_info, fs_data, flag);
-	if (unlikely(res)) {
-		pr_err("[FBE3]%s: ino %lu get sece metadata failed\n", __func__,
-		       inode->i_ino);
-		goto out;
-	}
-#endif
 	if (cmpxchg(&inode->i_crypt_info, NULL, crypt_info) == NULL)
 		crypt_info = NULL;
 
@@ -744,15 +606,6 @@ int f2fs_change_to_sdp_crypto(struct inode *inode, void *fs_data)
 		goto out;
 	}
 
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	res = f2fs_update_metadata_sdp_crypto(inode, fs_data, &sdp_ctx);
-	if (unlikely(res)) {
-		pr_err("[FBE3]%s: updating metadata failed, res:%d\n", __func__,
-		       res);
-		goto out;
-	}
-
-#endif
 	res = f2fs_inode_get_sdp_encrypt_flags(inode, fs_data, &flag);
 	if (res) {
 		pr_err("f2fs_sdp %s: get sdp flag failed res:%d", __func__,
@@ -803,16 +656,6 @@ static int f2fs_get_sdp_crypt_info(struct inode *inode, void *fs_data)
 		return res;
 
 	if (ci_info && F2FS_INODE_IS_ENABLED_SDP_ENCRYPTION(flag)) {
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		/* already enabled, open will be blocked when screen locked */
-		res = fscrypt_open_sece_metadata_config(inode, ci_info,
-							fs_data);
-		if (unlikely(res)) {
-			pr_err("[FBE3]%s: fscrypt_open_sece_metadata_config failed, res = %d\n",
-			       __func__, res);
-			return res;
-		}
-#endif
 		return f2fs_inode_check_sdp_keyring(ci_info->ci_master_key, 1);
 	}
 

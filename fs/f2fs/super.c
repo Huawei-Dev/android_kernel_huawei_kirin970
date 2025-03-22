@@ -2529,14 +2529,6 @@ static const struct fscrypt_operations f2fs_cryptops = {
 	.get_hwdps_attr	= f2fs_get_hwdps_attr,
 	.get_hwdps_flags	= f2fs_get_hwdps_flags,
 #endif
-
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	.get_metadata_context	= f2fs_get_metadata_context,
-	.encrypt_file_check 	= f2fs_encrypt_file_check,
-	.get_encrypt_type 	= f2fs_get_encrypt_type,
-	.open_metadata 		= fscrypt_open_metadata_config,
-	.get_generate_nonce 	= generate_nonce,
-#endif
 };
 #endif
 

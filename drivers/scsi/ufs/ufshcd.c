@@ -7580,11 +7580,7 @@ static int ufshcd_probe_hba(struct ufs_hba *hba)
 	ufshcd_force_reset_auto_bkops(hba);
 #endif
 	hba->inline_encryto_ver = 0;
-#if defined (CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3)
-	hba->inline_encryto_ver = 3;
-#elif defined (CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2)
-	hba->inline_encryto_ver = 2;
-#elif defined (CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO)
+#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO
 	hba->inline_encryto_ver = 1;
 #endif
 
@@ -10635,7 +10631,6 @@ out:
 	return ret;
 }
 
-#ifndef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2
 #ifdef CONFIG_SCSI_UFS_INLINE_CRYPTO
 int ufshcd_keyregs_remap_wc(struct ufs_hba *hba,
 	resource_size_t hci_reg_base)
@@ -10665,7 +10660,6 @@ int ufshcd_keyregs_remap_wc(struct ufs_hba *hba,
 
 	return 0;
 }
-#endif
 #endif
 
 static int __ufshcd_uic_hibern8_op_irq_safe(struct ufs_hba *hba, bool h8_op)

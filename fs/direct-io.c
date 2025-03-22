@@ -478,12 +478,7 @@ static inline void dio_bio_submit(struct dio *dio, struct dio_submit *sdio)
 		bio->ci_key = fscrypt_ci_key(inode);
 		bio->ci_key_len = fscrypt_ci_key_len(inode);
 		bio->ci_key_index = fscrypt_ci_key_index(inode);
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		bio->ci_metadata = fscrypt_ci_metadata(inode);
-#endif
-		/*lint -save -e704*/
 		bio->index = sdio->logical_offset_in_bio >> sdio->blkbits;
-		/*lint -restore*/
 	}
 #endif
 

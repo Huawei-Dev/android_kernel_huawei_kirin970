@@ -34,15 +34,6 @@
 #include <soc_crgperiph_interface.h>
 #include <soc_sctrl_interface.h>
 #include <soc_ufs_sysctrl_interface.h>
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2
-#include <teek_client_api.h>
-#include <teek_client_constants.h>
-#include <teek_client_id.h>
-#endif
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-#include <linux/hisi/fbe_ctrl.h>
-#include <log/imonitor.h>
-#endif
 #include <linux/hisi/rpmb.h>
 #include <linux/mfd/hisi_pmic.h>
 #include <pmic_interface.h>
@@ -57,36 +48,6 @@
 #include "ufshcd-kirin-extend.h"
 #ifdef CONFIG_HISI_UFS_MANUAL_BKOPS
 #include "hisi-ufs-bkops.h"
-#endif
-
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2
-/* uuid to TA: 54ff868f-0d8d-4495-9d95-8e24b2a08274 */
-#define UUID_TEEOS_UFS_INLINE_CRYPTO                                           \
-	{                                                                      \
-		0x54ff868f, 0x0d8d, 0x4495,                                    \
-		{                                                              \
-			0x9d, 0x95, 0x8e, 0x24, 0xb2, 0xa0, 0x82, 0x74         \
-		}                                                              \
-	}
-
-#define CMD_ID_UFS_KEY_RESTORE 3
-#endif
-
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-#define UFS_BIG_DATA_UPLOAD_CODE 940013001
-#define USER_ID 65535
-#define UFS_RESTORE_KEY 102
-
-struct fbe3_ufs_restore_key_stat {
-	uint8_t fbe3_enable;
-	uint8_t msp_enable;
-	uint8_t scene_type;
-	uint8_t result;
-	int hufs_delay;
-	uint32_t user_id;
-	int hufs_err_code;
-	int vold_err_code;
-};
 #endif
 
 #define PRODUCT_NAME_LEN 32
@@ -197,160 +158,6 @@ void delete_ufs_product_name(char *cmdline)
 }
 
 /* Here external BL31 function declaration for UFS inline encrypt */
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2
-#ifndef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-TEEC_Context *context;
-TEEC_Session *session;
-
-static int init_tee_context(
-	TEEC_Operation *op, u32 *root_id, const char *package_name,
-	int package_name_len)
-{
-	int ret;
-	TEEC_Result result;
-
-	/* initialize TEE environment */
-	result = TEEK_InitializeContext(NULL, context);
-	if (result != TEEC_SUCCESS) {
-		pr_err("%s: InitializeContext failed, Ret=0x%x\n", __func__,
-			result);
-		ret = result;
-		return ret;
-	}
-
-	/* operation params create */
-	op->started = 1;
-	/* open session */
-	op->paramTypes = TEEC_PARAM_TYPES(TEEC_NONE, TEEC_NONE,
-		TEEC_MEMREF_TEMP_INPUT, TEEC_MEMREF_TEMP_INPUT);
-
-	op->params[TEE_PARAM_TEMPREF2].tmpref.buffer = (void *)root_id;
-	op->params[TEE_PARAM_TEMPREF2].tmpref.size = sizeof(*root_id);
-	op->params[TEE_PARAM_TEMPREF3].tmpref.buffer = (void *)package_name;
-	op->params[TEE_PARAM_TEMPREF3].tmpref.size =
-		(size_t)(package_name_len + 1);
-
-	return 0;
-}
-
-static int uie_open_session(void)
-{
-	u32 root_id = 2012; /* specific root id for tee client */
-	const char *package_name = "ufs_key_restore";
-	TEEC_UUID svc_id = UUID_TEEOS_UFS_INLINE_CRYPTO;
-	TEEC_Operation op = {0};
-	TEEC_Result result;
-	u32 origin;
-	int ret;
-
-	pr_err("%s: start ++\n", __func__);
-
-	context = kzalloc(sizeof(TEEC_Context), GFP_KERNEL);
-	if (!context) {
-		ret = -ENOMEM;
-		goto no_memory;
-	}
-	session = kzalloc(sizeof(TEEC_Session), GFP_KERNEL);
-	if (!session) {
-		ret = -ENOMEM;
-		goto free_context;
-	}
-
-	ret = init_tee_context(
-		&op, &root_id, package_name, strlen(package_name));
-	if (ret)
-		goto free_session;
-
-	result = TEEK_OpenSession(context, session, &svc_id,
-		TEEC_LOGIN_IDENTIFY, NULL, &op, &origin);
-	if (result != TEEC_SUCCESS) {
-		pr_err("%s: OpenSession fail, RC=0x%x, RO=0x%x\n", __func__,
-			result, origin);
-		ret = result;
-		goto finish_context;
-	}
-
-	pr_err("%s: end ++\n", __func__);
-	return ret;
-
-finish_context:
-	TEEK_FinalizeContext(context);
-free_session:
-	if (session) {
-		kfree(session);
-		session = NULL;
-	}
-free_context:
-	if (context) {
-		kfree(context);
-		context = NULL;
-	}
-no_memory:
-	pr_err("%s: failed end ++\n", __func__);
-
-	return ret;
-}
-
-static int set_key_in_tee(void)
-{
-	u32 root_id = 2012; /* specific root id for tee client */
-	const char *package_name = "ufs_key_restore";
-	TEEC_Operation op = {0};
-	TEEC_Result result;
-	u32 origin = 0;
-	int ret = 0;
-
-	if (!session) {
-		pr_err("%s: session is null\n", __func__);
-		return ret;
-	}
-
-	pr_err("%s: start ++\n", __func__);
-
-	/* operation params create */
-	op.started = 1;
-	/* open session */
-	op.paramTypes =
-		TEEC_PARAM_TYPES(TEEC_NONE, TEEC_NONE, TEEC_NONE, TEEC_NONE);
-
-	/* set root_id,package_name to params[2],params[3] */
-	op.params[2].tmpref.buffer = (void *)&root_id;
-	op.params[2].tmpref.size = sizeof(root_id);
-	op.params[3].tmpref.buffer = (void *)package_name;
-	op.params[3].tmpref.size = (size_t)(strlen(package_name) + 1);
-
-	result = TEEK_InvokeCommand(
-		session, CMD_ID_UFS_KEY_RESTORE, &op, &origin);
-	if (result != TEEC_SUCCESS) {
-		pr_err("%s: Invoke CMD fail, RC=0x%x, RO=0x%x\n", __func__,
-			result, origin);
-		ret = result;
-	}
-
-	pr_err("%s: end ++\n", __func__);
-
-	return ret;
-}
-
-static int hufs_set_key(void)
-{
-	int err = 0;
-	int i;
-
-	/* 2 means try two times to set key */
-	for (i = 0; i < 2; i++) {
-		err = set_key_in_tee();
-		if (!err)
-			return err;
-
-		pr_err("%s: set ufs crypto key error, times: %d\n", __func__,
-			i + 1);
-	}
-
-	return err;
-}
-#endif
-#else
 #ifdef CONFIG_SCSI_UFS_INLINE_CRYPTO
 noinline int atfd_hufs_uie_smc(
 	u64 _function_id, u64 _arg0, u64 _arg1, u64 _arg2)
@@ -366,7 +173,6 @@ noinline int atfd_hufs_uie_smc(
 
 	return (int)function_id;
 }
-#endif
 #endif
 
 static u64 hufs_dma_mask = ~0ULL;
@@ -729,77 +535,6 @@ int hufs_check_hibern8(struct ufs_hba *hba)
 }
 
 #ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO
-
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-static uint32_t
-get_restore_key_data(const struct fbe3_ufs_restore_key_stat *big_data,
-		     struct imonitor_eventobj *obj)
-{
-	uint32_t stats = 0;
-
-	if (!big_data || !obj) {
-		pr_err("%s: param is invalid!", __func__);
-		return EINVAL;
-	}
-
-	stats |= (uint32_t)imonitor_set_param_integer_v2(obj, "FBE3_Enable",
-							 big_data->fbe3_enable);
-	stats |= (uint32_t)imonitor_set_param_integer_v2(obj, "MSP_Enable",
-							 big_data->msp_enable);
-	stats |= (uint32_t)imonitor_set_param_integer_v2(obj, "Scene_Type",
-							 big_data->scene_type);
-	stats |= (uint32_t)imonitor_set_param_integer_v2(obj, "Result",
-							 big_data->result);
-	stats |= (uint32_t)imonitor_set_param_integer_v2(obj, "hufs_delay",
-							 big_data->hufs_delay);
-	stats |= (uint32_t)imonitor_set_param_integer_v2(obj, "Profile_ID",
-							 big_data->user_id);
-	stats |= (uint32_t)imonitor_set_param_integer_v2(
-		obj, "Hufs_Error_Code", big_data->hufs_err_code);
-	stats |= (uint32_t)imonitor_set_param_integer_v2(
-		obj, "Vold_Error_Code", big_data->vold_err_code);
-
-	return stats;
-}
-
-static void ufs_restore_key_upload_bigdata(int ret)
-{
-	struct fbe3_ufs_restore_key_stat stat_data;
-	struct imonitor_eventobj *obj = NULL;
-	uint32_t stats;
-	int err;
-
-	/* fill context of big data */
-	stat_data.fbe3_enable = 1;
-	stat_data.msp_enable = 0;
-	stat_data.scene_type = UFS_RESTORE_KEY;
-	stat_data.result = 0;
-	stat_data.hufs_delay = 0;
-	stat_data.user_id = USER_ID;
-	stat_data.hufs_err_code = ret;
-	stat_data.vold_err_code = 0;
-
-	obj = imonitor_create_eventobj(UFS_BIG_DATA_UPLOAD_CODE);
-	if (!obj) {
-		pr_err("%s: get event obj failed!\n", __func__);
-		return;
-	}
-
-	stats = get_restore_key_data(&stat_data, obj);
-	if (stats != 0) {
-		pr_err("%s: set param failed!\n", __func__);
-		imonitor_destroy_eventobj(obj);
-		return;
-	}
-	if ((err = imonitor_send_event(obj)) < 0)
-		pr_err("%s: data send failed! err=%d\n", __func__, err);
-
-	imonitor_destroy_eventobj(obj);
-
-	return;
-}
-#endif
-
 int hufs_uie_config_init(struct ufs_hba *hba)
 {
 	unsigned int reg_value;
@@ -810,27 +545,6 @@ int hufs_uie_config_init(struct ufs_hba *hba)
 	reg_value |= CRYPTO_GENERAL_ENABLE;
 	ufshcd_writel(hba, reg_value, REG_CONTROLLER_ENABLE);
 
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	err = fbex_enable_kdf();
-	if (err)
-		BUG();
-	dev_err(hba->dev, "%s: UFS inline crypto V3.0.\n", __func__);
-	if (ufshcd_eh_in_progress(hba)) {
-		err = fbex_restore_key();
-		ufs_restore_key_upload_bigdata(err);
-		if (err)
-			BUG();
-	}
-#else
-	dev_err(hba->dev, "%s: UFS inline crypto V2.0.\n", __func__);
-	if (ufshcd_eh_in_progress(hba)) {
-		err = hufs_set_key();
-		if (err)
-			BUG();
-	}
-#endif
-#else
 	/* Here UFS driver, which set SECURITY reg 0x1 in BL31,
 	 * has the permission to write scurity key registers.
 	 */
@@ -844,7 +558,6 @@ int hufs_uie_config_init(struct ufs_hba *hba)
 		if (err)
 			BUG_ON(1);
 	}
-#endif
 #endif
 	return err;
 }
@@ -872,28 +585,9 @@ static void hufs_crypto_set_keyindex(
 	u32 *crypto_cci, unsigned long *flags)
 {
 #ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2
-	int key_index;
-#endif
-#endif
-
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO
 	*hash_res = bkdrhash_alg((u8 *)lrbp->cmd->request->ci_key,
 		lrbp->cmd->request->ci_key_len);
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2
-	key_index = (int)((uint32_t)lrbp->cmd->request->ci_key_index &
-			0xff);
-	/* valid ci_key_index range 0-31 */
-	if ((key_index < 0) || (key_index > 31)) {
-		dev_err(hba->dev, "%s: ci_key index err is 0x%x\n", __func__,
-			lrbp->cmd->request->ci_key_index);
-		BUG();
-	}
-
-	*crypto_cci = (uint32_t)(key_index);
-#else
 	*crypto_cci = (*hash_res) % MAX_CRYPTO_KEY_INDEX;
-#endif
 #else
 	*crypto_cci = lrbp->task_tag;
 	spin_lock_irqsave(hba->host->host_lock, *flags);
@@ -914,28 +608,10 @@ static void hufs_get_meta_data_factor(struct ufshcd_lrb *lrbp,
 					   u32 *dword_9, u32 *dword_10,
 					   u32 *dword_11)
 {
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	u32 *metadata_random_factor =
-		(u32 *)lrbp->cmd->request->ci_metadata;
-
-	if (metadata_random_factor) {
-		/* copy sizeof a dword (4 bytes) for 4 times */
-		memcpy(dword_8, metadata_random_factor, 4);
-		memcpy(dword_9, metadata_random_factor + 1, 4);
-		memcpy(dword_10, metadata_random_factor + 2, 4);
-		memcpy(dword_11, metadata_random_factor + 3, 4);
-	} else {
-		*dword_8 = 0;
-		*dword_9 = 0;
-		*dword_10 = 0;
-		*dword_11 = 0;
-	}
-#else
 	*dword_8 = 0;
 	*dword_9 = 0;
 	*dword_10 = 0;
 	*dword_11 = 0;
-#endif
 }
 
 /* configure UTRD to enable cryptographic operations for this transaction */
@@ -1334,13 +1010,7 @@ static ssize_t hufs_inline_stat_show(
 #ifdef CONFIG_SCSI_UFS_INLINE_CRYPTO
 	if (ufshcd_readl(hba, REG_CONTROLLER_CAPABILITIES) &
 		MASK_INLINE_ENCRYPTO_SUPPORT)
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		ret_show = 3; /* inline crypto v3 */
-#elif defined(CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2)
-		ret_show = 2; /* inline crypto v2 */
-#else
 		ret_show = 1; /* inline crypto v1 */
-#endif
 #endif
 
 	return snprintf(buf, PAGE_SIZE, "%d\n",
@@ -1867,14 +1537,6 @@ EXPORT_SYMBOL(ufs_hba_hufs_vops);
 static int __init uie_open_session_late(void)
 {
 	int err = 0;
-
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2
-#ifndef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	err = uie_open_session();
-	if (err)
-		BUG();
-#endif
-#endif
 
 	return err;
 }

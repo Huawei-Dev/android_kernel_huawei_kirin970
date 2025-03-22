@@ -385,7 +385,6 @@ int ufshcd_pltfrm_probe(struct platform_device *pdev)
 		goto out_disable_rpm;
 	}
 
-#ifndef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2
 #ifdef CONFIG_SCSI_UFS_INLINE_CRYPTO
 	/*
 	 * to improve writing key efficiency,
@@ -397,7 +396,6 @@ int ufshcd_pltfrm_probe(struct platform_device *pdev)
 		goto out_disable_rpm;
 	}
 
-#endif
 #endif
 	platform_set_drvdata(pdev, hba);
 

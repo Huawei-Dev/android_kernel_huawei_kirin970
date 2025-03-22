@@ -617,56 +617,6 @@ void fscrypt_put_encryption_info(struct inode *inode)
 EXPORT_SYMBOL(fscrypt_put_encryption_info);
 
 #ifdef CONFIG_HWDPS
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2
-#define MAX_HISI_KEY_INDEX 31
-#define FS_KEY_INDEX_OFFSET 63
-static int hwdps_get_key_index(u8 *descriptor)
-{
-	struct key *keyring_key;
-	const struct user_key_payload *ukp;
-	struct fscrypt_key *primary_key;
-	int res;
-
-	keyring_key = fscrypt_request_key(descriptor, FS_KEY_DESC_PREFIX,
-		FS_KEY_DESC_PREFIX_SIZE);
-	if (IS_ERR(keyring_key)) {
-		pr_err("hwdps request_key failed!\n");
-		return PTR_ERR(keyring_key);
-	}
-
-	down_read(&keyring_key->sem);
-	if (keyring_key->type != &key_type_logon) {
-		pr_err("hwdps key type must be logon\n");
-		res = -ENOKEY;
-		goto out;
-	}
-	ukp = user_key_payload_locked(keyring_key);
-	if (!ukp) {
-		/* key was revoked before we acquired its semaphore */
-		pr_warn_once("hwdps key was revoked\n");
-		res = -EKEYREVOKED;
-		goto out;
-	}
-	if (ukp->datalen != sizeof(struct fscrypt_key)) {
-		pr_warn_once("hwdps fscrypt key size err %d", ukp->datalen);
-		res = -EINVAL;
-		goto out;
-	}
-	primary_key = (struct fscrypt_key *)ukp->data;
-	if (primary_key->size != FS_AES_256_GCM_KEY_SIZE) {
-		pr_warn_once("hwdps key size err %d", primary_key->size);
-		res = -ENOKEY;
-		goto out;
-	}
-	res = (int) (*(primary_key->raw + FS_KEY_INDEX_OFFSET) & 0xff);
-
-out:
-	up_read(&keyring_key->sem);
-	key_put(keyring_key);
-	return res;
-}
-#endif
-
 /*
  * Description: Get the context of a file inode whether support the hwdps.
  * Input: inode: the inode requesting fek struct
@@ -850,17 +800,6 @@ static int hwdps_do_set_cipher(struct inode *inode, const char *cipher_str,
 	}
 	/* cached kmem may have dirty data */
 	ci->ci_hw_enc_flag = (u8)(HWDPS_XATTR_ENABLE_FLAG_NEW);
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2
-	if (inode->i_crypt_info && (inode->i_crypt_info->ci_key_index >= 0) &&
-	    	(inode->i_crypt_info->ci_key_index <= MAX_HISI_KEY_INDEX))
-		ci->ci_key_index = inode->i_crypt_info->ci_key_index;
-	else
-		ci->ci_key_index = hwdps_get_key_index(ci->ci_master_key);
-	if ((ci->ci_key_index < 0) || (ci->ci_key_index > MAX_HISI_KEY_INDEX)) {
-		pr_err("ci_key_index: %d\n", ci->ci_key_index);
-		return -EINVAL;
-	}
-#endif
 	return 0;
 }
 

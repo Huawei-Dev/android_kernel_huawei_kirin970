@@ -343,9 +343,6 @@ static struct bio *__bio_alloc(struct f2fs_sb_info *sbi, block_t blk_addr,
 	bio->ci_key = NULL;
 	bio->ci_key_len = 0;
 	bio->ci_key_index = -1;
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	bio->ci_metadata = NULL;
-#endif
 #endif
 	return bio;
 }
@@ -572,9 +569,6 @@ int f2fs_submit_page_bio(struct f2fs_io_info *fio)
 		bio->ci_key = fio->ci_key;
 		bio->ci_key_len = fio->ci_key_len;
 		bio->ci_key_index = fio->ci_key_index;
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		bio->ci_metadata = fio->metadata;
-#endif
 		bio->index = page->index;
 	}
 #endif
@@ -650,10 +644,6 @@ next:
 		   io->last_index_in_bio != bio_page->index - 1)))
 		__submit_merged_bio(io);
 #endif
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	else if ((io->bio) && (io->bio->ci_metadata != fio->metadata))
-		__submit_merged_bio(io);
-#endif
 #ifdef CONFIG_F2FS_TURBO_ZONE_V2
 	else if ((io->bio) && (io->bio->flags != fio->flags))
 		__submit_merged_bio(io);
@@ -691,9 +681,6 @@ alloc_new:
 		io->bio->ci_key = fio->ci_key;
 		io->bio->ci_key_len = fio->ci_key_len;
 		io->bio->ci_key_index = fio->ci_key_index;
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		io->bio->ci_metadata = fio->metadata;
-#endif
 		if (fio->ci_key)
 			io->bio->index = bio_page->index;
 #endif
@@ -704,9 +691,6 @@ alloc_new:
 #ifdef CONFIG_F2FS_FS_ENCRYPTION
 	f2fs_bug_on(sbi, (io->bio->ci_key != fio->ci_key) ||
 			(io->bio->ci_key_len != fio->ci_key_len));
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	f2fs_bug_on(sbi, io->bio->ci_metadata != fio->metadata);
-#endif
 #endif
 
 	if (bio_add_page(io->bio, bio_page, PAGE_SIZE, 0) < PAGE_SIZE) {
@@ -785,9 +769,6 @@ static struct bio *f2fs_grab_read_bio(struct inode *inode, block_t blkaddr,
 		bio->ci_key = fscrypt_ci_key(inode);
 		bio->ci_key_len = fscrypt_ci_key_len(inode);
 		bio->ci_key_index = fscrypt_ci_key_index(inode);
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		bio->ci_metadata = fscrypt_ci_metadata(inode);
-#endif
 		bio->index = page->index;
 	}
 #endif
@@ -2009,9 +1990,6 @@ retry_encrypt:
 		fio->ci_key = fscrypt_ci_key(inode);
 		fio->ci_key_len = fscrypt_ci_key_len(inode);
 		fio->ci_key_index = fscrypt_ci_key_index(inode);
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		fio->metadata = fscrypt_ci_metadata(inode);
-#endif
 #endif
 	}
 	return 0;

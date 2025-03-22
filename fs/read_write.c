@@ -444,11 +444,6 @@ ssize_t vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos)
 
 	ret = rw_verify_area(READ, file, pos, count);
 	if (!ret) {
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		ret = rw_begin(file);
-		if (ret)
-			return ret;
-#endif
 		if (count > MAX_RW_COUNT)
 			count =  MAX_RW_COUNT;
 		ret = __vfs_read(file, buf, count, pos);
@@ -457,9 +452,6 @@ ssize_t vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos)
 			add_rchar(current, ret);
 		}
 		inc_syscr(current);
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		rw_finish(READ, file);
-#endif
 	}
 
 	return ret;
@@ -550,11 +542,6 @@ ssize_t vfs_write(struct file *file, const char __user *buf, size_t count, loff_
 
 	ret = rw_verify_area(WRITE, file, pos, count);
 	if (!ret) {
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		ret = rw_begin(file);
-		if (ret)
-			return ret;
-#endif
 		if (count > MAX_RW_COUNT)
 			count =  MAX_RW_COUNT;
 		file_start_write(file);
@@ -565,9 +552,6 @@ ssize_t vfs_write(struct file *file, const char __user *buf, size_t count, loff_
 		}
 		inc_syscw(current);
 		file_end_write(file);
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		rw_finish(WRITE, file);
-#endif
 	}
 
 	return ret;
@@ -934,11 +918,6 @@ static ssize_t do_iter_read(struct file *file, struct iov_iter *iter,
 	ret = rw_verify_area(READ, file, pos, tot_len);
 	if (ret < 0)
 		return ret;
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	ret = rw_begin(file);
-	if (ret)
-		return ret;
-#endif
 
 	if (file->f_op->read_iter)
 		ret = do_iter_readv_writev(file, iter, pos, READ, flags);
@@ -948,9 +927,6 @@ out:
 	if (ret >= 0)
 		fsnotify_access(file);
 
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	rw_finish(READ, file);
-#endif
 	return ret;
 }
 
@@ -980,11 +956,6 @@ static ssize_t do_iter_write(struct file *file, struct iov_iter *iter,
 	ret = rw_verify_area(WRITE, file, pos, tot_len);
 	if (ret < 0)
 		return ret;
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	ret = rw_begin(file);
-	if (ret)
-		return ret;
-#endif
 
 	if (file->f_op->write_iter)
 		ret = do_iter_readv_writev(file, iter, pos, WRITE, flags);
@@ -993,9 +964,6 @@ static ssize_t do_iter_write(struct file *file, struct iov_iter *iter,
 	if (ret > 0)
 		fsnotify_modify(file);
 
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	rw_finish(WRITE, file);
-#endif
 	return ret;
 }
 
@@ -1450,26 +1418,15 @@ static ssize_t do_sendfile(int out_fd, int in_fd, loff_t *ppos,
 		goto fput_in;
 	if (count > MAX_RW_COUNT)
 		count =  MAX_RW_COUNT;
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	retval = rw_begin(in.file);
-	if (retval < 0)
-		goto fput_in;
-#endif
 	/*
 	 * Get output file, and verify that it is ok..
 	 */
 	retval = -EBADF;
 	out = fdget(out_fd);
 	if (!out.file) {
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		rw_finish(READ, in.file);
-#endif
 		goto fput_in;
 	}
 	if (!(out.file->f_mode & FMODE_WRITE)) {
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-		rw_finish(READ, in.file);
-#endif
 		goto fput_out;
 	}
 	retval = -EINVAL;
@@ -1479,11 +1436,6 @@ static ssize_t do_sendfile(int out_fd, int in_fd, loff_t *ppos,
 	retval = rw_verify_area(WRITE, out.file, &out_pos, count);
 	if (retval < 0)
 		goto fput_out;
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	retval = rw_begin(out.file);
-	if (retval)
-		goto fput_out;
-#endif
 
 	if (!max)
 		max = min(in_inode->i_sb->s_maxbytes, out_inode->i_sb->s_maxbytes);
@@ -1491,10 +1443,6 @@ static ssize_t do_sendfile(int out_fd, int in_fd, loff_t *ppos,
 	if (unlikely(pos + count > max)) {
 		retval = -EOVERFLOW;
 		if (pos >= max) {
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-			rw_finish(READ, in.file);
-			rw_finish(WRITE, out.file);
-#endif
 			goto fput_out;
 		}
 		count = max - pos;
@@ -1531,11 +1479,6 @@ static ssize_t do_sendfile(int out_fd, int in_fd, loff_t *ppos,
 	inc_syscw(current);
 	if (pos > max)
 		retval = -EOVERFLOW;
-
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	rw_finish(READ, in.file);
-	rw_finish(WRITE, out.file);
-#endif
 
 fput_out:
 	fdput(out);
@@ -1662,15 +1605,6 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
 	if (len == 0)
 		return 0;
 
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	ret = rw_begin(file_in);
-	if (ret)
-		return ret;
-	ret = rw_begin(file_out);
-	if (ret)
-		return ret;
-#endif
-
 	file_start_write(file_out);
 
 	/*
@@ -1708,11 +1642,6 @@ done:
 	inc_syscw(current);
 
 	file_end_write(file_out);
-
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	rw_finish(READ, file_in);
-	rw_finish(WRITE, file_out);
-#endif
 
 	return ret;
 }

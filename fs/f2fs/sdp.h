@@ -56,12 +56,6 @@ struct fscrypt_dps_policy {
 struct f2fs_sdp_fscrypt_operations {
 	int (*get_sdp_context)(struct inode *, void *, size_t, void *);
 	int (*set_sdp_context)(struct inode *, const void *, size_t, void *);
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	int (*get_sdp_metadata_context)(struct inode *, void *, size_t,
-					void *);
-	int (*set_sdp_metadata_context)(struct inode *, const void *, size_t,
-					void *);
-#endif
 	int (*update_sdp_context)(struct inode *, const void *, size_t, void *);
 	int (*update_context)(struct inode *, const void *, size_t, void *);
 	int (*get_sdp_encrypt_flags)(struct inode *, void *, u32 *);
