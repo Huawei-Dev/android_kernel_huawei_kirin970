@@ -157,11 +157,6 @@ enum {
 #define clk_log_dbg(fmt, ...)
 #endif
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-char *hs_base_addr_transfer(unsigned int long base_addr);
-#endif
-
-
 #ifdef CONFIG_HISI_CLK
 int is_fpga(void);
 #endif

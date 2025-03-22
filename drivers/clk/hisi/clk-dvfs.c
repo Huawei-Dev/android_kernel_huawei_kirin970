@@ -874,22 +874,6 @@ static void peri_dvfs_clk_unprepare(struct clk_hw *hw)
 #endif
 }
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-static int peri_dvfs_dump_clk(struct clk_hw *hw, char *buf, int buf_length, struct seq_file *s)
-{
-	struct peri_dvfs_clk *dfclk = container_of(hw, struct peri_dvfs_clk, hw);
-	unsigned int index;
-
-	if ((buf == NULL) && (s != NULL)) {
-		seq_printf(s, "    %-15s    %-15s", "NONE", "dvfs-clk");
-		for (index = 0; index < DVFS_MAX_FREQ_NUM; index++)
-			seq_printf(s, "    %11lu", dfclk->sensitive_freq[index] * FREQ_CONVERSION);
-	}
-
-	return 0;
-}
-#endif
-
 static const struct clk_ops peri_dvfs_clk_ops = {
 	.recalc_rate = peri_dvfs_clk_recalc_rate,
 	.set_rate = peri_dvfs_clk_set_rate,
@@ -899,9 +883,6 @@ static const struct clk_ops peri_dvfs_clk_ops = {
 	.unprepare = peri_dvfs_clk_unprepare,
 	.enable = peri_dvfs_clk_enable,
 	.disable = peri_dvfs_clk_disable,
-#ifdef CONFIG_HISI_CLK_DEBUG
-	.dump_reg = peri_dvfs_dump_clk,
-#endif
 };
 
 static int __hisi_peri_dvfs_clk_register(struct device_node *np, struct peri_dvfs_clk *devfreq_clk,

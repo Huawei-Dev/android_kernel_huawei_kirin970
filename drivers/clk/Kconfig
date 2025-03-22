@@ -6,11 +6,6 @@ config CLKDEV_LOOKUP
 config HAVE_CLK_PREPARE
 	bool
 
-config HISI_CLK_DEBUG
-	bool "Clock Debug driver for ARM Reference designs"
-	---help---
-	  Clock Debug driver for ARM Reference designs.
-
 config HISI_CLK_TRACE
     bool "Clock Debug driver for CLK TRACE"
     default n

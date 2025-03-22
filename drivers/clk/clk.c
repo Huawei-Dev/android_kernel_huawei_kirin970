@@ -26,12 +26,6 @@
 
 #include "clk.h"
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-#include <linux/uaccess.h>
-#include <linux/io.h>
-#include "hisi/debug/clk-debug.h"
-#endif
-
 static DEFINE_SPINLOCK(enable_lock);
 static DEFINE_MUTEX(prepare_lock);
 
@@ -47,11 +41,6 @@ static LIST_HEAD(clk_notifier_list);
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/clk.h>
-
-#ifdef CONFIG_HISI_CLK_DEBUG
-LIST_HEAD(clocks);
-static DEFINE_MUTEX(clock_list_lock);
-#endif
 
 /***           locking             ***/
 static void clk_prepare_lock(void)
@@ -2149,14 +2138,6 @@ static struct hlist_head *orphan_list[] = {
 	NULL,
 };
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-struct hlist_head *clk_all_lists_debug[] = {
-	&clk_root_list,
-	&clk_orphan_list,
-	NULL,
-};
-#endif
-
 static void clk_summary_show_one(struct seq_file *s, struct clk_core *c,
 				 int level)
 {
@@ -2325,11 +2306,7 @@ static int clk_debug_create_one(struct clk_core *core, struct dentry *pdentry)
 
 	core->dentry = d;
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-	d = debugfs_create_clkfs(core);
-#else
         d = debugfs_create_ulong("clk_rate", 0444, core->dentry, &core->rate);
-#endif
 	if (!d)
 		goto err_out;
 
@@ -2478,10 +2455,6 @@ static int __init clk_debug_init(void)
 				&orphan_list, &clk_dump_fops);
 	if (!d)
 		return -ENOMEM;
-
-#ifdef CONFIG_HISI_CLK_DEBUG
-	plat_clk_debug_init();
-#endif
 
 	mutex_lock(&clk_debug_lock);
 	hlist_for_each_entry(core, &clk_debug_list, debug_node)
@@ -2688,9 +2661,6 @@ static int __clk_core_init(struct clk_core *core)
 		core->ops->init(core->hw);
 
 	kref_init(&core->ref);
-#ifdef CONFIG_HISI_CLK_DEBUG
-	clk_list_add(core);
-#endif
 out:
 	clk_prepare_unlock();
 

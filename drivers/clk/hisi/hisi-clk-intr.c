@@ -66,9 +66,6 @@ static irqreturn_t hisi_pll_unlock_interrupt(int irq, void *p)
 	disable_irq_nosync(hisi_pll->pll_irq);
 
 	/* user verison use DMD; debug version panic directly */
-#ifdef CONFIG_HISI_CLK_DEBUG
-	rdr_syserr_process_for_ap(MODID_AP_S_PANIC_PLL_UNLOCK, 0ULL, 0ULL);
-#endif
 	return IRQ_HANDLED;
 }
 

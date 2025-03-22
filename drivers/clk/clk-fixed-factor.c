@@ -17,11 +17,6 @@
 #include <linux/clkdev.h>
 #endif
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-#include "hisi/debug/clk-debug.h"
-#include <securec.h>
-#endif
-
 #ifdef CONFIG_HISI_CLK
 extern int is_fpga(void);
 #endif
@@ -73,31 +68,10 @@ static int clk_factor_set_rate(struct clk_hw *hw, unsigned long rate,
 	return 0;
 }
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-static int hi3xxx_dumpfixed_factor(struct clk_hw *hw, char* buf, int buf_length, struct seq_file *s)
-{
-	int ret = 0;
-	struct clk_fixed_factor *fix = to_clk_fixed_factor(hw);
-	if(buf && !s && (buf_length > 0)) {
-		ret = snprintf_s(buf, buf_length, buf_length - 1, \
-			"[%s] : fixed div value = %d\n", __clk_get_name(hw->clk), fix->div);
-		if(ret == -1)
-			pr_err("%s snprintf_s failed!\n", __func__);
-	}
-	if(!buf && s) {
-		seq_printf(s, "    %-15s    %-15s    DIV-%d", "NONE", "fixed-factor", fix->div);
-	}
-	return 0;
-}
-#endif
-
 const struct clk_ops clk_fixed_factor_ops = {
 	.round_rate = clk_factor_round_rate,
 	.set_rate = clk_factor_set_rate,
 	.recalc_rate = clk_factor_recalc_rate,
-#ifdef CONFIG_HISI_CLK_DEBUG
-	.dump_reg = hi3xxx_dumpfixed_factor,
-#endif
 };
 EXPORT_SYMBOL_GPL(clk_fixed_factor_ops);
 

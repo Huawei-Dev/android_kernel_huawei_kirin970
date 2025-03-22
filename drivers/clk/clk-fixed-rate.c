@@ -43,29 +43,9 @@ static unsigned long clk_fixed_rate_recalc_accuracy(struct clk_hw *hw,
 	return to_clk_fixed_rate(hw)->fixed_accuracy;
 }
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-static int hi3xxx_dumpfixed_rate(struct clk_hw *hw, char* buf, int buf_length, struct seq_file *s)
-{
-	int ret = 0;
-	if(buf && !s && (buf_length > 0)) {
-		ret = snprintf_s(buf, buf_length, buf_length - 1, "[%s] : fixed rate = %lu\n", \
-			__clk_get_name(hw->clk), to_clk_fixed_rate(hw)->fixed_rate);
-		if(ret == -1)
-			pr_err("%s snprintf_s failed!\n", __func__);
-	}
-	if(!buf && s) {
-		seq_printf(s, "    %-15s    %-15s", "NONE", "fixed-rate");
-	}
-	return 0;
-}
-#endif
-
 const struct clk_ops clk_fixed_rate_ops = {
 	.recalc_rate = clk_fixed_rate_recalc_rate,
 	.recalc_accuracy = clk_fixed_rate_recalc_accuracy,
-#ifdef CONFIG_HISI_CLK_DEBUG
-	.dump_reg = hi3xxx_dumpfixed_rate,
-#endif
 };
 EXPORT_SYMBOL_GPL(clk_fixed_rate_ops);
 

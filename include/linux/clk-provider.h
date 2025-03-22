@@ -37,10 +37,6 @@
 /* parents need enable during gate/ungate, set rate and re-parent */
 #define CLK_OPS_PARENT_ENABLE	BIT(12)
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-#define DUMP_CLKBUFF_MAX_SIZE 1024
-#endif
-
 struct clk;
 struct clk_hw;
 struct clk_core;
@@ -75,9 +71,6 @@ struct clk_core {
 	struct hlist_node	child_node;
 	struct hlist_head	clks;
 	unsigned int		notifier_count;
-#ifdef CONFIG_HISI_CLK_DEBUG
-	struct list_head    node;
-#endif
 #ifdef CONFIG_DEBUG_FS
 	struct dentry		*dentry;
 	struct hlist_node	debug_node;
@@ -250,12 +243,6 @@ struct clk_ops {
 	int		(*enable)(struct clk_hw *hw);
 	void		(*disable)(struct clk_hw *hw);
 	int		(*is_enabled)(struct clk_hw *hw);
-#ifdef CONFIG_HISI_CLK_DEBUG
-	int		(*check_selreg)(struct clk_hw *hw);
-	int		(*check_divreg)(struct clk_hw *hw);
-	void __iomem *(*get_reg)(struct clk_hw *hw);
-	int		(*dump_reg)(struct clk_hw *hw, char* buf, int buf_length, struct seq_file *s);
-#endif
 #ifdef CONFIG_HISI_CLK
 	int     (*get_source)(struct clk_hw *hw);
 #endif

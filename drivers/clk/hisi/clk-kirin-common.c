@@ -36,9 +36,6 @@
 #include <securec.h>
 
 #include "hisi-clk-mailbox.h"
-#ifdef CONFIG_HISI_CLK_DEBUG
-#include "debug/clk-debug.h"
-#endif
 
 #define DDR_FREQ_MASK			0x00FF0000
 
@@ -229,26 +226,11 @@ static void hi3xxx_multicore_clkgate_unprepare(struct clk_hw *hw)
 {
 }
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-static int hi3xxx_dump_pmuclk(struct clk_hw *hw, char *buf, int buf_length, struct seq_file *s)
-{
-	struct hi3xxx_periclk *pclk = container_of(hw, struct hi3xxx_periclk, hw);
-
-	if ((buf == NULL) && (s != NULL))
-		seq_printf(s, "    %-15s    %-15s    0x%03X", "PMUCTRL",
-			"pmu-clk", pclk->pmu_clk_enable);
-	return 0;
-}
-#endif
-
 static const struct clk_ops hi3xxx_pmu_clkgate_ops = {
 	.prepare = hi3xxx_multicore_clkgate_prepare,
 	.unprepare = hi3xxx_multicore_clkgate_unprepare,
 	.enable = hi3xxx_multicore_clkgate_enable,
 	.disable = hi3xxx_multicore_clkgate_disable,
-#ifdef CONFIG_HISI_CLK_DEBUG
-	.dump_reg = hi3xxx_dump_pmuclk,
-#endif
 };
 
 static void __hi3xxx_abb_clk_hwunlock(struct hi3xxx_periclk *pclk)
@@ -329,40 +311,9 @@ static void hi3xxx_multicore_abb_clkgate_unprepare(struct clk_hw *hw)
 	hwspin_unlock(pclk->clk_hwlock);
 }
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-static int hi3xxx_dump_abbclk(struct clk_hw *hw, char *buf, int buf_length, struct seq_file *s)
-{
-	struct hi3xxx_periclk *pclk = container_of(hw, struct hi3xxx_periclk, hw);
-	u32 val;
-	int s_ret, ret;
-
-	ret = __hi3xxx_abb_clk_hwlock(pclk);
-	if (ret)
-		return ret;
-	if ((buf != NULL) && (s == NULL) && (buf_length > 0)) {
-		val = (*pclk->clk_pmic_read)(pclk->pmu_clk_enable);
-		s_ret = snprintf_s(buf, buf_length, buf_length - 1,
-			"[%s] : regAddress = 0x%x, regval = 0x%x\n",
-			__clk_get_name(hw->clk), pclk->pmu_clk_enable, val);
-		if (s_ret == -1)
-			pr_err("%s snprintf_s failed!\n", __func__);
-	}
-	if ((buf == NULL) && (s != NULL))
-		seq_printf(s, "    %-15s    %-15s    0x%03X", "PMUCTRL",
-			"abb-clk", pclk->pmu_clk_enable);
-
-	__hi3xxx_abb_clk_hwunlock(pclk);
-
-	return 0;
-}
-#endif
-
 static const struct clk_ops hi3xxx_abb_clkgate_ops = {
 	.prepare = hi3xxx_multicore_abb_clkgate_prepare,
 	.unprepare = hi3xxx_multicore_abb_clkgate_unprepare,
-#ifdef CONFIG_HISI_CLK_DEBUG
-	.dump_reg = hi3xxx_dump_abbclk,
-#endif
 };
 
 static int __hi3xxx_pmu_clkgate_clk_register(struct device_node *np,
@@ -830,78 +781,10 @@ static int hi3xxx_clkdiv_set_rate(struct clk_hw *hw, unsigned long rate,
 	return 0;
 }
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-static int hi3xxx_divreg_check(struct clk_hw *hw)
-{
-	unsigned long rate;
-	struct clk *clk = hw->clk;
-	struct clk *pclk = clk_get_parent(clk);
-
-	rate = hi3xxx_clkdiv_recalc_rate(hw, clk_get_rate(pclk));
-	if (rate == clk_get_rate(clk))
-		return 1;
-	else
-		return 0;
-}
-
-static void __iomem *hi3xxx_clkdiv_get_reg(struct clk_hw *hw)
-{
-	struct hi3xxx_divclk *dclk = NULL;
-	void __iomem *ret = NULL;
-	u32 val;
-
-	dclk = container_of(hw, struct hi3xxx_divclk, hw);
-
-	if (dclk->reg) {
-		ret = dclk->reg;
-		val = readl(ret);
-		val &= dclk->mbits;
-		pr_info("\n[%s]: reg = 0x%pK, bits = 0x%x, regval = 0x%x\n",
-			__clk_get_name(hw->clk), ret, dclk->mbits, val);
-	}
-
-	return ret;
-}
-
-static int hi3xxx_dumpdiv(struct clk_hw *hw, char *buf, int buf_length, struct seq_file *s)
-{
-	struct hi3xxx_divclk *dclk = container_of(hw, struct hi3xxx_divclk, hw);
-	void __iomem *ret = NULL;
-	unsigned long int clk_bask_addr = 0;
-	unsigned int clk_bit = 0;
-	u32 val;
-	int s_ret;
-
-	if ((dclk->reg != NULL) && (buf != NULL) && (s == NULL) && (buf_length > 0)) {
-		ret = dclk->reg;
-		val = readl(ret);
-		s_ret = snprintf_s(buf, buf_length, buf_length - 1,
-			"[%s] : regAddress = 0x%pK, regval = 0x%x\n",
-			__clk_get_name(hw->clk), dclk->reg, val);
-		if (s_ret == -1)
-			pr_err("%s snprintf_s failed!\n", __func__);
-	}
-	if ((dclk->reg != NULL) && (buf == NULL) && (s != NULL)) {
-		clk_bask_addr = (uintptr_t)dclk->reg & CLK_ADDR_HIGH_MASK;
-		clk_bit = (uintptr_t)dclk->reg & CLK_ADDR_LOW_MASK;
-		seq_printf(s, "    %-15s    %-15s    0x%03X    bit-%u:%u",
-			hs_base_addr_transfer(clk_bask_addr), "div", clk_bit,
-			dclk->shift, (dclk->shift + dclk->width - 1));
-	}
-
-	return 0;
-}
-#endif
-
 static const struct clk_ops hi3xxx_clkdiv_ops = {
 	.recalc_rate = hi3xxx_clkdiv_recalc_rate,
 	.round_rate = hi3xxx_clkdiv_round_rate,
 	.set_rate = hi3xxx_clkdiv_set_rate,
-#ifdef CONFIG_HISI_CLK_DEBUG
-	.check_divreg = hi3xxx_divreg_check,
-	.get_reg = hi3xxx_clkdiv_get_reg,
-	.dump_reg = hi3xxx_dumpdiv,
-#endif
 };
 
 static int __hi3xxx_clkdiv_clk_register(struct device_node *np, struct hi3xxx_divclk *dclk,
@@ -1310,24 +1193,11 @@ static int hi3xxx_xfreq_clk_set_rate(struct clk_hw *hw, unsigned long rate, unsi
 	return ret;
 }
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-static int hi3xxx_dump_xfreq_clk(struct clk_hw *hw, char *buf, int buf_length, struct seq_file *s)
-{
-	if ((buf == NULL) && (s != NULL))
-		seq_printf(s, "    %-15s    %-15s", "NONE", "ddr-cpu-clk");
-
-	return 0;
-}
-#endif
-
 static const struct clk_ops hi3xxx_xfreq_clk_ops = {
 	.recalc_rate = hi3xxx_xfreq_clk_recalc_rate,
 	.determine_rate = hi3xxx_xfreq_clk_determine_rate,
 	.round_rate = hi3xxx_xfreq_clk_round_rate,
 	.set_rate = hi3xxx_xfreq_clk_set_rate,
-#ifdef CONFIG_HISI_CLK_DEBUG
-	.dump_reg = hi3xxx_dump_xfreq_clk,
-#endif
 };
 
 static int __hi3xxx_xfreq_clk_register(struct device_node *np,
@@ -1629,22 +1499,9 @@ static void hi3xxx_mclk_unprepare(struct clk_hw *hw)
 #endif
 }
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-static int hi3xxx_dump_mclk(struct clk_hw *hw, char *buf, int buf_length, struct seq_file *s)
-{
-	if ((buf == NULL) && (s != NULL))
-		seq_printf(s, "    %-15s    %-15s", "NONE", "ipc-clk");
-
-	return 0;
-}
-#endif
-
 static const struct clk_ops hi3xxx_mclk_ops = {
 	.prepare = hi3xxx_mclk_prepare,
 	.unprepare = hi3xxx_mclk_unprepare,
-#ifdef CONFIG_HISI_CLK_DEBUG
-	.dump_reg = hi3xxx_dump_mclk,
-#endif
 };
 
 static int __hi3xxx_mclk_setup(struct device_node *np, struct hi3xxx_mclk *mclk)
@@ -1817,41 +1674,6 @@ void __iomem __init *hs_clk_base(u32 ctrl)
 
 	return ret;
 }
-
-#ifdef CONFIG_HISI_CLK_DEBUG
-char *hs_base_addr_transfer(unsigned long int base_addr)
-{
-	if (!base_addr) {
-		pr_err("[%s] base_addr doesn't exist!\n", __func__);
-		return NULL;
-	}
-
-	if (base_addr == (uintptr_t)hs_clk.crgctrl)
-		return "PERICRG";
-	else if (base_addr == (uintptr_t)hs_clk.sctrl)
-		return "SCTRL";
-	else if (base_addr == (uintptr_t)hs_clk.pmctrl)
-		return "PMCTRL";
-	else if (base_addr == (uintptr_t)hs_clk.pctrl)
-		return "PCTRL";
-	else if (base_addr == (uintptr_t)hs_clk.media1crg)
-		return "MEDIA1CRG";
-	else if (base_addr == (uintptr_t)hs_clk.media2crg)
-		return "MEDIA2CRG";
-	else if (base_addr == (uintptr_t)hs_clk.mmc1crg)
-		return "MMC1CRG";
-	else if (base_addr == (uintptr_t)hs_clk.mmc0crg)
-		return "MMC0CRG";
-	else if (base_addr == (uintptr_t)hs_clk.hsdtcrg)
-		return "HSDCRG";
-	else if (base_addr == (uintptr_t)hs_clk.hsdt1crg)
-		return "HSD1CRG";
-	else if (base_addr == (uintptr_t)hs_clk.iomcucrg)
-		return "IOMCUCRG";
-	else
-		return "NONE";
-}
-#endif
 
 static void __iomem *__hs_clk_get_base(void __iomem **base_addr, struct device_node *parent)
 {

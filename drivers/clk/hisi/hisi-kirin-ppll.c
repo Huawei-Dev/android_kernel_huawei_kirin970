@@ -29,10 +29,6 @@
 #include <linux/clk.h>
 #include <securec.h>
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-#include "debug/clk-debug.h"
-#endif
-
 #define PPLL_TYPE_ID 1
 
 static int kirin_ppll_enable_open(struct hi3xxx_ppll_clk *ppll_clk, int ppll)
@@ -258,31 +254,9 @@ static void kirin_multicore_ppll_disable(struct clk_hw *hw)
 		kirin_ppll_disable(ppll_clk, ppll_clk->dis_cmd[1]);
 }
 
-#ifdef CONFIG_HISI_CLK_DEBUG
-static int kirin_pll_dumpgate(struct clk_hw *hw, char *buf, int buf_length, struct seq_file *s)
-{
-	struct hi3xxx_ppll_clk *ppll_clk = NULL;
-	unsigned long  int clk_base_addr = 0;
-
-	ppll_clk = container_of(hw, struct hi3xxx_ppll_clk, hw);
-	if (buf == NULL && s != NULL) {
-		clk_base_addr = (uintptr_t)ppll_clk->addr & CLK_ADDR_HIGH_MASK;
-		seq_printf(s, "    %-15s    %-15s    en[0x%03X-%u]    gt[0x%03X-%u]    bp[0x%03X-%u]    ctrl0[0x%03X]",
-			hs_base_addr_transfer(clk_base_addr), "pll", ppll_clk->en_ctrl[0],
-			ppll_clk->en_ctrl[1], ppll_clk->gt_ctrl[0], ppll_clk->gt_ctrl[1],
-			ppll_clk->bypass_ctrl[0], ppll_clk->bypass_ctrl[1], ppll_clk->pll_ctrl0);
-	}
-
-	return 0;
-}
-#endif
-
 static const struct clk_ops kirin_ppll_ops = {
 	.enable 	= kirin_multicore_ppll_enable,
 	.disable	= kirin_multicore_ppll_disable,
-#ifdef CONFIG_HISI_CLK_DEBUG
-	.dump_reg = kirin_pll_dumpgate,
-#endif
 };
 
 static int __kirin_ppll_clk_register(struct device_node *np, struct hi3xxx_ppll_clk *ppll_clk,
