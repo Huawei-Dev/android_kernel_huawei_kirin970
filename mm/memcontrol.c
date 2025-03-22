@@ -78,11 +78,6 @@
 
 #include <trace/events/vmscan.h>
 
-#ifdef CONFIG_HYPERHOLD
-#include <linux/hyperhold_inf.h>
-#include <linux/memcg_policy.h>
-#endif
-
 struct cgroup_subsys memory_cgrp_subsys __read_mostly;
 EXPORT_SYMBOL(memory_cgrp_subsys);
 
@@ -90,20 +85,11 @@ struct mem_cgroup *root_mem_cgroup __read_mostly;
 
 #define MEM_CGROUP_RECLAIM_RETRIES	5
 
-#ifdef CONFIG_HYPERHOLD
-/* Socket memory accounting disabled? */
-static bool cgroup_memory_nosocket = true;
-
-/* Kernel memory accounting disabled? */
-static bool cgroup_memory_nokmem = true;
-#else
 /* Socket memory accounting disabled? */
 static bool cgroup_memory_nosocket;
 
 /* Kernel memory accounting disabled? */
 static bool cgroup_memory_nokmem;
-#endif
-
 
 /* Whether the swap controller is active */
 #ifdef CONFIG_MEMCG_SWAP
@@ -463,15 +449,7 @@ static void mem_cgroup_remove_exceeded(struct mem_cgroup_per_node *mz,
 
 static unsigned long soft_limit_excess(struct mem_cgroup *memcg)
 {
-#ifdef CONFIG_HYPERHOLD_FILE_LRU
-	struct mem_cgroup_per_node *mz = mem_cgroup_nodeinfo(memcg, 0);
-	struct lruvec *lruvec = &mz->lruvec;
-	unsigned long nr_pages = lruvec_lru_size(lruvec, LRU_ACTIVE_ANON,
-		MAX_NR_ZONES) + lruvec_lru_size(lruvec, LRU_INACTIVE_ANON,
-		MAX_NR_ZONES);
-#else
 	unsigned long nr_pages = page_counter_read(&memcg->memory);
-#endif
 	unsigned long soft_limit = READ_ONCE(memcg->soft_limit);
 	unsigned long excess = 0;
 
@@ -1013,13 +991,6 @@ struct lruvec *mem_cgroup_page_lruvec(struct page *page, struct pglist_data *pgd
 		lruvec = &pgdat->lruvec;
 		goto out;
 	}
-#ifdef CONFIG_HYPERHOLD_FILE_LRU
-	if (is_file_lru(page_lru(page)) &&
-		!is_prot_page(page)) {
-		lruvec = &pgdat->lruvec;
-		goto out;
-	}
-#endif
 	memcg = page->mem_cgroup;
 	/*
 	 * Swapcache readahead pages are added to the LRU - and
@@ -1061,10 +1032,6 @@ void mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
 
 	if (mem_cgroup_disabled())
 		return;
-#ifdef CONFIG_HYPERHOLD_FILE_LRU
-	if (is_node_lruvec(lruvec))
-		return;
-#endif
 
 	mz = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
 	lru_size = &mz->lru_zone_size[zid][lru];
@@ -2663,14 +2630,8 @@ unsigned long mem_cgroup_soft_limit_reclaim(pg_data_t *pgdat, int order,
 	unsigned long excess;
 	unsigned long nr_scanned;
 
-#ifdef CONFIG_HYPERHOLD
-#define SFT_LIMIT_COSTLY_ORDER 8
-	if (order > SFT_LIMIT_COSTLY_ORDER)
-		return 0;
-#else
 	if (order > 0)
 		return 0;
-#endif
 
 	mctz = soft_limit_tree_node(pgdat->node_id);
 
@@ -3354,23 +3315,13 @@ static int memcg_stat_show(struct seq_file *m, void *v)
 
 		for_each_online_pgdat(pgdat) {
 			mz = mem_cgroup_nodeinfo(memcg, pgdat->node_id);
-#ifdef CONFIG_HYPERHOLD_FILE_LRU
-			anon_cost += lruvec_page_state(&mz->lruvec,
-						      WORKINGSET_ANON_COST);
-			file_cost += lruvec_page_state(&mz->lruvec,
-						      WORKINGSET_FILE_COST);
-#else
 			anon_cost += mz->lruvec.anon_cost;
 			file_cost += mz->lruvec.file_cost;
-#endif
 		}
 		seq_printf(m, "anon_cost %lu\n", anon_cost);
 		seq_printf(m, "file_cost %lu\n", file_cost);
 #endif
 	}
-#endif
-#ifdef CONFIG_HYPERHOLD_DEBUG
-	memcg_eswap_info_show(m);
 #endif
 	return 0;
 }
@@ -4242,10 +4193,7 @@ static void mem_cgroup_id_put_many(struct mem_cgroup *memcg, unsigned int n)
 {
 	VM_BUG_ON(atomic_read(&memcg->id.ref) < n);
 	if (atomic_sub_and_test(n, &memcg->id.ref)) {
-#ifndef CONFIG_HYPERHOLD
 		mem_cgroup_id_remove(memcg);
-#endif
-
 		/* Memcg ID pins CSS */
 		css_put(&memcg->css);
 	}
@@ -4370,16 +4318,6 @@ static struct mem_cgroup *mem_cgroup_alloc(void)
 	spin_lock_init(&memcg->move_lock);
 	vmpressure_init(&memcg->vmpressure);
 	INIT_LIST_HEAD(&memcg->event_list);
-#ifdef CONFIG_HYPERHOLD
-	if (unlikely(!score_head_inited)) {
-		INIT_LIST_HEAD(&score_head);
-		score_head_inited = true;
-	}
-	INIT_LIST_HEAD(&memcg->score_node);
-#ifdef CONFIG_HP_CORE
-	spin_lock_init(&memcg->zram_init_lock);
-#endif
-#endif
 	spin_lock_init(&memcg->event_list_lock);
 	memcg->socket_pressure = jiffies;
 #ifndef CONFIG_SLOB
@@ -4406,15 +4344,6 @@ mem_cgroup_css_alloc(struct cgroup_subsys_state *parent_css)
 	memcg = mem_cgroup_alloc();
 	if (!memcg)
 		return ERR_PTR(error);
-#ifdef CONFIG_HYPERHOLD
-	atomic64_set(&memcg->memcg_reclaimed.app_score, 300);
-	atomic64_set(&memcg->memcg_reclaimed.ub_ufs2zram_ratio, 100);
-#ifdef CONFIG_HYPERHOLD_ZSWAPD
-	atomic_set(&memcg->memcg_reclaimed.ub_zram2ufs_ratio, 10);
-	atomic_set(&memcg->memcg_reclaimed.ub_mem2zram_ratio, 60);
-	atomic_set(&memcg->memcg_reclaimed.refault_threshold, 50);
-#endif
-#endif
 	memcg->high = PAGE_COUNTER_MAX;
 	memcg->soft_limit = PAGE_COUNTER_MAX;
 	if (parent) {
@@ -4472,10 +4401,6 @@ static int mem_cgroup_css_online(struct cgroup_subsys_state *css)
 	if (ret)
 		return ret;
 #endif
-#ifdef CONFIG_HYPERHOLD
-	memcg_app_score_update(memcg);
-	css_get(css);
-#endif
 	/* Online state pins memcg ID, memcg ID pins CSS */
 	atomic_set(&memcg->id.ref, 1);
 	css_get(css);
@@ -4486,15 +4411,6 @@ static void mem_cgroup_css_offline(struct cgroup_subsys_state *css)
 {
 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
 	struct mem_cgroup_event *event, *tmp;
-
-#ifdef CONFIG_HYPERHOLD
-	unsigned long flags;
-
-	spin_lock_irqsave(&score_list_lock, flags);
-	list_del_init(&memcg->score_node);
-	spin_unlock_irqrestore(&score_list_lock, flags);
-	css_put(css);
-#endif
 
 #ifdef CONFIG_MEMCG_PROTECT_LRU
 	protect_memcg_css_offline(memcg);
@@ -4529,12 +4445,7 @@ static void mem_cgroup_css_released(struct cgroup_subsys_state *css)
 static void mem_cgroup_css_free(struct cgroup_subsys_state *css)
 {
 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
-#ifdef CONFIG_HYPERHOLD
-#ifdef CONFIG_HP_CORE
-	hyperhold_mem_cgroup_remove(memcg);
-#endif
-	mem_cgroup_id_remove(memcg);
-#endif
+
 	if (cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_nosocket)
 		static_branch_dec(&memcg_sockets_enabled_key);
 

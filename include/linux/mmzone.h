@@ -200,10 +200,6 @@ enum node_stat_item {
 	WORKINGSET_RESTORE_BASE,
 	WORKINGSET_RESTORE_ANON = WORKINGSET_RESTORE_BASE,
 	WORKINGSET_RESTORE_FILE,
-#ifdef CONFIG_HYPERHOLD_FILE_LRU
-	WORKINGSET_ANON_COST,
-	WORKINGSET_FILE_COST,
-#endif
 #endif
 	WORKINGSET_NODERECLAIM,
 	NR_ANON_MAPPED,	/* Mapped anonymous pages */
@@ -310,10 +306,8 @@ struct lruvec {
 	 * over the other. As the observed cost of reclaiming one LRU
 	 * increases, the reclaim scan balance tips toward the other.
 	 */
-#ifndef CONFIG_HYPERHOLD_FILE_LRU
 	unsigned long			anon_cost;
 	unsigned long			file_cost;
-#endif
 	/* Evictions & activations on the inactive file list */
 	atomic_long_t			nonresident_age;
 	/* Refaults at the time of last reclaim cycle, anon=0, file=1 */
@@ -749,11 +743,6 @@ typedef struct pglist_data {
 
 	int kswapd_failures;		/* Number of 'reclaimed == 0' runs */
 
-#ifdef CONFIG_HYPERHOLD_ZSWAPD
-	wait_queue_head_t zswapd_wait;
-	atomic_t zswapd_wait_flag;
-	struct task_struct *zswapd;
-#endif
 #ifdef CONFIG_COMPACTION
 	int kcompactd_max_order;
 	enum zone_type kcompactd_classzone_idx;
@@ -906,18 +895,6 @@ static inline struct pglist_data *lruvec_pgdat(struct lruvec *lruvec)
 	return container_of(lruvec, struct pglist_data, lruvec);
 #endif
 }
-
-#ifdef CONFIG_HYPERHOLD_FILE_LRU
-static inline struct lruvec *lruvec_node_lruvec(struct lruvec *lruvec)
-{
-	return &lruvec_pgdat(lruvec)->lruvec;
-}
-
-static inline int is_node_lruvec(struct lruvec *lruvec)
-{
-	return lruvec_node_lruvec(lruvec) == lruvec;
-}
-#endif
 
 extern unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru, int zone_idx);
 

@@ -55,28 +55,10 @@ struct schedule_para {
 	struct hyperhold_key_point_record record;
 };
 
-#ifdef CONFIG_HYPERHOLD
-static void hyperhold_memcg_iter(
-	int (*iter)(struct mem_cgroup *, void *), void *data)
-{
-	struct mem_cgroup *mcg = get_next_memcg(NULL);
-
-	while (mcg) {
-		if (iter(mcg, data)) {
-			get_next_memcg_break(mcg);
-			return;
-		}
-		mcg = get_next_memcg(mcg);
-	}
-}
-
-#else
 static void hyperhold_memcg_iter(
 	int (*iter)(struct mem_cgroup *, void *), void *data)
 {
 }
-
-#endif
 
 /*
  * This interface will be called when anon page is added to ZRAM.

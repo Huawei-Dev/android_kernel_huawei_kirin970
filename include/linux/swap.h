@@ -297,16 +297,6 @@ struct vma_swap_readahead {
 #endif
 };
 
-#ifdef CONFIG_HYPERHOLD_FILE_LRU
-static inline struct lruvec *hp_lruvec(struct lruvec *lruvec,
-				       struct page *page,
-				       struct pglist_data *pgdat)
-{
-	if (!is_prot_page(page))
-		return node_lruvec(pgdat);
-	return lruvec;
-}
-#endif
 /* linux/mm/workingset.c */
 #ifndef CONFIG_REFAULT_IO_VMSCAN
 void *workingset_eviction(struct address_space *mapping, struct page *page);
@@ -476,9 +466,6 @@ extern atomic_long_t nr_swap_pages;
 extern long total_swap_pages;
 extern atomic_t nr_rotate_swap;
 extern bool has_usable_swap(void);
-#ifdef CONFIG_HYPERHOLD_ZSWAPD
-extern bool free_swap_is_low(void);
-#endif
 
 static inline bool swap_use_vma_readahead(void)
 {

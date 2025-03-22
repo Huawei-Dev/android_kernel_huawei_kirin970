@@ -1099,10 +1099,6 @@ const char * const vmstat_text[] = {
 	"workingset_activate_file",
 	"workingset_restore_anon",
 	"workingset_restore_file",
-#ifdef CONFIG_HYPERHOLD_FILE_LRU
-	"workingset_anon_cost",
-	"workingset_file_cost",
-#endif
 #endif
 	"workingset_nodereclaim",
 	"nr_anon_pages",
@@ -1256,32 +1252,6 @@ const char * const vmstat_text[] = {
 #endif
 #ifdef CONFIG_SPECULATIVE_PAGE_FAULT
 	"speculative_pgfault",
-#endif
-#ifdef CONFIG_HYPERHOLD_ZSWAPD
-	"zswapd_running",
-	"zswapd_hit_refaults",
-	"zswapd_medium_press",
-	"zswapd_critical_press",
-	"zswapd_memcg_ratio_skip",
-	"zswapd_memcg_refault_skip",
-	"zswapd_swapout",
-	"zswapd_empty_round",
-	"zswapd_empty_round_skip_times",
-	"zswapd_snapshot_times",
-	"zswapd_reclaimed",
-	"zswapd_scanned",
-#endif
-#ifdef CONFIG_HYPERHOLD
-	"kswapd_reclaimed_anon",
-	"kswapd_reclaimed_file",
-	"kswapd_scan_anon",
-	"kswapd_scan_file",
-	"dr_reclaimed_anon",
-	"dr_reclaimed_file",
-	"dr_scan_anon",
-	"dr_scan_file",
-	"freeze_reclaim_times",
-	"freeze_reclaimed",
 #endif
 #endif /* CONFIG_VM_EVENTS_COUNTERS */
 #ifdef CONFIG_VM_COPY

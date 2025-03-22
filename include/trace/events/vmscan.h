@@ -100,42 +100,6 @@ TRACE_EVENT(mm_vmscan_wakeup_kswapd,
 		__entry->order)
 );
 
-#ifdef CONFIG_HYPERHOLD
-TRACE_EVENT(mm_zswapd_wake,
-
-	TP_PROTO(int nid),
-
-	TP_ARGS(nid),
-
-	TP_STRUCT__entry(
-		__field(	int,	nid	)
-	),
-
-	TP_fast_assign(
-		__entry->nid = nid;
-	),
-
-	TP_printk("nid=%d", __entry->nid)
-);
-
-TRACE_EVENT(mm_zswapd_sleep,
-
-	TP_PROTO(int nid),
-
-	TP_ARGS(nid),
-
-	TP_STRUCT__entry(
-		__field(	int,	nid	)
-	),
-
-	TP_fast_assign(
-		__entry->nid = nid;
-	),
-
-	TP_printk("nid=%d", __entry->nid)
-);
-#endif
-
 DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_begin_template,
 
 	TP_PROTO(int order, int may_writepage, gfp_t gfp_flags, int classzone_idx),

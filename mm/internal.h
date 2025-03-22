@@ -159,20 +159,6 @@ extern unsigned long highest_memmap_pfn;
  * in mm/hisi/memcg_reclaim_advance.c:
  */
 
-#ifdef CONFIG_HYPERHOLD
-enum reclaim_invoker {
-	ALL,
-	KSWAPD,
-	ZSWAPD,
-	DIRECT_RECLAIM,
-	NODE_RECLAIM,
-	SOFT_LIMIT,
-	RCC_RECLAIM,
-	FILE_RECLAIM,
-	ANON_RECLAIM
-};
-#endif
-
 /*
  * in mm/vmscan.c:
  */
@@ -258,14 +244,6 @@ struct scan_control {
 
 	/* Number of pages freed so far during a call to shrink_zones() */
 	unsigned long nr_reclaimed;
-#ifdef CONFIG_HYPERHOLD
-	enum reclaim_invoker invoker;
-	u32 isolate_count;
-	unsigned long nr_scanned_anon;
-	unsigned long nr_scanned_file;
-	unsigned long nr_reclaimed_anon;
-	unsigned long nr_reclaimed_file;
-#endif
 	/*
 	 * Reclaim pages from a vma. If the page is shared by other tasks
 	 * it is zapped from a vma without reclaim so it ends up remaining

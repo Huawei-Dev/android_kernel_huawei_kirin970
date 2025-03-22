@@ -291,21 +291,9 @@ static void update_page_reclaim_stat(struct lruvec *lruvec,
 				     int file, int rotated)
 {
 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
-#ifdef CONFIG_HYPERHOLD_FILE_LRU
-	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
-	struct zone_reclaim_stat *node_reclaim_stat;
-
-	node_reclaim_stat = &pgdat->lruvec.reclaim_stat;
-	if (!file)
-		node_reclaim_stat->recent_scanned[0]++;
-#endif
 	reclaim_stat->recent_scanned[file]++;
 	if (rotated) {
 		reclaim_stat->recent_rotated[file]++;
-#ifdef CONFIG_HYPERHOLD_FILE_LRU
-		if (!file)
-			node_reclaim_stat->recent_rotated[0]++;
-#endif
 	}
 }
 #else
@@ -313,65 +301,6 @@ static void update_page_reclaim_stat(struct lruvec *lruvec,
 				     int file, int rotated) {}
 
 
-#ifdef CONFIG_HYPERHOLD_FILE_LRU
-static void __lru_note_cost(struct lruvec *lruvec, bool file,
-			    unsigned int nr_pages)
-{
-	unsigned long lrusize;
-	unsigned long file_cost =
-		lruvec_page_state(lruvec, WORKINGSET_FILE_COST);
-	unsigned long anon_cost =
-		lruvec_page_state(lruvec, WORKINGSET_ANON_COST);
-	int reduct_file, reduct_anon;
-
-	/* Record cost event */
-	if (file) {
-		mod_lruvec_state(lruvec, WORKINGSET_FILE_COST, nr_pages);
-		file_cost += nr_pages;
-	}
-	else {
-		mod_lruvec_state(lruvec, WORKINGSET_ANON_COST, nr_pages);
-		anon_cost +=nr_pages;
-	}
-
-	/*
-	 * Decay previous events
-	 *
-	 * Because workloads change over time (and to avoid
-	 * overflow) we keep these statistics as a floating
-	 * average, which ends up weighing recent refaults
-	 * more than old ones.
-	 */
-	lrusize = lruvec_page_state(lruvec, NR_INACTIVE_ANON) +
-			lruvec_page_state(lruvec, NR_ACTIVE_ANON) +
-			lruvec_page_state(lruvec, NR_INACTIVE_FILE) +
-			lruvec_page_state(lruvec, NR_ACTIVE_FILE);
-
-	if (file_cost + anon_cost > lrusize / 4) {
-		reduct_file = (int)(file_cost >> 1);
-		reduct_anon = (int)(anon_cost >> 1);
-		mod_lruvec_state(lruvec, WORKINGSET_FILE_COST, -reduct_file);
-		mod_lruvec_state(lruvec, WORKINGSET_ANON_COST, -reduct_anon);
-	}
-}
-
-/*
- * In memcg, parent lruvec will not stop at root memcg and not record node lruvec
- * But, we need to record node anon/file cost status, and then do something.
- * So, if the input lruvec is not node lruvec, we need record into node first.
- */
-static void lru_note_node_cost(struct lruvec *lruvec, bool file,
-			       unsigned int nr_pages)
-{
-	struct lruvec *node_lruvec = NULL;
-	/* Node record will start in lru note cost, so just skip */
-	if (is_node_lruvec(lruvec))
-		return;
-
-	node_lruvec = lruvec_node_lruvec(lruvec);
-	__lru_note_cost(node_lruvec, file, nr_pages);
-}
-#else
 static void __lru_note_cost(struct lruvec *lruvec, bool file,
 			    unsigned int nr_pages)
 {
@@ -401,15 +330,11 @@ static void __lru_note_cost(struct lruvec *lruvec, bool file,
 		lruvec->anon_cost /= 2;
 	}
 }
-#endif
 
 void lru_note_cost(struct lruvec *lruvec, bool file, unsigned int nr_pages)
 {
 	if (nr_pages == 0)
 		return;
-#ifdef CONFIG_HYPERHOLD_FILE_LRU
-	lru_note_node_cost(lruvec, file, nr_pages);
-#endif
 	do {
 		__lru_note_cost(lruvec, file, nr_pages);
 	} while ((lruvec = parent_lruvec(lruvec)));
