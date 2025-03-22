@@ -19,12 +19,6 @@
 #include <cpu_netlink/cpu_netlink.h>
 #define MAX_FORK_TIME 30
 
-#ifdef CONFIG_HW_RTG
-#include <linux/sched/hw_rtg/proc_state.h>
-#elif (defined(CONFIG_HW_RTG_SCHED) || defined(CONFIG_HW_MTK_RTG_SCHED))
-#include "hwrtg/proc_state.h"
-#endif
-
 static void send_vip_msg(int pid, int tgid)
 {
 	int dt[SEND_DATA_LEN];
@@ -92,13 +86,6 @@ void iaware_proc_fork_connector(struct task_struct *task)
 
 	cur_pid = task->pid;
 	cur_tgid = task->tgid;
-
-#if defined(CONFIG_HW_RTG_SCHED) || defined(CONFIG_HW_RTG) || defined(CONFIG_HW_MTK_RTG_SCHED)
-	get_task_struct(task);
-	if (is_key_aux_comm(task, task->comm))
-		send_thread_comm_msg(PROC_AUX_COMM_FORK, cur_pid, cur_tgid);
-	put_task_struct(task);
-#endif
 
 	if (check_vip_status(cur_pid, cur_tgid, task) == 1)
 		send_vip_msg(cur_pid, cur_tgid);

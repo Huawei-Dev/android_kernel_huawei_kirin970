@@ -26,15 +26,6 @@
 #include <linux/slab.h>
 #include <trace/events/sched.h>
 
-#ifdef CONFIG_HW_RTG_FRAME
-#include <linux/sched/hw_rtg/trans_rtg.h>
-#endif
-#ifdef CONFIG_HW_RTG_SCHED
-#include "hwrtg/trans_rtg.h"
-#endif
-#if defined(CONFIG_HW_MTK_RTG_SCHED) && !defined(CONFIG_HW_RTG)
-#include "mtkrtg/trans_rtg.h"
-#endif
 #include <chipset_common/hwqos/iaware_qos.h>
 
 #define BASE_FLAG 0x00000001
@@ -357,14 +348,6 @@ static bool dynamic_qos_enqueue_inner(struct task_struct *task,
 		tq->trans_from = trans_qos;
 		tq->trans_pid = trans_qos->allow_pid;
 		tq->trans_type = type;
-#ifdef CONFIG_HW_RTG_SCHED
-		if (RTG_TRANS_ENABLE && (type == DYNAMIC_QOS_BINDER))
-			add_trans_thread(task, from);
-#endif
-#if defined(CONFIG_HW_RTG_FRAME) || defined(CONFIG_HW_MTK_RTG_SCHED)
-		if (RTG_TRANS_ENABLE && (type == DYNAMIC_QOS_BINDER))
-			trans_rtg_sched_enqueue(task, from, type);
-#endif
 		flags = set_trans_type(atomic_read(&task->trans_flags), type);
 		atomic_set(&task->trans_flags, flags); /*lint !e446 !e734*/
 #ifdef CONFIG_SCHED_HWSTATUS
@@ -430,17 +413,8 @@ void dynamic_qos_dequeue(struct task_struct *task, unsigned int type)
 	tq->trans_from = NULL;
 	flags = remove_trans_type(atomic_read(&task->trans_flags), type);
 	atomic_set(&task->trans_flags, flags);
-#ifdef CONFIG_HW_RTG_SCHED
-	if (RTG_TRANS_ENABLE && (type == DYNAMIC_QOS_BINDER))
-		remove_trans_thread(task);
-#endif
-#if defined(CONFIG_HW_RTG_FRAME) || defined(CONFIG_HW_MTK_RTG_SCHED)
-	if (RTG_TRANS_ENABLE && (type == DYNAMIC_QOS_BINDER))
-		trans_rtg_sched_dequeue(task, type);
-#endif
 	trace_sched_qos(task, tq, OPERATION_QOS_DEQUEUE);
 }
-/*lint -restore*/
 
 void iaware_proc_fork_inherit(struct task_struct *task,
 	unsigned long clone_flags)

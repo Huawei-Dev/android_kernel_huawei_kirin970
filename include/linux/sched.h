@@ -935,9 +935,6 @@ struct task_struct {
 	struct restore_sched_param min_util_params;
 #endif
 #endif
-#ifdef CONFIG_HW_RTG_SCHED
-	int rtg_depth;
-#endif
 #ifdef CONFIG_SMP
 	struct llist_node		wake_entry;
 	int				on_cpu;

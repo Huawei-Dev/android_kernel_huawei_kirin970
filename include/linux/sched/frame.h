@@ -64,25 +64,12 @@ struct frame_thread_info {
 	int thread_num;
 };
 
-#ifdef CONFIG_HW_RTG_MULTI_FRAME
-struct multi_frame_id_manager {
-	DECLARE_BITMAP(id_map, MULTI_FRAME_NUM);
-	unsigned int offset;
-	rwlock_t lock;
-};
-struct frame_info *rtg_active_multi_frame_info(int id);
-struct frame_info *rtg_multi_frame_info(int id);
-int alloc_multi_frame_info(void);
-void release_multi_frame_info(int id);
-void clear_multi_frame_info(void);
-#else
 static inline int alloc_multi_frame_info(void)
 {
 	return -EFAULT;
 }
 static inline void release_multi_frame_info(int id) {}
 static inline void clear_multi_frame_info(void) {}
-#endif
 
 #ifdef CONFIG_FRAME_RTG
 bool is_frame_rtg(int id);

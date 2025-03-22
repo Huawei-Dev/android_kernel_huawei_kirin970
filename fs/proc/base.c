@@ -111,10 +111,6 @@
 #define GLOBAL_SYSTEM_GID KGIDT_INIT(1000)
 #endif
 
-#ifdef CONFIG_HW_RTG_SCHED
-#include "hwrtg/iaware_rtg.h"
-#endif
-
 #ifdef CONFIG_HP_CORE
 #include <linux/hyperhold_inf.h>
 #endif
@@ -1463,16 +1459,6 @@ static const struct file_operations proc_unexpected_die_catch_operations = {
 };
 #endif
 
-#ifdef CONFIG_HW_RTG_SCHED
-static const struct file_operations proc_rtg_operations = {
-	.open			= proc_rtg_open,
-	.unlocked_ioctl	= proc_rtg_ioctl,
-#ifdef CONFIG_COMPAT
-	.compat_ioctl	= proc_rtg_compat_ioctl,
-#endif
-};
-#endif
-
 #ifdef CONFIG_AUDITSYSCALL
 #define TMPBUFLEN 11
 static ssize_t proc_loginuid_read(struct file * file, char __user * buf,
@@ -2160,7 +2146,7 @@ int pid_getattr(const struct path *path, struct kstat *stat,
 	return 0;
 }
 
-#if defined(CONFIG_HW_VIP_THREAD) || defined(CONFIG_HISI_SWAP_ZDATA) || defined(CONFIG_HW_RTG_SCHED)
+#if defined(CONFIG_HW_VIP_THREAD) || defined(CONFIG_HISI_SWAP_ZDATA)
 bool is_special_entry(struct dentry *dentry, const char* special_proc)
 {
 	const unsigned char *name;
@@ -2220,16 +2206,6 @@ int pid_revalidate(struct dentry *dentry, unsigned int flags)
 		}
 #endif
 
-#if defined(CONFIG_HW_RTG_SCHED)
-		if (is_special_entry(dentry, "rtg")) {
-			const struct cred *cr;
-			rcu_read_lock();
-			cr = __task_cred(task);
-			inode->i_uid = cr->euid;
-			inode->i_gid = cr->egid;
-			rcu_read_unlock();
-		}
-#endif
 		inode->i_mode &= ~(S_ISUID | S_ISGID);
 		security_task_to_inode(task, inode);
 		put_task_struct(task);
@@ -3451,9 +3427,6 @@ static const struct pid_entry tgid_base_stuff[] = {
 #endif
 #ifdef CONFIG_HW_DIE_CATCH
 	REG("unexpected_die_catch", S_IRUGO|S_IWUGO, proc_unexpected_die_catch_operations),
-#endif
-#ifdef CONFIG_HW_RTG_SCHED
-	REG("rtg", S_IRUGO|S_IWUSR, proc_rtg_operations),
 #endif
 #ifdef CONFIG_HUAWEI_SCHED_VIP
 	REG("hisi_vip_prio", S_IRUSR|S_IWUSR, proc_hisi_vip_prio_operations),

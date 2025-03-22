@@ -62,10 +62,6 @@ static void print_frame_info(struct seq_file *file,
 	seq_printf_frame(file, "FRAME_RT_THREAD_NUM   : %d/%d\n",
 			 atomic_read(&frame_info->curr_rt_thread_num),
 			 atomic_read(&frame_info->max_rt_thread_num));
-#ifdef CONFIG_HW_RTG_SCHED_RT_THREAD_LIMIT
-	seq_printf_frame(file, "RTG_RT_THREAD_NUM   : %d/%d\n",
-			 read_rtg_rt_thread_num(), RTG_MAX_RT_THREAD_NUM);
-#endif
 	if (frame_info->prio == NOT_RT_PRIO)
 		seq_printf_frame(file, "PRIO   : CFS\n");
 	else
@@ -152,17 +148,8 @@ static int sched_frame_debug_show(struct seq_file *file, void *param)
 {
 	struct related_thread_group *grp = lookup_related_thread_group(DEFAULT_RT_FRAME_ID);
 	int cnt = 0;
-#ifdef CONFIG_HW_RTG_MULTI_FRAME
-	int id;
-#endif
 
 	do_sched_frame_debug_show(file, grp, &cnt);
-#ifdef CONFIG_HW_RTG_MULTI_FRAME
-	for (id = MULTI_FRAME_ID; id < (MULTI_FRAME_ID + MULTI_FRAME_NUM); id++) {
-		grp = lookup_related_thread_group(id);
-		do_sched_frame_debug_show(file, grp, &cnt);
-	}
-#endif
 	if (cnt == 0)
 		seq_printf_frame(file, "IPROVISION RTG tasklist empty\n");
 

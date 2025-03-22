@@ -48,12 +48,7 @@ EXPORT_SYMBOL_GPL(is_frame_task);
 
 bool is_frame_rtg(int id)
 {
-#ifdef CONFIG_HW_RTG_MULTI_FRAME
-	return ((id == DEFAULT_RT_FRAME_ID) || ((id >= MULTI_FRAME_ID) &&
-		(id < MULTI_FRAME_ID + MULTI_FRAME_NUM)));
-#else
 	return (id == DEFAULT_RT_FRAME_ID);
-#endif
 }
 EXPORT_SYMBOL_GPL(is_frame_rtg);
 
@@ -146,10 +141,6 @@ struct frame_info *rtg_frame_info(int id)
 	}
 	if (id == DEFAULT_RT_FRAME_ID)
 		frame_info = &g_frame_info;
-#ifdef CONFIG_HW_RTG_MULTI_FRAME
-	else
-		frame_info = rtg_active_multi_frame_info(id);
-#endif
 
 	return frame_info;
 }
@@ -919,13 +910,6 @@ struct frame_info *lookup_frame_info_by_task(struct task_struct *task)
 	frame_info = rtg_frame_info(id);
 	if (frame_info && is_task_in_frame(task, frame_info))
 		return frame_info;
-#ifdef CONFIG_HW_RTG_MULTI_FRAME
-	for (id = MULTI_FRAME_ID; id < (MULTI_FRAME_ID + MULTI_FRAME_NUM); id++) {
-		frame_info = rtg_frame_info(id);
-		if (frame_info && is_task_in_frame(task, frame_info))
-			return frame_info;
-	}
-#endif
 	return NULL;
 }
 
@@ -1030,14 +1014,6 @@ static int __init init_frame_info(void)
 	int id = DEFAULT_RT_FRAME_ID;
 
 	ret = _init_frame_info(&g_frame_info, id);
-
-#ifdef CONFIG_HW_RTG_MULTI_FRAME
-	for (id = MULTI_FRAME_ID; id < (MULTI_FRAME_ID + MULTI_FRAME_NUM); id++) {
-		if (ret != 0)
-			break;
-		ret = _init_frame_info(rtg_multi_frame_info(id), id);
-	}
-#endif
 
 	return ret;
 }

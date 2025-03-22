@@ -77,7 +77,7 @@
 #include <chipset_common/security/check_root.h>
 #endif
 
-#if (defined(CONFIG_HW_IAWARE_THREAD_BOOST) || defined(CONFIG_HW_RTG_SCHED))
+#ifdef CONFIG_HW_IAWARE_THREAD_BOOST
 #include <cpu_netlink/cpu_netlink.h>
 #endif
 
@@ -2388,7 +2388,7 @@ SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
 	struct task_struct *me = current;
 	unsigned char comm[sizeof(me->comm)];
 	long error;
-#if (defined(CONFIG_HW_IAWARE_THREAD_BOOST) || defined(CONFIG_HW_RTG_SCHED))
+#ifdef CONFIG_HW_IAWARE_THREAD_BOOST
 	int sock_num;
 #endif
 
@@ -2449,12 +2449,12 @@ SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
 		if (strncpy_from_user(comm, (char __user *)arg2,
 				      sizeof(me->comm) - 1) < 0)
 			return -EFAULT;
-#if (defined(CONFIG_HW_IAWARE_THREAD_BOOST) || defined(CONFIG_HW_RTG_SCHED))
+#ifdef CONFIG_HW_IAWARE_THREAD_BOOST
 		sock_num = iaware_proc_comm_connector(me, comm);
 #endif
 		set_task_comm(me, comm);
 		proc_comm_connector(me);
-#if (defined(CONFIG_HW_IAWARE_THREAD_BOOST) || defined(CONFIG_HW_RTG_SCHED))
+#ifdef CONFIG_HW_IAWARE_THREAD_BOOST
 		iaware_send_comm_msg(me, sock_num);
 #endif
 		break;

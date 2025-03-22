@@ -19,16 +19,6 @@
 #include <cpu_netlink/cpu_netlink.h>
 #define BINDER_THREAD_NAME "Binder:"
 
-#ifdef CONFIG_HW_RTG
-#include <linux/sched/hw_rtg/proc_state.h>
-#elif (defined(CONFIG_HW_RTG_SCHED) || defined(CONFIG_HW_MTK_RTG_SCHED))
-#include "hwrtg/proc_state.h"
-#endif
-
-#if defined(CONFIG_HW_RTG_SCHED) || defined(CONFIG_HW_RTG) || defined(CONFIG_HW_MTK_RTG_SCHED)
-#define MALI_THREAD_NAME "mali-cmar-backe"
-#endif
-
 #define IAWARE_COMM_MSG_LEN 2
 
 void send_thread_comm_msg(int num, int pid, int tgid)
@@ -49,14 +39,6 @@ int iaware_proc_comm_connector(struct task_struct *task, const char *comm)
 
 	if (strstr(comm, BINDER_THREAD_NAME))
 		sock_num = PROC_COMM;
-#if defined(CONFIG_HW_RTG_SCHED) || defined(CONFIG_HW_RTG) || defined(CONFIG_HW_MTK_RTG_SCHED)
-	else if (strstr(comm, MALI_THREAD_NAME))
-		sock_num = PROC_MALI_COMM;
-	else if (is_key_aux_comm(task, comm))
-		sock_num = PROC_AUX_COMM;
-	else if (is_key_aux_comm(task, task->comm))
-		sock_num = PROC_AUX_COMM_REMOVE;
-#endif
 
 	return sock_num;
 }
