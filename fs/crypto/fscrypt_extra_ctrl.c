@@ -424,9 +424,6 @@ void rw_finish(int read_write, struct file *file)
 		spin_lock(&fe_rw_check_lock);
 		if (!fe_key_file_rw_count) {
 			pr_err("[FBE3]%s: no match of rw count\n", __func__);
-#ifdef CONFIG_HISI_DEBUG_FS
-			BUG();
-#endif
 		}
 
 		if (!(--fe_key_file_rw_count) && fe_lock_notify)

@@ -1832,11 +1832,6 @@ static irqreturn_t dw_mci_hs_card_detect(int irq, void *data)
 	mmc_host_temp->init_cnt = 0;
 	mmc_host_temp->reset_count = 0;
 
-#ifdef CONFIG_HISI_DEBUG_FS
-	if (mmc_host_temp->sim_remove_nano)
-		mmc_host_temp->sim_remove_nano = 0;
-#endif
-
 	queue_work(host->card_workqueue, &host->card_work);
 	return IRQ_HANDLED;
 };
@@ -1845,9 +1840,6 @@ static int dw_mci_hs_get_cd(struct dw_mci *host, u32 slot_id)
 {
 	unsigned int status;
 	struct dw_mci_hs_priv_data *priv = host->priv;
-#if defined(CONFIG_HISI_DEBUG_FS) && defined(CONFIG_MMC_DW_MUX_SDSIM)
-	struct dw_mci_slot *cur_slot = host->slot[0];
-#endif
 
 	/* cd_vol = 1 means sdcard gpio detect pin active-high */
 	if (priv->cd_vol)
@@ -1876,12 +1868,6 @@ static int dw_mci_hs_get_cd(struct dw_mci *host, u32 slot_id)
 				"first_mux_sdsim_probe_init now\n");
 			first_mux_sdsim_probe_init = 0;
 		}
-#ifdef CONFIG_HISI_DEBUG_FS
-		if (cur_slot->mmc->sim_remove_nano) {
-			sd_sim_detect_status_current = SD_SIM_DETECT_STATUS_UNDETECTED;
-			dev_info(host->dev, " nano sd remove test: sd_sim_detect_status_current = 0\n");
-		}
-#endif
 	}
 #endif
 
@@ -2259,10 +2245,6 @@ int dw_mci_hs_probe(struct platform_device *pdev)
 	const struct dw_mci_drv_data *drv_data = NULL;
 	const struct of_device_id *match = NULL;
 	int err;
-
-#ifdef CONFIG_HISI_DEBUG_FS
-	proc_sd_test_init();
-#endif
 
 	match = of_match_node(dw_mci_hs_match, pdev->dev.of_node);
 	if (!match)

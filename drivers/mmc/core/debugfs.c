@@ -264,75 +264,6 @@ static int mmc_sdxc_opt_get(void *data, u64 *val)
 DEFINE_SIMPLE_ATTRIBUTE(mmc_sdxc_fops, mmc_sdxc_opt_get,
 			NULL, "%llu\n");
 
-#ifdef CONFIG_HISI_DEBUG_FS
-static int mmc_sim_remove_sd_get(void *data, u64 *val)
-{
-	struct mmc_host *host = data;
-
-	pr_err("%s %d sim_remove_sd: %lu\n",
-			__func__, __LINE__, host->sim_remove_sd);
-	*val = host->sim_remove_sd;
-
-	return 0;
-}
-
-extern int mmc_schedule_delayed_work(struct delayed_work *work,
-						 unsigned long delay);
-static int mmc_sim_remove_sd_set(void *data, u64 val)
-{
-	struct mmc_host *host = data;
-
-	if (val == host->sim_remove_sd) {
-		pr_err("%s %d Nothing changed!\n", __func__, __LINE__);
-		return 0;
-	}
-
-	if (!host->card || mmc_card_sd(host->card)) {
-		host->sim_remove_sd = val;
-		mmc_schedule_delayed_work(&host->detect, 0);
-	}
-
-	return 0;
-}
-
-DEFINE_SIMPLE_ATTRIBUTE(sim_remove_sd_fops, mmc_sim_remove_sd_get,
-			mmc_sim_remove_sd_set, "%llu\n");
-
-static int mmc_nano_sd_remove_get(void *data, u64 *val)
-{
-	struct mmc_host *mmc = data;
-
-	pr_err("%s %d sim_remove_nano: %lu\n",
-			__func__, __LINE__, mmc->sim_remove_nano);
-	*val = mmc->sim_remove_nano;
-
-	return 0;
-}
-
-static int mmc_nano_sd_remove_set(void *data, u64 val)
-{
-	struct mmc_host *mmc = data;
-	struct dw_mci_slot *slot = mmc_priv(mmc);
-	struct dw_mci *dw_mci_host = slot->host;
-
-	if (val == mmc->sim_remove_nano) {
-		pr_err("%s %d Nothing changed!\n", __func__, __LINE__);
-		return 0;
-	}
-
-	pr_err("%s nano sd status set val: %lu\n", __func__, val);
-	if (!mmc->card || mmc_card_mmc(mmc->card)) {
-		mmc->sim_remove_nano = val;
-		queue_work(dw_mci_host->card_workqueue, &dw_mci_host->card_work);
-	}
-
-	return 0;
-}
-
-DEFINE_SIMPLE_ATTRIBUTE(nano_sd_remove_fops, mmc_nano_sd_remove_get,
-			mmc_nano_sd_remove_set, "%llu\n");
-#endif /* CONFIG_HISI_DEBUG_FS */
-
 void mmc_add_host_debugfs(struct mmc_host *host)
 {
 	struct dentry *root;
@@ -354,18 +285,6 @@ void mmc_add_host_debugfs(struct mmc_host *host)
 	if (!debugfs_create_file("clock", S_IRUSR | S_IWUSR, root, host,
 			&mmc_clock_fops))
 		goto err_node;
-
-#ifdef CONFIG_HISI_DEBUG_FS
-	if (host->index == 1) {
-		if (!debugfs_create_file("sim_remove_sd", S_IRUSR | S_IWUSR, root, host,
-				&sim_remove_sd_fops))
-			goto err_node;
-
-		if (!debugfs_create_file("sim_remove_nano", S_IRUSR | S_IWUSR, root, host,
-				&nano_sd_remove_fops))
-			goto err_node;
-	}
-#endif
 
 #ifdef CONFIG_FAIL_MMC_REQUEST
 	if (fail_request)

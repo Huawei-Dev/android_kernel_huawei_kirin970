@@ -34,5 +34,4 @@ obj-$(CONFIG_SND_ANALOG_LESS_MACHINE) += snd-soc-analog-less-machine.o
 
 obj-$(CONFIG_SND_SOC_DP_AUDIO) += snd-soc-dp.o
 obj-$(CONFIG_SND_AUTO_TEST) += auto_test/
-obj-$(CONFIG_SND_SOC_PCM_CODECS) += pcm_codec/
 obj-y += snd-soc-asp-cfg.o

@@ -46,13 +46,7 @@ enum {
 
 enum tz_desc_id {
 	TZ_RETURN_FLAG      = 0x01,
-#ifdef CONFIG_HISI_DEBUG_FS
-	TZ_RETURN_BACK_FLAG = 0x04,
-#endif
 	TZ_FORCE_CLOSE_FLAG = 0x08,
-#ifdef CONFIG_HISI_DEBUG_FS
-	TZ_FORCE_OPEN_FLAG  = 0x10,
-#endif
 	TZ_DESC_MAX,
 };
 
@@ -89,9 +83,7 @@ enum query_opcode {
 	UPIU_QUERY_OPCODE_MAX,
 };
 
-#ifndef CONFIG_HISI_DEBUG_FS
 void delete_ufs_product_name(char *cmdline);
-#endif
 
 static inline void ufs_change_vol_pre(void)
 {

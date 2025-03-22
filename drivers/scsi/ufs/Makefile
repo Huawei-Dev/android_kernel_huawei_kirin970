@@ -28,7 +28,6 @@ obj-$(CONFIG_SCSI_UFSHCD_PLATFORM) += ufshcd-pltfrm.o
 obj-$(CONFIG_SCSI_UFS_FAULT_INJECT) += ufs-fault-inject.o
 obj-$(CONFIG_SCSI_UFS_BLOCK_TEST) += ufs_block_test.o
 obj-$(CONFIG_SCSI_UFS_TEST) += ufs_test.o
-obj-$(CONFIG_HISI_DEBUG_FS) += ufs_debugfs.o
 obj-$(CONFIG_HUAWEI_UFS_DSM) += dsm_ufs.o
 obj-$(CONFIG_HISI_UFS_MANUAL_BKOPS) += hisi-ufs-bkops.o hisi_ufs_bkops_interface.o
 obj-$(CONFIG_SCSI_UFS_HI1861_VCMD) += ufs-vendor-cmd.o

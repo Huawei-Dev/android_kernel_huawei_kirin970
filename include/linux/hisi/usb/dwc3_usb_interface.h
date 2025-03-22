@@ -35,9 +35,6 @@ struct usb3_core_ops {
 	void (*disable_pipe_clock)(void);
 	int (*enable_u3)(void);
 	void (*dump_regs)(void);
-#ifdef CONFIG_HISI_DEBUG_FS
-	void (*link_state_print)(void);
-#endif
 	void (*logic_analyzer_trace_set)(u32 value);
 };
 

@@ -938,13 +938,11 @@ static int __hisi_peri_dvfs_setup(struct device_node *np, struct peri_dvfs_clk *
 	if (of_property_read_u32(np, "hisilicon,volt-user-high", &user_high_volt))
 		user_high_volt = 0;
 /* USB need vote 0.8V in User version and vote dynamic volt by profile in debug version */
-#ifndef CONFIG_HISI_DEBUG_FS
 #ifdef CONFIG_HISI_PERIDVFS
 	if (user_high_volt) {
 		for (i = 0; i < DVFS_MAX_VOLT_NUM; i++)
 			sensitive_volt[i] = PERI_VOLT_3;
 	}
-#endif
 #endif
 
 	devfreq_clk->sensitive_level = sensitive_level;

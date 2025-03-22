@@ -46,10 +46,6 @@ struct hwspinlock_native {
 	int id_in_group;
 	void __iomem *address;
 };
-#ifdef CONFIG_HISI_DEBUG_FS
-static struct dentry *hwspinlock_debug_dir;
-static struct dentry *hwspinlock_fn;
-#endif
 static struct hwspinlock *hwlock;
 static int locked;
 
@@ -395,22 +391,12 @@ static const struct file_operations hwspinlock_debugfs_ops = {
  */
 static int __init hwspinlock_debugfs_init(void)
 {
-#ifdef CONFIG_HISI_DEBUG_FS
-	hwspinlock_debug_dir = debugfs_create_dir("hwspinlock", NULL);
-	if (hwspinlock_debug_dir)
-		hwspinlock_fn = debugfs_create_file("debug", 0444,
-			hwspinlock_debug_dir, NULL, &hwspinlock_debugfs_ops);
-#endif
 	return 0;
 }
 module_init(hwspinlock_debugfs_init);
 
 static void __exit hwspinlock_debugfs_exit(void)
 {
-#ifdef CONFIG_HISI_DEBUG_FS
-	debugfs_remove(hwspinlock_fn);
-	debugfs_remove(hwspinlock_debug_dir);
-#endif
 }
 module_exit(hwspinlock_debugfs_exit);
 

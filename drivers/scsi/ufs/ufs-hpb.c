@@ -1119,9 +1119,6 @@ int hpb_init(struct ufs_hba *hba)
 	if (!hba->ufs_hpb)
 		return -EINVAL;
 	pr_err("%s: support ufs hpb\n", __func__);
-#ifdef CONFIG_HISI_DEBUG_FS
-	ufshpb_debug_init(hba);
-#endif
 	hba->ufs_hpb->ufshpb_state = HPB_NEED_INIT;
 	hba->ufs_hpb->ufs_hpb_init_lru = ufs_hpb_init_lru;
 	hba->ufs_hpb->hba = hba;
@@ -1179,103 +1176,6 @@ out:
 	pm_runtime_put_sync(hba->dev);
 	return ret;
 }
-
-#ifdef CONFIG_HISI_DEBUG_FS
-static void ufs_hpb_basic_print(struct ufs_hba *hba)
-{
-	pr_err("hpb one region ppn size 0x%x\n",
-	       hba->ufs_hpb->one_region_ppn_size);
-	pr_err("hpb region num 4k 0x%x\n", hba->ufs_hpb->region_num_4k);
-
-	pr_err("bud0 base offset 0x%x bud config plength 0x%x\n",
-	       hba->ufs_hpb->bud0_base_offset,
-	       hba->ufs_hpb->bud_config_plength);
-	pr_err("hpb version 0x%x\n", hba->ufs_hpb->hpb_version);
-	pr_err("hpb lu number 0x%x hpb region size 0x%x\n",
-	       hba->ufs_hpb->hpb_lu_number,
-	       hba->ufs_hpb->one_region_physical_size);
-	pr_err("hpb subregion size 0x%x hpb device max active region 0x%x\n",
-	       hba->ufs_hpb->one_subregion_physical_size,
-	       hba->ufs_hpb->hpb_device_max_active_regions);
-	pr_err("hpb lun enable 0x%x, hpb logical block size 0x%x, hpb logical block count 0x%x\n",
-	       hba->ufs_hpb->hpb_lu_enable[HPB_UNIT],
-	       hba->ufs_hpb->hpb_logical_block_size,
-	       hba->ufs_hpb->hpb_logical_block_count);
-	pr_err("hpb lu max active regions 0x%x, hpb pinned region startidx 0x%x, hpb pinned region num 0x%x\n",
-	       hba->ufs_hpb->hpb_lu_max_active_regions[HPB_UNIT],
-	       hba->ufs_hpb->hpb_lu_pinned_region_startidx[HPB_UNIT],
-	       hba->ufs_hpb->hpb_lu_pinned_region_num[HPB_UNIT]);
-
-	pr_err("%s, mode contrl %d\n", __func__,
-	       hba->ufs_hpb->hpb_control_mode);
-
-	pr_err("%s, one subregion ppn number %x\n", __func__,
-	       hba->ufs_hpb->one_subregion_ppn_number);
-
-	pr_err("%s, one node ppn size %x, one node ppn number %x\n",
-	       __func__, hba->ufs_hpb->one_node_ppn_size,
-	       hba->ufs_hpb->one_node_ppn_number);
-}
-
-static ssize_t hufs_hpb_debug_show(struct device *dev,
-					struct device_attribute *attr,
-					char *buf)
-{
-	struct ufs_hba *hba = dev_get_drvdata(dev);
-
-	if (hba->ufs_hpb->ufshpb_debug_flag == UFSHPB_TURN_OFF)
-		return snprintf(buf, PAGE_SIZE, "%s\n", "ufshpb_turn_off");
-	else if (hba->ufs_hpb->ufshpb_debug_flag == UFSHPB_TURN_ON)
-		return snprintf(buf, PAGE_SIZE, "%s\n", "ufshpb_turn_on");
-	else if (hba->ufs_hpb->ufshpb_debug_flag == UFSHPB_PRINT_ALL_INFO)
-		return snprintf(buf, PAGE_SIZE, "%s\n", "ufshpb_print_info");
-	else
-		return snprintf(buf, PAGE_SIZE, "%s\n", "ufshpb_default");
-}
-
-static ssize_t hufs_hpb_debug_store(struct device *dev,
-					 struct device_attribute *attr,
-					 const char *buf, size_t count)
-{
-	struct ufs_hba *hba = dev_get_drvdata(dev);
-
-	if (sysfs_streq(buf, "ufshpb_default")) {
-		hba->ufs_hpb->ufshpb_debug_flag = 0;
-	} else if (sysfs_streq(buf, "ufshpb_turn_off")) {
-		hba->ufs_hpb->ufshpb_debug_flag = UFSHPB_TURN_OFF;
-		hba->ufs_hpb->ufshpb_state = UFSHPB_NOT_SUPPORTED;
-	} else if (sysfs_streq(buf, "ufshpb_turn_on")) {
-		hba->ufs_hpb->ufshpb_debug_flag = UFSHPB_TURN_ON;
-		hba->ufs_hpb->ufshpb_state = UFSHPB_PRESENT;
-	} else if (sysfs_streq(buf, "ufshpb_print_info")) {
-		hba->ufs_hpb->ufshpb_debug_flag = UFSHPB_PRINT_ALL_INFO;
-		ufs_hpb_basic_print(hba);
-	} else {
-		dev_err(hba->dev, "%s: invalid input debug parameter.\n",
-			__func__);
-		return -EINVAL;
-	}
-
-	return count;
-}
-
-void ufshpb_debug_init(struct ufs_hba *hba)
-{
-	hba->ufs_hpb->ufshpb_debug_flag = 0;
-
-	hba->ufs_hpb->ufshpb_debug_state.ufshpb_attr.show =
-		hufs_hpb_debug_show;
-	hba->ufs_hpb->ufshpb_debug_state.ufshpb_attr.store =
-		hufs_hpb_debug_store;
-	sysfs_attr_init(&hba->ufs_hpb->ufshpb_debug_state.ufshpb_attr.attr);
-	hba->ufs_hpb->ufshpb_debug_state.ufshpb_attr.attr.name = "ufshpb_debug";
-	hba->ufs_hpb->ufshpb_debug_state.ufshpb_attr.attr.mode =
-		0640; /* 0640 node attribute mode */
-	if (device_create_file(hba->dev,
-			       &hba->ufs_hpb->ufshpb_debug_state.ufshpb_attr))
-		dev_err(hba->dev, "Failed to create sysfs for ufshpb\n");
-}
-#endif
 
 static int read_device_desc(struct ufs_hba *hba, u8 *device_desc_buf)
 {

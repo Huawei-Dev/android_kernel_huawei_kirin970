@@ -26,9 +26,3 @@ obj-$(CONFIG_HISEE)  += hisee_chip_test.o
 obj-$(CONFIG_HISEE)  += hisee_fs.o
 obj-$(CONFIG_HISEE_SUPPORT_CASDKEY) += hisee_casdcert.o
 obj-$(CONFIG_HISEE_SUPPORT_DCS) += hisee_dcs.o
-
-ifneq ($(CONFIG_HISEE_DISABLE_KEY),y)
-ifeq ($(CONFIG_HISEE),y)
-obj-$(CONFIG_HISI_DEBUG_FS)  += hisee_autotest.o
-endif
-endif

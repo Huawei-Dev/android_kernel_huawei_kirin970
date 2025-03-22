@@ -382,11 +382,6 @@ struct debugfs_files {
 	struct dentry *dme_local_read;
 	struct dentry *dme_peer_read;
 	struct dentry *req_stats;
-#ifdef CONFIG_HISI_DEBUG_FS
-	struct dentry *idle_intr_verify;
-	struct dentry *idle_timeout_val;
-	struct dentry *idle_intr_check_timer_threshold;
-#endif
 	u32 dme_local_attr_id;
 	u32 dme_peer_attr_id;
 };
@@ -636,23 +631,6 @@ struct ufs_temp {
 struct ufs_inline_state {
 	struct device_attribute inline_attr;
 };
-
-#if defined(CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO) && defined(CONFIG_HISI_DEBUG_FS)
-enum ufs_inline_debug_state {
-	DEBUG_LOG_OFF,
-	DEBUG_LOG_ON,
-	DEBUG_CRYPTO_OFF,
-	DEBUG_CRYPTO_ON,
-#ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V3
-	DEBUG_CRYPTO_V3_ON,
-#endif
-};
-
-
-struct ufs_inline_debug {
-	struct device_attribute inline_attr;
-};
-#endif
 
 struct ufs_saved_pwr_info {
 	struct ufs_pa_layer_attr info;
@@ -1013,11 +991,6 @@ struct ufs_hba {
 	struct ufs_temp ufs_temp;
 	struct ufs_inline_state inline_state;
 
-#if defined(CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO) && defined(CONFIG_HISI_DEBUG_FS)
-	struct ufs_inline_debug inline_debug_state;
-	u32 inline_debug_flag;
-	struct ufs_inline_debug inline_dun_cci_test;
-#endif
 	/* Control to enable/disable host capabilities */
 	u32 caps;
 	/* Allow dynamic clk gating */
@@ -1194,9 +1167,6 @@ struct ufs_hba {
 	struct timer_list sync_one_region_timer;
 #define UFSHCD_IDLE_INTR_CHECK_INTERVAL	3600000
 	unsigned int idle_intr_check_timer_threshold; /* in ms */
-#ifdef CONFIG_HISI_DEBUG_FS
-	bool ufs_idle_intr_verify;
-#endif
 	uint8_t tz_version;
 
 	struct mutex eh_mutex;

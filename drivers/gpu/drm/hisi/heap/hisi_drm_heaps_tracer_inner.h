@@ -47,12 +47,8 @@ static inline int hisi_drm_heaps_tracer_init(void)
 }
 #endif
 
-#if defined(CONFIG_DRM_GEM_TRACE) && defined(CONFIG_HISI_DEBUG_FS)
-void hisi_drm_heaps_init_heap_debugfs(struct hisi_drm_heap *heap);
-#else
 static inline void hisi_drm_heaps_init_heap_debugfs(struct hisi_drm_heap *heap)
 {
 }
-#endif
 
 #endif

@@ -413,56 +413,6 @@ static int interpolate_curr_vector(const int *x_array, int rows, int x)
 	return index;
 }
 
-#ifdef CONFIG_HISI_DEBUG_FS
-/* look for ocv according to temp, lookup table and pc */
-int interpolate_polar_ocv(struct polar_ocv_tbl *lut, int batt_temp_degc, int pc)
-{
-	int i, ocvrow1, ocvrow2, ocv;
-	int row1 = 0;
-	int row2 = 0;
-
-	if (!lut) {
-		polar_err("NULL point in [%s]\n", __func__);
-		return -1;
-	}
-
-	if ((lut->rows <= 0) || (lut->cols <= 0)) {
-		polar_err("lut mismatch [%s]\n", __func__);
-		return -1;
-	}
-
-	interpolate_find_pos(lut->percent, lut->rows, pc, &row1, &row2);
-
-	if (batt_temp_degc > lut->temp[0])
-		batt_temp_degc = lut->temp[0];
-	if (batt_temp_degc < lut->temp[lut->cols - 1])
-		batt_temp_degc = lut->temp[lut->cols - 1];
-
-	for (i = 0; i < lut->cols; i++)
-		if (batt_temp_degc >= lut->temp[i])
-			break;
-	if ((batt_temp_degc == lut->temp[i]) || !i) {
-		ocv = polar_linear_interpolate(lut->ocv[row1][i],
-			lut->percent[row1], lut->ocv[row2][i],
-			lut->percent[row2], pc);
-		return ocv;
-	}
-
-	ocvrow1 = polar_linear_interpolate(lut->ocv[row1][i - 1],
-		lut->temp[i - 1], lut->ocv[row1][i],
-		lut->temp[i], batt_temp_degc);
-
-	ocvrow2 = polar_linear_interpolate(lut->ocv[row2][i - 1],
-		lut->temp[i - 1], lut->ocv[row2][i],
-		lut->temp[i], batt_temp_degc);
-
-	ocv = polar_linear_interpolate(ocvrow1, lut->percent[row1], ocvrow2,
-		lut->percent[row2], pc);
-
-	return ocv;
-}
-#endif
-
 int get_polar_vector_value(const struct polar_x_y_z_tbl *lut,
 	int batt_temp_degc, int soc, int curr, int t_index)
 {
@@ -729,32 +679,6 @@ static int polar_partition_data_check(const struct polar_learn_tbl *lut)
 	}
 	return 0;
 }
-
-#ifdef CONFIG_HISI_DEBUG_FS
-ssize_t polar_self_learn_show(struct device *dev,
-	struct device_attribute *attr, char *buf)
-{
-	void *p_buf = NULL;
-	u32 cnt;
-
-	p_buf = kzalloc(POLAR_LUT_SIZE, GFP_KERNEL);
-	if (!p_buf)
-		return 0;
-
-	/* copy data from emmc, to save in user buffer */
-	cnt = polar_get_flash_data(p_buf, POLAR_LUT_SIZE, POLAR_LUT_OFFSET);
-	if (cnt > 0) {
-		if (memcpy_s((void *)buf, PAGE_SIZE, (const void *)p_buf,
-			min_t(size_t, POLAR_LUT_SIZE, PAGE_SIZE)))
-			polar_err("%s()-line=%d\n", __func__, __LINE__);
-	} else {
-		polar_err("%s()-line=%d\n", __func__, __LINE__);
-	}
-	kfree(p_buf);
-
-	return (ssize_t)cnt;
-}
-#endif
 
 /* Record the learned a value. */
 void store_trained_a(struct polar_learn_tbl *lut,
@@ -1924,19 +1848,6 @@ void clear_polar_err_b(void)
 }
 EXPORT_SYMBOL(clear_polar_err_b);
 
-#ifdef CONFIG_HISI_DEBUG_FS
-int test_vector_curr_lookup(int curr)
-{
-	return interpolate_curr_vector(g_polar_curr_vector_interval,
-		POLAR_CURR_ARRAY_VECTOR_NUM, curr);
-}
-
-int test_nearest_lookup(int soc)
-{
-	return interpolate_nearest_x(g_polar_resistence_pc_points,
-		POLAR_RES_PC_CURR_ROWS, soc);
-}
-#endif
 static struct device_node *get_batt_phandle(struct device_node *np,
 	const char *prop, int p_num, const char *name)
 {
@@ -2139,11 +2050,6 @@ out:
 	return ret;
 }
 
-#ifdef CONFIG_HISI_DEBUG_FS
-static DEVICE_ATTR(self_learn_value, (S_IRUSR | S_IRGRP),
-	polar_self_learn_show, NULL);
-#endif
-
 static void polar_lut_clear(void)
 {
 	memset_s(g_polar_ocv_lut.ocv, sizeof(g_polar_ocv_lut.ocv),
@@ -2186,11 +2092,6 @@ static int polar_info_init(struct hisi_polar_device *di)
 	for (i = 0; i < POLAR_ARRAY_NUM; i++)
 		di->polar_vol_array[i] = POLAR_VOL_INVALID;
 	polar_lut_clear();
-#ifdef CONFIG_HISI_DEBUG_FS
-	ret = device_create_file(di->dev, &dev_attr_self_learn_value);
-	if (ret)
-		polar_err("failed to create file");
-#endif
 	polar_debug("cell name:%s_%d\n", batt_brand, batt_fcc_design);
 	ret = snprintf_s(batt_name, BATTCELL_NAME_SIZE_MAX,
 		 BATTCELL_NAME_SIZE_MAX - 1, "%s_%d", batt_brand, batt_fcc_design);
@@ -2293,9 +2194,6 @@ static int hisi_coul_polar_remove(struct platform_device *pdev)
 	}
 
 	g_polar_di = NULL;
-#ifdef CONFIG_HISI_DEBUG_FS
-	device_remove_file(&pdev->dev, &dev_attr_self_learn_value);
-#endif
 	platform_set_drvdata(pdev, NULL);
 	return 0;
 }

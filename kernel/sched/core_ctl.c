@@ -329,115 +329,6 @@ static ssize_t show_close_thres(const struct cluster_data *state,
 			  "%u\n", state->close_thres);
 }
 
-#ifdef CONFIG_HISI_DEBUG_FS
-static ssize_t show_need_cpus(const struct cluster_data *state, char *buf)
-{
-	return snprintf_s(buf, PAGE_SIZE, PAGE_SIZE - 1,
-			  "%u\n", state->need_cpus);
-}
-
-static ssize_t show_active_cpus(const struct cluster_data *state, char *buf)
-{
-	return snprintf_s(buf, PAGE_SIZE, PAGE_SIZE - 1,
-			  "%u\n", state->active_cpus);
-}
-
-static ssize_t show_global_state(const struct cluster_data *state, char *buf)
-{
-	struct cpu_data *cpud = NULL;
-	struct cluster_data *cluster = NULL;
-	ssize_t count = 0;
-	int ret;
-	int cpu;
-	unsigned long flags;
-
-	spin_lock_irqsave(&state_lock, flags);
-	for_each_possible_cpu(cpu) {
-		cpud = &per_cpu(cpu_state, cpu);
-		cluster = cpud->cluster;
-		if (IS_ERR_OR_NULL(cluster))
-			continue;
-
-		if (!cluster->inited)
-			continue;
-
-		update_isolated_time(cpud);
-
-		ret = snprintf_s(buf + count, PAGE_SIZE - count,
-				    PAGE_SIZE - count - 1, "CPU%u\n", cpu);
-		break_if_fail_else_add_ret(ret, count);
-		ret = snprintf_s(buf + count, PAGE_SIZE - count,
-				 PAGE_SIZE - count - 1,
-				 "\tOnline: %u\n", cpu_online(cpu));
-		break_if_fail_else_add_ret(ret, count);
-		ret = snprintf_s(buf + count, PAGE_SIZE - count,
-				 PAGE_SIZE - count - 1,
-				 "\tIsolated: %u\n", cpu_isolated(cpu));
-		break_if_fail_else_add_ret(ret, count);
-		ret = snprintf_s(buf + count, PAGE_SIZE - count,
-				 PAGE_SIZE - count - 1,
-				 "\tIsolate cnt: %llu\n", cpud->isolate_cnt);
-		break_if_fail_else_add_ret(ret, count);
-		ret = snprintf_s(buf + count, PAGE_SIZE - count,
-				 PAGE_SIZE - count - 1,
-				 "\tIsolated time: %llu\n",
-				 cpud->isolated_time);
-		break_if_fail_else_add_ret(ret, count);
-		ret = snprintf_s(buf + count, PAGE_SIZE - count,
-				 PAGE_SIZE - count - 1,
-				 "\tFirst CPU: %u\n", cluster->first_cpu);
-		break_if_fail_else_add_ret(ret, count);
-		ret = snprintf_s(buf + count, PAGE_SIZE - count,
-				 PAGE_SIZE - count - 1,
-				 "\tLoad%%: %u\n", cpud->load);
-		break_if_fail_else_add_ret(ret, count);
-		ret = snprintf_s(buf + count, PAGE_SIZE - count,
-				 PAGE_SIZE - count - 1,
-				 "\tIs busy: %u\n", cpud->is_busy);
-		break_if_fail_else_add_ret(ret, count);
-		ret = snprintf_s(buf + count, PAGE_SIZE - count,
-				 PAGE_SIZE - count - 1,
-				 "\tNot preferred: %u\n",
-				 cpud->not_preferred);
-		break_if_fail_else_add_ret(ret, count);
-
-		if (cpu != cluster->first_cpu)
-			continue;
-
-		ret = snprintf_s(buf + count, PAGE_SIZE - count,
-				 PAGE_SIZE - count - 1,
-				 "\tNr running: %u\n", cluster->nrrun);
-		break_if_fail_else_add_ret(ret, count);
-		ret = snprintf_s(buf + count, PAGE_SIZE - count,
-				 PAGE_SIZE - count - 1,
-				 "\tMax nr running: %u\n",
-				 cluster->max_nrrun);
-		break_if_fail_else_add_ret(ret, count);
-		ret = snprintf_s(buf + count, PAGE_SIZE - count,
-				 PAGE_SIZE - count - 1,
-				 "\tActive CPUs: %u\n",
-				 get_active_cpu_count(cluster));
-		break_if_fail_else_add_ret(ret, count);
-		ret = snprintf_s(buf + count, PAGE_SIZE - count,
-				 PAGE_SIZE - count - 1,
-				 "\tNeed CPUs: %u\n", cluster->need_cpus);
-		break_if_fail_else_add_ret(ret, count);
-		ret = snprintf_s(buf + count, PAGE_SIZE - count,
-				 PAGE_SIZE - count - 1,
-				 "\tNr isolated CPUs: %u\n",
-				 cluster->nr_isolated_cpus);
-		break_if_fail_else_add_ret(ret, count);
-		ret = snprintf_s(buf + count, PAGE_SIZE - count,
-				 PAGE_SIZE - count - 1,
-				 "\tBoost: %u\n", cluster->boost);
-		break_if_fail_else_add_ret(ret, count);
-	}
-	spin_unlock_irqrestore(&state_lock, flags);
-
-	return count;
-}
-#endif
-
 static ssize_t store_not_preferred(struct cluster_data *state,
 				   const char *buf, size_t count)
 {
@@ -590,11 +481,6 @@ core_ctl_attr_rw(idle_thres);
 core_ctl_attr_rw(task_thres);
 core_ctl_attr_rw(open_thres);
 core_ctl_attr_rw(close_thres);
-#ifdef CONFIG_HISI_DEBUG_FS
-core_ctl_attr_ro(need_cpus);
-core_ctl_attr_ro(active_cpus);
-core_ctl_attr_ro(global_state);
-#endif
 core_ctl_attr_rw(not_preferred);
 core_ctl_attr_rw(update_interval_ms);
 core_ctl_attr_rw(boost);
@@ -610,11 +496,6 @@ static struct attribute *default_attrs[] = {
 	&task_thres.attr,
 	&open_thres.attr,
 	&close_thres.attr,
-#ifdef CONFIG_HISI_DEBUG_FS
-	&need_cpus.attr,
-	&active_cpus.attr,
-	&global_state.attr,
-#endif
 	&not_preferred.attr,
 	&update_interval_ms.attr,
 	&boost.attr,

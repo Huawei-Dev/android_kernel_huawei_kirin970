@@ -100,11 +100,6 @@ void ufshcd_unistore_op_register(struct ufs_hba *hba)
 	hostt->dev_get_program_size = ufshcd_dev_get_program_size;
 	hostt->dev_bad_block_notify_register =
 		ufshcd_unistore_bad_block_notify_register;
-#ifdef CONFIG_MAS_DEBUG_FS
-	hostt->dev_rescue_block_inject_data =
-		ufshcd_dev_rescue_block_inject_data;
-	hostt->dev_bad_block_error_inject = ufshcd_dev_bad_block_error_inject;
-#endif
 }
 
 static void ufshcd_enable_bad_block_occur(struct ufs_hba *hba)
@@ -145,17 +140,6 @@ static void ufshcd_unistore_set_sec_size(struct ufs_hba *hba)
 	ret = ufshcd_dev_read_section_size_hba(hba, &(hba->host->mas_sec_size));
 	if (ret)
 		dev_err(hba->dev, "%s: read sec size ret err %d\n", __func__, ret);
-
-#if defined(CONFIG_HISI_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-	/* 144M - 288M */
-	if ((hba->host->mas_sec_size != 0x9000) &&
-		(hba->host->mas_sec_size != 0x12000)) {
-		dev_err(hba->dev, "%s: read section size err %u\n",
-			__func__, hba->host->mas_sec_size);
-		rdr_syserr_process_for_ap(
-			(u32)MODID_AP_S_PANIC_STORAGE, 0ull, 0ull);
-	}
-#endif
 }
 
 int ufshcd_unistore_init(struct ufs_hba *hba)
@@ -243,14 +227,6 @@ int ufshcd_custom_upiu_unistore(
 			CUSTOM_UPIU_BUILD_SLC_MODE_OFFSET)) &
 			CUSTOM_UPIU_BUILD_STREAM_TYPE_MASK;
 
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-		if (mas_blk_recovery_debug_on() && req->mas_req.stream_type) {
-			pr_err("%s, reset debug, make_nr:%u, stream:%u\n", __func__,
-				req->mas_req.make_req_nr, req->mas_req.stream_type);
-			ucd_req_ptr->sc.cdb[6] = 0;
-			mas_blk_recovery_debug_off();
-		}
-#endif
 		/* Add CP Tag flag 0x20*/
 		if (req->mas_req.cp_tag)
 			ucd_req_ptr->sc.cdb[6] |= 0x20;

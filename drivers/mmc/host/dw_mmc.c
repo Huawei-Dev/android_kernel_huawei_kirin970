@@ -142,11 +142,6 @@ extern void dw_mci_work_routine_card(struct work_struct *work);
 extern bool mci_wait_reset(struct device *dev, struct dw_mci *host);
 extern int mci_send_cmd(struct dw_mci_slot *slot, u32 cmd, u32 arg);
 
-#if defined(CONFIG_HISI_DEBUG_FS)
-extern unsigned int test_sd_data;
-extern unsigned int sd_test_reset_flag;
-#endif
-
 #if defined(CONFIG_DEBUG_FS)
 static int dw_mci_req_show(struct seq_file *s, void *v)
 {
@@ -585,12 +580,11 @@ static void dw_mci_translate_sglist(struct dw_mci *host, struct mmc_data *data,
 
 			/* Set the OWN bit and disable interrupts for this descriptor */
 			desc->des0 = IDMAC_DES0_OWN | IDMAC_DES0_DIC | IDMAC_DES0_CH;
-			/*优化修改，防止内存不初始化*/
+
 			if(desc->des0 & IDMAC_DES0_CH) {
 				desc->des1 = 0;
 			}
 
-			/*优化修改，防止内存不初始化*/
 			if(desc->des0 & IDMAC_DES0_CH) {
 				desc->des1 = 0;
 			}
@@ -634,12 +628,10 @@ static void dw_mci_translate_sglist(struct dw_mci *host, struct mmc_data *data,
 				/* Set the OWN bit and disable interrupts for this descriptor */
 				desc->des0 = IDMAC_DES0_OWN | IDMAC_DES0_DIC | IDMAC_DES0_CH;
 
-				/*优化修改，防止内存不初始化*/
 				if(desc->des0 & IDMAC_DES0_CH) {
 				        desc->des2 = 0;
 				}
 
-				/*优化修改，防止内存不初始化*/
 				if(desc->des0 & IDMAC_DES0_CH) {
 					desc->des2 = 0;
 				}
@@ -713,7 +705,6 @@ static inline int dw_mci_prepare_desc64(struct dw_mci *host,
 			desc->des0 = IDMAC_DES0_OWN | IDMAC_DES0_DIC |
 						IDMAC_DES0_CH;
 
-			/*优化修改，防止内存不初始化*/
 			if(desc->des0 & IDMAC_DES0_CH) {
                                 desc->des1 = 0;
                         }
@@ -795,7 +786,6 @@ static inline int dw_mci_prepare_desc32(struct dw_mci *host,
 						 IDMAC_DES0_DIC |
 						 IDMAC_DES0_CH);
 
-			/*优化修改，防止内存不初始化*/
 			if(desc->des0 & IDMAC_DES0_CH) {
 				desc->des1 = 0;
 			}
@@ -1083,12 +1073,6 @@ int dw_mci_get_cd(struct mmc_host *mmc)
 	else
 		present = (mci_readl(slot->host, CDETECT) & (1 << id))
 			== 0 ? 1 : 0;
-#ifdef CONFIG_HISI_DEBUG_FS
-	if (host->hw_mmc_id == DWMMC_SD_ID && mmc->sim_remove_nano) {
-		present = 0;
-		dev_err(&mmc->class_dev, "nano sd test sim_remove_nano = 1\n");
-	}
-#endif
 
 	if (present)
 		dev_err(&mmc->class_dev, "card is present\n");
@@ -1595,7 +1579,7 @@ static void dw_mci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 		drv_data->set_ios(slot->host, ios);
 
 	mmc->f_min = DIV_ROUND_UP(slot->host->bus_hz, 510);
-	mmc->f_max = slot->host->bus_hz;/*上面设置的bus_hz*/
+	mmc->f_max = slot->host->bus_hz;
 
 	/* Slot specific timing and width adjustment */
 	dw_mci_setup_bus(slot, false);
@@ -1783,22 +1767,6 @@ static int dw_mci_downshift(struct mmc_host *mmc)
 	return downshift_res;
 }
 
-/*
-static int dw_mci_card_busy(struct mmc_host *mmc)
-{
-	struct dw_mci_slot *slot = mmc_priv(mmc);
-	struct dw_mci *host = slot->host;
-	u32 present_state;
-
-	pm_runtime_get_sync(mmc_dev(mmc));
-	present_state = mci_readl(host, STATUS);
-	pm_runtime_mark_last_busy(mmc_dev(mmc));
-	pm_runtime_put_autosuspend(mmc_dev(mmc));
-
-	return (present_state & SDMMC_STATUS_BUSY);
-
-}*/
-
 #ifdef CONFIG_MMC_PASSWORDS
 static int dw_mci_sd_lock_reset(struct mmc_host *mmc)
 {
@@ -1868,15 +1836,6 @@ void dw_mci_retuning_flag_set(struct dw_mci *host,int timing)
 
 }
 
-#if defined(CONFIG_HISI_DEBUG_FS)
-void sd_reset_test_func(struct mmc_request *mrq, struct dw_mci *host)
-{
-	if (sd_test_reset_flag && mrq && mrq->cmd && (host->hw_mmc_id == DWMMC_SD_ID)) {
-		mrq->cmd->error = -EILSEQ;
-	}
-}
-#endif
-
 void dw_mci_request_end(struct dw_mci *host, struct mmc_request *mrq)
 	__releases(&host->lock)
 	__acquires(&host->lock)
@@ -1885,9 +1844,7 @@ void dw_mci_request_end(struct dw_mci *host, struct mmc_request *mrq)
 	struct mmc_host	*prev_mmc = host->cur_slot->mmc;
 	const struct dw_mci_drv_data *drv_data = host->drv_data;
 	int timing = prev_mmc->ios.timing;
-#if defined(CONFIG_HISI_DEBUG_FS)
-	struct mmc_card *card = prev_mmc->card;
-#endif
+
 	WARN_ON(host->cmd || host->data);
 
 	del_timer(&host->timer);
@@ -1938,11 +1895,6 @@ void dw_mci_request_end(struct dw_mci *host, struct mmc_request *mrq)
 	}
 
 out:
-#if defined(CONFIG_HISI_DEBUG_FS)
-	if (card) {
-		sd_reset_test_func(mrq, host);
-	}
-#endif
 	if (!list_empty(&host->queue)) {
 		slot = list_entry(host->queue.next,
 				  struct dw_mci_slot, queue_node);
@@ -1962,8 +1914,7 @@ out:
 
 	pm_runtime_mark_last_busy(mmc_dev(prev_mmc));
 	pm_runtime_put_autosuspend(mmc_dev(prev_mmc));
-}/*lint !e454*/
-
+}
 
 void dw_mci_print_error(struct dw_mci *host, struct mmc_command *cmd)
 {
@@ -2029,9 +1980,6 @@ static void dw_mci_command_complete(struct dw_mci *host, struct mmc_command *cmd
 		cmd->error = 0;
 
 }
-/*lint -restore*/
-
-
 
 static void dw_mci_set_drto(struct dw_mci *host)
 {
@@ -2251,9 +2199,6 @@ static void dw_mci_tasklet_func(unsigned long priv)
 				break;
 			}
 
-#if defined(CONFIG_HISI_DEBUG_FS)
-			status |= test_sd_data;
-#endif
 			if (status & DW_MCI_DATA_ERROR_FLAGS) {
 				if (status & SDMMC_INT_DRTO) {
 					dev_err(host->dev,
@@ -2382,9 +2327,6 @@ static void dw_mci_tasklet_func(unsigned long priv)
 unlock:
 	spin_unlock(&host->lock);
 
-#if defined(CONFIG_HISI_DEBUG_FS)
-	test_sd_data = 0;
-#endif
 }
 /*lint -restore*/
 /* push final bytes to part_buf, only use during push */
@@ -3053,20 +2995,6 @@ static int dw_mci_of_get_wp_gpio(struct dw_mci_slot *slot)
 }
 #endif /* CONFIG_OF */
 
-/*static void dw_mci_slot_of_parse(struct dw_mci_slot *slot)
-{
-	struct device_node *np = dw_mci_of_find_slot_node(slot);
-
-	if (!np)
-		return;
-
-	if (of_property_read_bool(np, "disable-wp")) {
-		slot->mmc->caps2 |= MMC_CAP2_NO_WRITE_PROTECT;
-		dev_warn(slot->mmc->parent,
-			"Slot quirk 'disable-wp' is deprecated\n");
-	}
-}*/
-
 static int dw_mci_init_slot(struct dw_mci *host, unsigned int id)
 {
 	struct mmc_host *mmc;
@@ -3164,9 +3092,8 @@ static int dw_mci_init_slot(struct dw_mci *host, unsigned int id)
 				mmc->max_blk_size * mmc->max_blk_count;
 		mmc->max_seg_size = mmc->max_req_size;
 	} else {
-		/* TRANS_MODE_PIO */
 		mmc->max_segs = 64;
-		mmc->max_blk_size = 65535; /* BLKSIZ is 16 bits */
+		mmc->max_blk_size = 65535;
 		mmc->max_blk_count = 512;
 		mmc->max_req_size = mmc->max_blk_size *
 				    mmc->max_blk_count;
@@ -3814,7 +3741,6 @@ int dw_mci_probe(struct dw_mci *host)
 		 "DW MMC controller at irq %d,%d bit host data width,%u deep fifo\n",
 		 host->irq, width, fifo_size);
 
-	/*??IP???????*/
 	/* We need at least one slot to succeed */
 	for (i = 0; i < host->num_slots; i++) {/*lint !e574*/
 		ret = dw_mci_init_slot(host, i);

@@ -226,38 +226,6 @@ int mas_blk_fs_sync_done(struct block_device *bi_bdev)
 	return ret;
 }
 
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-int mas_blk_rescue_block_inject_data(struct block_device *bi_bdev, sector_t sect)
-{
-	struct request_queue *q = bdev_get_queue(bi_bdev);
-	struct blk_dev_lld *lld = mas_blk_get_lld(q);
-	unsigned int lba = sect + (bi_bdev->bd_part->start_sect >> SECTION_SECTOR);
-
-	if (!blk_queue_query_unistore_enable(q))
-		return -EFAULT;
-
-	if (!lld || !lld->unistore_ops.dev_rescue_block_inject_data)
-		return -EPERM;
-
-	return lld->unistore_ops.dev_rescue_block_inject_data(q, lba);
-}
-
-int mas_blk_bad_block_error_inject(struct block_device *bi_bdev,
-	unsigned char bad_slc_cnt, unsigned char bad_tlc_cnt)
-{
-	struct request_queue *q = bdev_get_queue(bi_bdev);
-	struct blk_dev_lld *lld = mas_blk_get_lld(q);
-
-	if (!blk_queue_query_unistore_enable(q))
-		return -EFAULT;
-
-	if (!lld || !lld->unistore_ops.dev_bad_block_err_inject)
-		return -EPERM;
-
-	return lld->unistore_ops.dev_bad_block_err_inject(q, bad_slc_cnt, bad_tlc_cnt);
-}
-#endif
-
 int mas_blk_data_move(struct block_device *bi_bdev,
 	struct stor_dev_data_move_info *data_move_info)
 {
@@ -638,13 +606,6 @@ void mas_blk_insert_section_list(struct block_device *bdev,
 	if (section_start_lba % (lld->mas_sec_size))
 		return;
 
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-	if (mas_blk_unistore_debug_en())
-		pr_err("%s, start_blkaddr = %u,"
-			"section_start_lba = 0x%llx - 0x%llx, stream_type = %d\n",
-			__func__, start_blkaddr, section_start_lba / (lld->mas_sec_size),
-			section_start_lba % (lld->mas_sec_size), stream_type);
-#endif
 	section_info = kmalloc(sizeof(struct unistore_section_info), GFP_KERNEL);
 	if (unlikely(!section_info)) {
 		pr_err("%s, kmalloc fail\n", __func__);

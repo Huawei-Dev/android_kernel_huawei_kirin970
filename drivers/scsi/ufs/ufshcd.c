@@ -273,13 +273,8 @@ static void ufshpb_compose_upiu(struct ufs_hba *hba, struct ufshcd_lrb *lrbp);
 #ifdef CONFIG_HISI_UFS_MANUAL_BKOPS
 #include "hisi-ufs-bkops.h"
 #endif
-#ifdef CONFIG_HISI_DEBUG_FS
-#define HUFS_BUG_ON(x) 	do {BUG_ON(x);} while(0)
-#define HUFS_BUG() 		do {BUG();} while(0)
-#else
 #define HUFS_BUG_ON(x) 	do {} while(0)
 #define HUFS_BUG() 		do {} while(0)
-#endif
 
 #if (defined CONFIG_SCSI_UFS_GEMINI || defined CONFIG_SCSI_UFS_ARIES || \
 	defined CONFIG_SCSI_UFS_LIBRA)
@@ -2945,10 +2940,6 @@ static void ufshcd_validate_tag(struct Scsi_Host *host, struct ufs_hba *hba,
 }
 
 #ifdef CONFIG_MAS_ORDER_PRESERVE
-#if defined(CONFIG_HISI_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-extern int mas_blk_order_debug_en(void);
-#endif
-
 static int ufshcd_custom_upiu_order(struct utp_upiu_req *ucd_req_ptr,
 				     struct request *req,
 				     struct scsi_cmnd *scmd,
@@ -2962,11 +2953,6 @@ static int ufshcd_custom_upiu_order(struct utp_upiu_req *ucd_req_ptr,
 	if (scsi_is_order_cmd(scmd)) {
 		wo_nr = blk_req_get_order_nr(req, true);
 		if (wo_nr) {
-#if defined(CONFIG_HISI_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-			if (mas_blk_order_debug_en())
-				pr_err("cmd = 0x%x, order_nr = %u \r\n",
-						scmd->cmnd[0], wo_nr);
-#endif
 			/* CDB 12-15 for Command Order */
 			ucd_req_ptr->sc.cdb[12] = (unsigned char)(wo_nr);
 			ucd_req_ptr->sc.cdb[13] = (unsigned char)(wo_nr >> 8);
@@ -9588,83 +9574,7 @@ static void ufshcd_print_host_regs(struct ufs_hba *hba)
 	if (hba->vops && hba->vops->dbg_register_dump)
 		hba->vops->dbg_register_dump(hba);
 }
-#ifdef CONFIG_HISI_DEBUG_FS
-static
-void ufshcd_print_trs(struct ufs_hba *hba, unsigned long bitmap, bool pr_prdt)
-{
-	struct ufshcd_lrb *lrbp;
-	int prdt_length;
-	int tag;
 
-	dev_err(hba->dev, "current ktime %lld us\n", ktime_to_us(ktime_get()));
-	for_each_set_bit(tag, &bitmap, hba->nutrs) {
-		lrbp = &hba->lrb[tag];
-
-		dev_err(hba->dev, "UPIU[%d] - issue time %lld us\n",
-				tag, ktime_to_us(lrbp->issue_time_stamp));
-		dev_err(hba->dev, "UPIU[%d] - complete time %lld us\n",
-				tag, ktime_to_us(lrbp->complete_time_stamp));
-		dev_err(hba->dev,
-			"UPIU[%d] - Transfer Request Descriptor phys@0x%llx\n",
-			tag, (u64)lrbp->utrd_dma_addr);
-
-		if (ufshcd_is_hufs_hc(hba))
-			ufshcd_hex_dump("UPIU TRD: ",
-				lrbp->hufs_utr_descriptor_ptr,
-				sizeof(struct hufs_utp_transfer_req_desc));
-		else
-			ufshcd_hex_dump("UPIU TRD: ", lrbp->utr_descriptor_ptr,
-				sizeof(struct utp_transfer_req_desc));
-
-		dev_err(hba->dev, "UPIU[%d] - Request UPIU phys@0x%llx\n", tag,
-			(u64)lrbp->ucd_req_dma_addr);
-		ufshcd_hex_dump("UPIU REQ: ", lrbp->ucd_req_ptr,
-				sizeof(struct utp_upiu_req));
-		dev_err(hba->dev, "UPIU[%d] - Response UPIU phys@0x%llx\n", tag,
-			(u64)lrbp->ucd_rsp_dma_addr);
-		ufshcd_hex_dump("UPIU RSP: ", lrbp->ucd_rsp_ptr,
-				sizeof(struct utp_upiu_rsp));
-
-		if (ufshcd_is_hufs_hc(hba))
-			prdt_length = le16_to_cpu(lrbp->hufs_utr_descriptor_ptr
-							  ->prd_table_length);
-		else
-			prdt_length = le16_to_cpu(
-				lrbp->utr_descriptor_ptr->prd_table_length);
-		dev_err(hba->dev,
-			"UPIU[%d] - PRDT - %d entries  phys@0x%llx\n",
-			tag, prdt_length,
-			(u64)lrbp->ucd_prdt_dma_addr);
-
-#ifdef CONFIG_UFSHCD_DUMP_PRDT
-		if (pr_prdt)
-			ufshcd_hex_dump("UPIU PRDT: ", lrbp->ucd_prdt_ptr,
-				sizeof(struct ufshcd_sg_entry) * prdt_length);
-#endif
-	}
-}
-
-static void ufshcd_print_tmrs(struct ufs_hba *hba, unsigned long bitmap)
-{
-	struct utp_task_req_desc *tmrdp;
-	int tag;
-
-	for_each_set_bit(tag, &bitmap, hba->nutmrs) {
-		tmrdp = &hba->utmrdl_base_addr[tag];
-		dev_err(hba->dev, "TM[%d] - Task Management Header\n", tag);
-		ufshcd_hex_dump("TM TRD: ", &tmrdp->header,
-				sizeof(struct request_desc_header));
-		dev_err(hba->dev, "TM[%d] - Task Management Request UPIU\n",
-				tag);
-		ufshcd_hex_dump("TM REQ: ", tmrdp->task_req_upiu,
-				sizeof(struct utp_upiu_req));
-		dev_err(hba->dev, "TM[%d] - Task Management Response UPIU\n",
-				tag);
-		ufshcd_hex_dump("TM RSP: ", tmrdp->task_rsp_upiu,
-				sizeof(struct utp_task_req_desc));
-	}
-}
-#else
 static
 void ufshcd_print_trs(struct ufs_hba *hba, unsigned long bitmap, bool pr_prdt)
 {
@@ -9675,7 +9585,7 @@ static void ufshcd_print_tmrs(struct ufs_hba *hba, unsigned long bitmap)
 {
 	return;
 }
-#endif
+
 static void ufshcd_print_host_state(struct ufs_hba *hba)
 {
 	dev_err(hba->dev, "UFS Host state=%d\n", hba->ufshcd_state);
@@ -10134,10 +10044,6 @@ void ufshcd_fsr_dump_handler(struct work_struct *work)
 		dev_err(hba->dev, "[%s]READ FSR FAILED\n", __func__);
 		return;
 	}
-#ifdef CONFIG_HISI_DEBUG_FS
-	dev_err(hba->dev, "===============UFS HI1861 FSR INFO===============\n");
-#endif
-	/*lint -save -e661 -e662*/
 	for (i = 0 ; i < HI1861_FSR_INFO_SIZE; i = i + 16) {
 		dev_err(hba->dev, "0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n",
 		*(fbuf + i + 0), *(fbuf + i + 1), *(fbuf + i + 2), *(fbuf + i + 3),
@@ -11085,28 +10991,6 @@ void ufshcd_idle_handler(struct ufs_hba *hba)
 {
 #ifdef CONFIG_MAS_BLK
 	struct blk_dev_lld *lld = &(hba->host->tag_set.lld_func);
-#endif
-#ifdef CONFIG_HISI_DEBUG_FS
-	static DEFINE_RATELIMIT_STATE(idle_print_rs, (30 * HZ), 1);
-	u32 utp_tx_doorbell;
-	u32 utp_task_doorbell;
-
-	if (!hba->idle_intr_disabled) {
-		utp_tx_doorbell = ufshcd_readl(hba, REG_UTP_TRANSFER_REQ_DOOR_BELL);
-		utp_task_doorbell = ufshcd_readl(hba, REG_UTP_TASK_REQ_DOOR_BELL);
-		if (__ratelimit(&idle_print_rs)) {
-			if (utp_tx_doorbell || utp_task_doorbell)
-				dev_err(hba->dev, "%s,Got Idle interrupt while utp_tx_doorbell: 0x%lx, utp_task_doorbell: 0x%x\n",
-						__func__, (u64)utp_tx_doorbell, utp_task_doorbell);
-			else if (unlikely(hba->ufs_idle_intr_verify))
-				dev_info(hba->dev, "%s, Idle interrupt, all the doorbell is 0\n", __func__);
-		}
-	}
-
-	mod_timer(&hba->idle_intr_check_timer, jiffies + msecs_to_jiffies(hba->idle_intr_check_timer_threshold));
-#endif /* CONFIG_HISI_DEBUG_FS */
-
-#ifdef CONFIG_MAS_BLK
 	blk_lld_idle_notify(lld);
 #endif
 	ufstt_idle_handler(hba, ktime_get());

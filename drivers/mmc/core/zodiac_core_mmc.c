@@ -814,10 +814,6 @@ static int mmc_do_sd_reset(struct mmc_host *host)
 	if (host->ops->hw_reset)
 		host->ops->hw_reset(host);
 
-/* clear the reset flag after reset has been done */
-#if defined(CONFIG_HISI_DEBUG_FS)
-	sd_test_reset_flag = 0;
-#endif
 	/* Only for K930/920 SD slow down clk */
 	if (host->ops->slowdown_clk)
 		host->ops->slowdown_clk(host, host->ios.timing);

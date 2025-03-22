@@ -1511,13 +1511,6 @@ void kbase_jd_done(struct kbase_jd_atom *katom, int slot_nr,
 
 	atomic_inc(&kctx->work_count);
 
-#ifdef CONFIG_HISI_DEBUG_FS
-	/* a failed job happened and is waiting for dumping*/
-	if (!katom->will_fail_event_code &&
-			kbase_debug_job_fault_process(katom, katom->event_code))
-		return;
-#endif
-
 	WARN_ON(work_pending(&katom->work));
 	INIT_WORK(&katom->work, kbase_jd_done_worker);
 	queue_work(kctx->jctx.job_done_wq, &katom->work);
@@ -1587,10 +1580,6 @@ void kbase_jd_zap_context(struct kbase_context *kctx)
 	 * been queued are done before continuing.
 	 */
 	flush_workqueue(kctx->dma_fence.wq);
-#endif
-
-#ifdef CONFIG_HISI_DEBUG_FS
-	kbase_debug_job_fault_kctx_unblock(kctx);
 #endif
 
 	kbase_jm_wait_for_zero_jobs(kctx);

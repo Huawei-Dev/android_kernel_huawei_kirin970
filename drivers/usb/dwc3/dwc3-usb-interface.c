@@ -149,67 +149,6 @@ static void dwc3_dump_regs(void)
 		dwc3_readl(g_dwc->regs, DWC3_LINK_GDBGLTSSM(0)));
 }
 
-#ifdef CONFIG_HISI_DEBUG_FS
-static void usb3_link_state_print(void)
-{
-	u32 value;
-	unsigned long long int count6 = 0;
-	int flg6 = 1;
-	int flg3 = 1;
-	unsigned long long int count3 = 0;
-	unsigned long long int count8 = 0;
-	u32 old = 0;
-
-	while (!chip_dwc3_is_powerdown()) {
-		value = dwc3_readl(g_dwc->regs, DWC3_LINK_GDBGLTSSM(0));
-		switch ((value >> 22) & 0xf) { /* LTDB Link State */
-		case 6:
-			count6++;
-			if ((count6 % 100000) == 0) /* calculation remainder */
-				pr_debug("[LINK]:%x, %llu\n", value, count6);
-			if (flg6) {
-				pr_debug("[LINK]:%x, %llu\n", value, count6);
-				count6 = 0;
-				flg6 = 0;
-				flg3 = 1;
-			}
-			break;
-		case 0:
-		case 1:
-		case 2:
-		case 3:
-			count3++;
-			if ((count3 % 100000) == 0) /* calculation remainder */
-				pr_debug("[LINK]:%x, %llu\n", value, count3);
-			if (flg3) {
-				pr_debug("[LINK]:0x%x, %llu\n", value, count3);
-				count3 = 0;
-				flg3 = 0;
-				flg6 = 1;
-			}
-			break;
-		case 4:
-		case 5:
-		case 7:
-		case 8:
-			flg3 = 1;
-			flg6 = 1;
-			if (((value >> 18) & 0xf) == old) { /* LTDB Sub-State */
-				count8++;
-				break;
-			}
-			old = ((value >> 18) & 0xf); /* LTDB Sub-State */
-			pr_debug("[USB.DBG.LINK]:0x%x\n", value);
-			break;
-		default:
-			flg3 = 1;
-			flg6 = 1;
-			pr_debug("[USB.DBG.LINK]:0x%x\n", value);
-		}
-	}
-}
-#endif
-
 static void dwc3_logic_analyzer_trace_set(u32 value)
 {
 	u32 regvalue;
@@ -274,9 +213,6 @@ static struct usb3_core_ops dwc3_core_ops = {
 	.disable_pipe_clock = dwc3_disable_pipe_clock,
 	.enable_u3 = dwc3_enable_u3,
 	.dump_regs = dwc3_dump_regs,
-#ifdef CONFIG_HISI_DEBUG_FS
-	.link_state_print = usb3_link_state_print,
-#endif
 	.logic_analyzer_trace_set = dwc3_logic_analyzer_trace_set,
 };
 

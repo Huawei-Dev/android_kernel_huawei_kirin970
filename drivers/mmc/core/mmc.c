@@ -2160,12 +2160,6 @@ static void mmc_remove(struct mmc_host *host)
  */
 static int mmc_alive(struct mmc_host *host)
 {
-#ifdef CONFIG_HISI_DEBUG_FS
-	if (host->sim_remove_nano && host->index == 1) {
-		pr_err("%s nano sd remove test, return err\n", __func__);
-		return -1;
-	}
-#endif
 	return mmc_send_status(host->card, NULL);
 }
 

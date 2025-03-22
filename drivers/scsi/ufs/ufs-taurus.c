@@ -770,9 +770,6 @@ void sel_equalizer_misc(struct ufs_hba *hba, u32 *equalizer)
 	struct device_node *np = dev->of_node;
 
 	if (of_find_property(np, "ufs-35db-equalizer-modularized", NULL)) {
-#ifdef CONFIG_HISI_DEBUG_FS
-		dev_err(dev, "Found modularized-ufs and select 3.5db\n");
-#endif
 		*equalizer = TX_EQUALIZER_35DB; /* 35DB */
 	}
 }
@@ -787,9 +784,6 @@ void hufs_pwr_change_pre_change(
 	host = hba->priv;
 
 	pr_info("%s ++\n", __func__);
-#ifdef CONFIG_HISI_DEBUG_FS
-	pr_info("device manufacturer_id is 0x%x\n", hba->manufacturer_id);
-#endif
 
 	equalizer = (dev_req_params->gear_tx == GEAR_4) ? EQUALIZER_0DB :
 							  EQUALIZER_35DB;

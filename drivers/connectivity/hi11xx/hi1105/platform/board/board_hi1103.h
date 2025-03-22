@@ -66,10 +66,6 @@ int32_t hi1103_wifi_enable(void);
 void hi1103_chip_power_off(void);
 void hi1103_bfgx_disable(void);
 int32_t hi1103_wifi_disable(void);
-#if (defined(CONFIG_PCIE_KIRIN_SLT_HI110X) || defined(CONFIG_PCIE_KPORT_SLT_DEVICE)) && defined(CONFIG_HISI_DEBUG_FS)
-int32_t hi1103_pcie_chip_rc_slt_register(void);
-int32_t hi1103_pcie_chip_rc_slt_unregister(void);
-#endif
 int32_t hi1103_board_flowctrl_gpio_init(void);
 void hi1103_free_board_flowctrl_gpio(void);
 #ifdef _PRE_HI_DRV_GPIO

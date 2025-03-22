@@ -202,15 +202,6 @@ enum bkops_fs_work_result {
 };
 #endif
 
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-enum blk_ft_rq_sim_mode {
-	BLK_FT_RQ_SIM_NONE = 0, /* The value can't be changed! */
-	BLK_FT_RQ_SIM_TIMEOUT_HANDLED,
-	BLK_FT_RQ_SIM_RESET_TIMER,
-	BLK_FT_RQ_SIM_EXPECT_REQUEUE,
-};
-#endif
-
 /*
  * This struct defines all the variable in vendor block layer.
  */
@@ -252,15 +243,6 @@ struct blk_req_cust {
 
 	unsigned int make_req_nr;
 	unsigned int protocol_nr;
-
-	/*
-	 * Below info for debug info
-	 */
-
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-	atomic_t req_used;
-	enum blk_ft_rq_sim_mode simulate_mode;
-#endif
 };
 #endif /* CONFIG_MAS_BLK */
 
@@ -632,12 +614,6 @@ typedef int (*lld_dev_read_lrb_in_use_fn)(
 typedef int (*lld_dev_bad_block_notify_register_fn)(
 		struct request_queue *, void (*func)(struct Scsi_Host *host,
 		struct stor_dev_bad_block_info *bad_block_info));
-#ifdef CONFIG_MAS_DEBUG_FS
-typedef int (*lld_dev_rescue_block_inject_data_fn)(
-		struct request_queue *, unsigned int);
-typedef int (*lld_dev_bad_block_error_inject_fn)(
-		struct request_queue *, unsigned char, unsigned char);
-#endif
 #endif
 
 typedef void (*lld_dump_status_fn)(
@@ -729,23 +705,6 @@ struct blk_idle_state {
 	/* busy idle state*/
 	enum blk_io_state idle_state;
 
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-	/*
-	 * for busy idle statistic purpose
-	 */
-	ktime_t last_idle_ktime;
-	ktime_t last_busy_ktime;
-	ktime_t total_busy_ktime;
-	ktime_t total_idle_ktime;
-	unsigned long long total_idle_count;
-	/* statistic for idle time */
-	s64 blk_idle_dur[BLK_IDLE_DUR_IDX_DUR_NUM];
-	/* max idle time */
-	s64 max_idle_dur;
-	struct blk_busyidle_event_node busy_idle_test_node;
-	struct blk_busyidle_event_node busy_idle_test_nodes[5];
-#endif
-
 #ifdef CONFIG_MAS_UNISTORE_PRESERVE
 	/* foreground io idle event process worker */
 	struct delayed_work fg_io_idle_notify_worker;
@@ -791,10 +750,6 @@ struct mas_unistore_ops {
 	lld_dev_bad_block_notify_register_fn dev_bad_block_notify_register;
 	lld_dev_read_op_size_fn dev_read_op_size;
 	lld_dev_read_lrb_in_use_fn dev_read_lrb_in_use;
-#ifdef CONFIG_MAS_DEBUG_FS
-	lld_dev_rescue_block_inject_data_fn dev_rescue_block_inject_data;
-	lld_dev_bad_block_error_inject_fn dev_bad_block_err_inject;
-#endif
 };
 #endif
 
@@ -985,11 +940,6 @@ struct blk_queue_cust {
 	/* The request queue has the partition table or not */
 	bool blk_part_tbl_exist;
 	unsigned long usr_ctrl_n;
-
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-	bool io_prio_sim;
-	unsigned long tz_write_bytes;
-#endif
 
 	/*
 	 * Flush Optimise
@@ -2809,19 +2759,6 @@ int mas_blk_device_close_section(struct block_device *bi_bdev,
 	struct stor_dev_reset_ftl *reset_ftl_info);
 void mas_blk_mq_tagset_reset_ftl_register(
 	struct blk_mq_tag_set *tag_set, lld_dev_reset_ftl_fn func);
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-int mas_blk_bad_block_error_inject(struct block_device *bi_bdev,
-	unsigned char bad_slc_cnt, unsigned char bad_tlc_cnt);
-int mas_blk_rescue_block_inject_data(
-	struct block_device *bi_bdev, sector_t sect);
-void mas_blk_mq_tagset_rescue_block_inject_data_register(
-	struct blk_mq_tag_set *tag_set, lld_dev_rescue_block_inject_data_fn func);
-void mas_blk_mq_tagset_bad_block_error_inject_register(
-	struct blk_mq_tag_set *tag_set, lld_dev_bad_block_error_inject_fn func);
-int mas_blk_unistore_debug_en(void);
-int mas_blk_recovery_debug_on(void);
-void mas_blk_recovery_debug_off(void);
-#endif
 void mas_blk_bad_block_notify_register(struct block_device *bi_bdev,
 	blk_dev_bad_block_notify_fn func, void* param_data);
 void mas_blk_mq_tagset_bad_block_notify_register(

@@ -1144,40 +1144,11 @@ static int get_temp_value(void *data, int *temp)
 
 static void update_debugfs(struct ipa_sensor *sensor_data)
 {
-#ifdef CONFIG_HISI_DEBUG_FS
-	struct dentry *dentry_f = NULL;
-	struct dentry *filter_d = NULL;
-	char filter_name[25];
-	int rc;
-
-	rc = snprintf_s(filter_name, sizeof(filter_name), (sizeof(filter_name) - 1),
-			"thermal_lpf_filter%d", sensor_data->sensor_id);
-	if (rc < 0) {
-		pr_err("snprintf_s error.\n");
-		return;
-	}
-	filter_d = debugfs_create_dir(filter_name, NULL);
-	if (IS_ERR_OR_NULL(filter_d)) {
-		pr_warning("unable to create debugfs directory for the LPF filter\n");
-		return;
-	}
-
-	dentry_f = debugfs_create_u32("alpha", S_IWUSR | S_IRUGO, filter_d,
-				      (u32 *)&sensor_data->alpha);
-	if (IS_ERR_OR_NULL(dentry_f)) {
-		debugfs_remove(filter_d);
-		pr_warn("IPA:Unable to create debugfsfile: alpha\n");
-		return;
-	}
-#endif
 }
 
-/*lint -e785*/
 static const struct thermal_zone_of_device_ops ipa_thermal_ops = {
 	.get_temp = get_temp_value,
 };
-
-/*lint +e785*/
 
 #ifdef CONFIG_THERMAL_HOTPLUG
 #define DEFAULT_POLL_DELAY	200 /* unit is ms */

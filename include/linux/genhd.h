@@ -105,14 +105,6 @@ struct partition_meta_info {
 #ifdef CONFIG_MAS_UNISTORE_PRESERVE
 struct hd_cust {
 	unsigned char default_stream_id;
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-	unsigned char stream_id_tst_mode;
-	unsigned long long stream_id_0_max_addr;
-	unsigned long long stream_id_1_max_addr;
-	unsigned long long stream_id_2_max_addr;
-	unsigned long long stream_id_3_max_addr;
-	unsigned long long stream_id_4_max_addr;
-#endif
 };
 #endif
 

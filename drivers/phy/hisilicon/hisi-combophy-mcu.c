@@ -130,62 +130,12 @@ struct combophy_mcu {
 
 static struct combophy_mcu *g_mcu;
 
-#ifdef CONFIG_HISI_DEBUG_FS
-static ssize_t debugfs_read_mcu_log(struct file *file, char __user *user_buf,
-			       size_t count, loff_t *ppos)
-{
-	struct combophy_mcu *mcu = file->private_data;
-	uint32_t mcu_log[MCU_LOGBUF_SIZE / sizeof(uint32_t)] = {0};
-	unsigned int i;
-	size_t len = min_t(size_t, count, MCU_LOGBUF_SIZE);
-
-	if (!user_buf)
-		return -EINVAL;
-	for (i = 0; i < MCU_LOGBUF_SIZE / sizeof(uint32_t); i++)
-		mcu_log[i] = readl(MCU_LOGBUF_START(mcu->regs) + i * sizeof(uint32_t));
-
-	if (copy_to_user(user_buf, mcu_log, len))
-		return -EFAULT;
-
-	return len;
-}
-
-static const struct file_operations fops_mcu_log = {
-	.read =		debugfs_read_mcu_log,
-	.open =		simple_open,
-	.llseek =	default_llseek,
-};
-
-static void combophy_mcu_create_log_debugfs(struct combophy_mcu *mcu)
-{
-	struct dentry *file = NULL;
-
-	if (!mcu->mcu_debug)
-		return;
-
-	file = debugfs_create_file("mcu_log", 0444,
-				   mcu->debug_dir, mcu, &fops_mcu_log);
-	if (IS_ERR_OR_NULL(file)) {
-		pr_err("failed to create mcu_log\n");
-		return;
-	}
-
-	mcu->log_file = file;
-}
-
-static void combophy_mcu_destroy_log_debugfs(struct combophy_mcu *mcu)
-{
-	debugfs_remove(mcu->log_file);
-	mcu->log_file = NULL;
-}
-#else
 static inline void combophy_mcu_create_log_debugfs(struct combophy_mcu *mcu)
 {
 }
 static inline void combophy_mcu_destroy_log_debugfs(struct combophy_mcu *mcu)
 {
 }
-#endif /* CONFIG_HISI_DEBUG_FS */
 
 static void wait_mcu_running(struct combophy_mcu *mcu)
 {

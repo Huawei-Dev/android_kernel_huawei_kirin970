@@ -42,9 +42,6 @@
 #include "mas_blk_iosched_mmc_interface.h"
 #include "mas_blk_mmc_mq_tag.h"
 #include "mas_blk_flush_interface.h"
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-#include "mas_blk_ft.h"
-#endif
 
 #define MAS_MMC_MQ_PLUG_MERGE_ENABLE 0
 #define MAS_MMC_MQ_PLUG_MERGE_MAX_SIZE (512 * 1024)
@@ -290,11 +287,7 @@ static unsigned int mmc_tagset_get_reserved_tag(
 	struct mas_mmc_sched_ds_lld *ds_lld = NULL;
 
 	if (unlikely(!data->hctx->tags->nr_reserved_tags)) {
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-		mas_blk_rdr_panic("nr_reserved_tags is zero!");
-#else
 		return BLK_MQ_TAG_FAIL;
-#endif
 	}
 
 	tag = mmc_tagset_bt_get((struct blk_mq_alloc_data *)data,
@@ -317,11 +310,7 @@ static unsigned int mmc_tagset_get_high_prio_tag(
 	struct mas_mmc_sched_ds_lld *ds_lld = NULL;
 
 	if (unlikely(!data->hctx->tags->nr_high_prio_tags)) {
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-		mas_blk_rdr_panic("nr_high_prio_tags is zero!");
-#else
 		return BLK_MQ_TAG_FAIL;
-#endif
 	}
 
 	tag = mmc_tagset_bt_get((struct blk_mq_alloc_data *)data,
@@ -469,26 +458,14 @@ static void mmc_mq_rq_inflt_update(
 {
 	if (likely(rq->cmd_flags & REQ_SYNC)) {
 		if (unlikely(rq->cmd_flags & REQ_FG_META)) {
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-			if (unlikely(!mmc_mq_get_hp_inflt(ds_lld)))
-				mas_blk_rdr_panic("high_prio_sync_io is 0!");
-#endif
 			if (mmc_mq_rq_is_fg(rq))
 				atomic_dec(&ds_lld->fg_io_inflt_cnt);
 			else
 				atomic_dec(&ds_lld->vip_io_inflt_cnt);
 		} else {
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-			if (!atomic_read(&ds_lld->sync_io_inflt_cnt))
-				mas_blk_rdr_panic("sync_io_inflt_cnt is 0!");
-#endif
 			atomic_dec(&ds_lld->sync_io_inflt_cnt);
 		}
 	} else {
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-		if (unlikely(!atomic_read(&ds_lld->async_io_inflt_cnt)))
-			mas_blk_rdr_panic("async_io_inflt_cnt is 0!");
-#endif
 		atomic_dec(&ds_lld->async_io_inflt_cnt);
 	}
 	
@@ -865,9 +842,6 @@ static __always_inline bool mmc_mq_make_flush_request(
 {
 	if (unlikely((dispatch_op == REQ_OP_FLUSH) ||
 		     (bio->bi_opf & REQ_PREFLUSH))) {
-#ifdef CONFIG_MAS_IO_DEBUG_TRACE
-		trace_mas_io(__func__, "flush+fua", MAS_IO_TRACE_LEN);
-#endif
 		mmc_mq_bio_to_request(rq, (struct bio *)bio);
 		blk_insert_flush(rq);
 		return true;
@@ -928,9 +902,6 @@ blk_qc_t mmc_mq_make_request(struct request_queue *q, struct bio *bio)
 	}
 
 done:
-#ifdef CONFIG_MAS_IO_DEBUG_TRACE
-	trace_mas_io(__func__, "out", MAS_IO_TRACE_LEN);
-#endif
 	return cookie;
 }
 
@@ -1126,9 +1097,6 @@ void mmc_mq_dispatch_request(const struct request_queue *q)
 	struct mas_mmc_sched_ds_lld *ds_lld = sched_ds->sched_ds_lld;
 	struct blk_mq_queue_data bd;
 
-#ifdef CONFIG_MAS_IO_DEBUG_TRACE
-	trace_mas_io(__func__, "sync-io", MAS_IO_TRACE_LEN);
-#endif
 	spin_lock_irqsave(&ds_lld->sync_disp_lock, flags);
 	mmc_mq_get_class_iopro(ds_lld);
 
@@ -1153,9 +1121,6 @@ void mmc_mq_dispatch_request(const struct request_queue *q)
 		return;
 	}
 	__blk_mq_requeue_request(bd.rq);
-#ifdef CONFIG_MAS_IO_DEBUG_TRACE
-	trace_mas_io(__func__, "sync io requeue!", MAS_IO_TRACE_LEN);
-#endif
 	mmc_mq_requeue_sync_list(bd.rq, rq->q);
 }
 
@@ -1173,9 +1138,6 @@ static void mmc_mq_sync_dispatch(const struct request_queue *q)
 
 	sched_ds->req_dispatch_work.last_enter_tm = ktime_get();
 
-#ifdef CONFIG_MAS_IO_DEBUG_TRACE
-	trace_mas_io(__func__, "-", MAS_IO_TRACE_LEN);
-#endif
 	do {
 		spin_lock_irqsave(&ds_lld->sync_disp_lock, flags);
 		mmc_mq_get_class_iopro(ds_lld);
@@ -1340,12 +1302,6 @@ void mmc_mq_req_alloc_prep(
 
 void mmc_mq_req_init(const struct blk_mq_ctx *ctx, struct request *rq)
 {
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-	if (unlikely(atomic_read(&rq->mas_req.req_used)))
-		mas_blk_rdr_panic("Reinit unreleased request!");
-
-	atomic_set(&rq->mas_req.req_used, 1);
-#endif
 	rq->mas_req.mq_ctx_generate = (struct blk_mq_ctx *)ctx;
 	rq->mas_req.mas_featrue_flag = 0;
 	INIT_LIST_HEAD(&rq->cmdq_list);
@@ -1376,10 +1332,6 @@ void mmc_mq_req_complete(
 
 void mmc_mq_req_deinit(struct request *rq)
 {
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-	atomic_set(&rq->mas_req.req_used, 0);
-#endif
-
 }
 
 void mmc_mq_req_insert(struct request *req, struct request_queue *q)

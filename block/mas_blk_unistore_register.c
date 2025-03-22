@@ -86,22 +86,6 @@ void mas_blk_mq_tagset_fs_sync_done_register(
 		tag_set->lld_func.unistore_ops.dev_fs_sync_done = func;
 }
 
-#ifdef CONFIG_MAS_DEBUG_FS
-void mas_blk_mq_tagset_rescue_block_inject_data_register(
-	struct blk_mq_tag_set *tag_set, lld_dev_rescue_block_inject_data_fn func)
-{
-	if (tag_set)
-		tag_set->lld_func.unistore_ops.dev_rescue_block_inject_data = func;
-}
-
-void mas_blk_mq_tagset_bad_block_error_inject_register(
-	struct blk_mq_tag_set *tag_set, lld_dev_bad_block_error_inject_fn func)
-{
-	if (tag_set)
-		tag_set->lld_func.unistore_ops.dev_bad_block_err_inject = func;
-}
-#endif
-
 void mas_blk_mq_tagset_data_move_register(
 	struct blk_mq_tag_set *tag_set, lld_dev_data_move_fn func)
 {

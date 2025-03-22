@@ -40,10 +40,6 @@
 #ifdef CONFIG_HW_SD_HEALTH_DETECT
 static unsigned int g_sd_speed_class = 0;
 #endif
-#if defined(CONFIG_HISI_DEBUG_FS)
-extern struct workqueue_struct *sd_sdio_test_work;
-extern int sd_init_loop_work;
-#endif
 static const unsigned int tran_exp[] = {
 	10000,		100000,		1000000,	10000000,
 	0,		0,		0,		0
@@ -1329,10 +1325,6 @@ static void mmc_sd_remove(struct mmc_host *host)
  */
 static int mmc_sd_alive(struct mmc_host *host)
 {
-#ifdef CONFIG_HISI_DEBUG_FS
-	if (host->sim_remove_sd || host->sim_remove_nano)
-		return -1;
-#endif
 	return mmc_send_status(host->card, NULL);
 }
 
@@ -1579,21 +1571,13 @@ int mmc_attach_sd(struct mmc_host *host)
 	int retries;
 #endif
 
-#ifdef CONFIG_HISI_DEBUG_FS
-	if (host->sim_remove_sd)
-		return -1;
-#endif
-
-	WARN_ON(!host->claimed); /*lint !e146 !e665*/
+	WARN_ON(!host->claimed);
 
 	/*We may delete sd SDR104 caps in function dw_mmc_sd_slowdown_freq when the sd card is
 	in PRG timeout in SDR104,So we need to add SDR104 in the beginning of
 	sd card initialization to ensure that we support SDR104 for a new
 	detecting sd card*/
 	host->caps  |= MMC_CAP_UHS_SDR12 | MMC_CAP_UHS_SDR25 | MMC_CAP_UHS_SDR50 | MMC_CAP_UHS_SDR104;
-#ifdef CONFIG_HISI_DEBUG_FS
-	test_sd_delete_host_caps(host);
-#endif
 	err = mmc_send_app_op_cond(host, 0, &ocr);
 	if (err)
 		return err;

@@ -27,14 +27,6 @@
 #include <linux/workqueue.h>
 #include <securec.h>
 
-#if defined(CONFIG_DPM_HWMON_DEBUG) && defined(CONFIG_HISI_DEBUG_FS)
-#include <linux/debugfs.h>
-#include <linux/uaccess.h>
-#include <linux/seq_file.h>
-#include <linux/time.h>
-#include <linux/delay.h>
-#endif
-
 #ifdef CONFIG_DPM_HWMON_V1
 #include "dpm_hwmon_v1.h"
 #elif CONFIG_DPM_HWMON_V2
@@ -232,174 +224,6 @@ void update_dpm_power(int dpm_id)
 		(void)dpm_sample(pos);
 }
 
-
-#if defined(CONFIG_DPM_HWMON_DEBUG) && defined(CONFIG_HISI_DEBUG_FS)
-#define MAX_DPM_LOG_SIZE	4096
-#define DPM_WRITE_PARANUM	4
-#define DPM_MAX_COUNT		1000000
-#define DEBUGFS_BUF_LEN		32
-
-unsigned long long g_dpm_buffer_for_fitting[DPM_BUFFER_SIZE];
-static struct dentry *g_dpm_hwmon_debugfs_root;
-
-static unsigned long long get_timer_value(void)
-{
-	unsigned long long total_us;
-	struct timespec ts = (struct timespec){0, 0};
-
-	getnstimeofday(&ts);
-	total_us = ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
-
-	return total_us;
-}
-
-static void print_time_array(unsigned long long *array, int len)
-{
-	char buf[MAX_DPM_LOG_SIZE] = {'\0'};
-	unsigned long long total_us;
-	int i, ret;
-	int offset = 0;
-
-	if (array == NULL) {
-		pr_err("%s: null pointer in dpm\n", __func__);
-		return;
-	}
-	total_us = get_timer_value();
-	ret = sprintf_s(buf, MAX_DPM_LOG_SIZE,
-			"[DPM] time : %llu us reg: ", total_us);
-	if (ret < 0) {
-		pr_err("%s sprintf_s fail!\n", __func__);
-		return;
-	}
-
-	offset += ret;
-	for (i = 0; i < len; i++) {
-		ret = sprintf_s(buf + offset, MAX_DPM_LOG_SIZE - offset,
-				"%llu,", array[i]);
-		if (ret < 0) {
-			pr_err("%s sprintf_s fail!\n", __func__);
-			return;
-		}
-		offset += ret;
-	}
-	if (offset > 0)
-		pr_err("%s\n", buf);
-}
-
-static int dpm_debug_show(struct seq_file *m, void *v)
-{
-	unsigned int dpm_id;
-	unsigned long long dpm_power;
-
-	seq_printf(m, "g_dpm_report_enabled : %d\n", g_dpm_report_enabled);
-	for (dpm_id = 0; dpm_id < ARRAY_SIZE(dpm_module_table); dpm_id++) {
-		dpm_power = get_dpm_chdmod_power(dpm_id);
-		seq_printf(m, "%s : %llu\n", dpm_module_table[dpm_id], dpm_power);
-	}
-
-	return 0;
-}
-
-static int dpm_debug_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, dpm_debug_show, NULL);
-}
-
-static ssize_t dpm_debug_write(struct file *file, const char __user *user_buf,
-			       size_t count, loff_t *f_pos)
-{
-	int i;
-	char buf[DEBUGFS_BUF_LEN] = {'\0'};
-	int dpm_id = 0;
-	int timer_span_ms = 0;
-	int total_count = 0;
-	int mode = 0;
-	struct dpm_hwmon_ops *pos = NULL;
-
-	if (user_buf == NULL) {
-		pr_err("%s:user_buf is NULL!\n", __func__);
-		return -EINVAL;
-	}
-
-	if (copy_from_user(buf, user_buf, min_t(size_t, sizeof(buf) - 1, count)) != 0) {
-		pr_err("%s copy error!\n", __func__);
-		return -EFAULT;
-	}
-	pr_err("%s: buf = %s\n", __func__, buf);
-
-	if (sscanf_s(buf, "%d %d %d %d", &dpm_id, &timer_span_ms, &total_count, &mode) !=
-	    DPM_WRITE_PARANUM) {
-		pr_err("%s the num of enter is wrong!\n", __func__);
-		return -EFAULT;
-	}
-
-	pr_err("%s: dpm_id = %d, timer_span_ms = %d, total_count = %d, mode = %d!\n",
-	       __func__, dpm_id, timer_span_ms, total_count, mode);
-
-	if (dpm_id >= (int)ARRAY_SIZE(dpm_module_table) || dpm_id < 0 ||
-	    timer_span_ms <= 0 || total_count <= 0 ||
-	    total_count > DPM_MAX_COUNT) {
-		pr_err("illegal input!\n");
-		return count;
-	}
-
-	pos = search_dpm_module(dpm_id);
-	if (pos == NULL) {
-		pr_err("dpm %d is NULL!\n", dpm_id);
-		return count;
-	}
-	for (i = 0; i < total_count; i++) {
-		mdelay(timer_span_ms);
-		if (pos->hi_dpm_get_counter_for_fitting(mode) > 0) {
-			print_time_array(pos->dpm_counter_table, pos->dpm_cnt_len);
-#ifdef CONFIG_DPM_HWMON_V2
-			print_time_array(pos->dpm_power_table, pos->dpm_power_len);
-#endif
-		}
-	}
-#ifdef CONFIG_DPM_HWMON_V2
-	pr_err("dpm [%d] enabled is %d\n", dpm_id, pos->module_enabled);
-#endif
-	return count;
-}
-
-static const struct file_operations dpm_debug_fops = {
-	.owner = THIS_MODULE,
-	.open = dpm_debug_open,
-	.read = seq_read,
-	.write = dpm_debug_write,
-	.llseek = seq_lseek,
-	.release = single_release
-};
-
-static int dpm_hwmon_debugfs_init(void)
-{
-	struct dentry *dpm_hwmon_debug = NULL;
-
-	pr_err("dpm %s\n", __func__);
-	g_dpm_hwmon_debugfs_root = debugfs_create_dir("dpm_hwmon", NULL);
-	if (g_dpm_hwmon_debugfs_root == NULL)
-		return -ENOENT;
-
-	dpm_hwmon_debug = debugfs_create_file("dpm_debug", S_IRUGO | S_IWUSR,
-					      g_dpm_hwmon_debugfs_root,
-					      NULL, &dpm_debug_fops);
-	if (dpm_hwmon_debug == NULL) {
-		debugfs_remove_recursive(g_dpm_hwmon_debugfs_root);
-		pr_err("%s LINE %d fail!\n", __func__, __LINE__);
-		return -ENOENT;
-	}
-	return 0;
-}
-
-static void dpm_hwmon_debugfs_exit(void)
-{
-	pr_err("dpm %s\n", __func__);
-	debugfs_remove_recursive(g_dpm_hwmon_debugfs_root);
-	pr_err("dpm_hwmon_debugfs removed!\n");
-}
-#endif
-
 static int __init dpm_hwmon_init(void)
 {
 	g_dpm_report_enabled = true;
@@ -415,9 +239,6 @@ static int __init dpm_hwmon_init(void)
 #ifdef CONFIG_DPM_HWMON_V2
 	register_pm_notifier(&dpm_hwmon_pm_notif_block);
 #endif
-#if defined(CONFIG_DPM_HWMON_DEBUG) && defined(CONFIG_HISI_DEBUG_FS)
-	(void)dpm_hwmon_debugfs_init();
-#endif
 	return 0;
 }
 
@@ -428,16 +249,7 @@ static void __exit dpm_hwmon_exit(void)
 #ifdef CONFIG_DPM_HWMON_V2
 	dpm_iounmap();
 #endif
-
-#if defined(CONFIG_DPM_HWMON_DEBUG) && defined(CONFIG_HISI_DEBUG_FS)
-	dpm_hwmon_debugfs_exit();
-#endif
 }
 
 module_init(dpm_hwmon_init);
 module_exit(dpm_hwmon_exit);
-
-#ifdef CONFIG_HISI_DEBUG_FS
-module_param_named(dpm_report_enable, g_dpm_report_enabled,
-		   bool, S_IRUGO | S_IWUSR);
-#endif

@@ -553,10 +553,6 @@ void blk_mq_free_request(struct request *rq)
 	if (q->mas_queue_ops && q->mas_queue_ops->mq_req_deinit_fn)
 		q->mas_queue_ops->mq_req_deinit_fn(rq);
 
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-	mb();
-#endif
-
 	if (q->mas_queue_ops && q->mas_queue_ops->mq_tag_put_fn)
 		q->mas_queue_ops->mq_tag_put_fn(hctx, rq->tag, rq);
 	else

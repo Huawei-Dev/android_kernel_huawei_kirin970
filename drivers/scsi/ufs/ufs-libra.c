@@ -661,9 +661,6 @@ void hufs_pwr_change_pre_change(
 		return;
 
 	pr_info("%s ++\n", __func__);
-#ifdef CONFIG_HISI_DEBUG_FS
-	pr_info("device manufacturer_id is 0x%x\n", hba->manufacturer_id);
-#endif
 	/*
 	 * Boston platform need to set SaveConfigTime to 0x13,
 	 * and change sync length to maximum value

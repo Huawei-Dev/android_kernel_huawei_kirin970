@@ -137,12 +137,6 @@ static int generic_flp_probe(struct platform_device *pdev)
 		return ret;
 	}
 	dev_info(&pdev->dev, "generic_flp_probe \n");
-#ifdef CONFIG_HISI_DEBUG_FS
-	ret = driver_create_file(&generic_flp_platdrv.driver,
-				 &driver_attr_debug_level);
-	if (ret != 0)
-		dev_info(&pdev->dev, "%s %d create file error: \n", __func__, __LINE__);
-#endif
 	mutex_init(&g_flp_dt_lock);
 	ret = flp_register();
 	return ret;

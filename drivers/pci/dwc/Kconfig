@@ -181,24 +181,6 @@ config PCIE_KPORT_TEST
 	help
 	  Say Y here if you want to use testcases for PCIe controller on kport SoC
 
-config PCIE_KPORT_SLT
-	tristate "kport PCIe SLT"
-	depends on PCIE_KPORT
-	help
-	  Say Y here if you want to use SLT Func for PCIe on kport SoC
-
-config PCIE_KPORT_SLT_DEVICE
-	tristate "kport PCIe SLT test with device"
-	depends on PCIE_KPORT_SLT
-	help
-	  Say Y here if you want to use SLT Func for kport PCIe with device
-
-config PCIE_KIRIN_SLT_HI110X
-	tristate "kport PCIe SLT connected with wifi"
-	depends on PCIE_KPORT_SLT
-	help
-	  Say Y here if you want to use SLT Func for kport PCIe with device wifi
-
 config PCIE_KPORT_MNTN
 	tristate "kport PCIe mntn log"
 	depends on PCIE_KPORT

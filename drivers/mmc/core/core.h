@@ -172,8 +172,5 @@ extern void mmc_blk_cmdq_dishalt(struct mmc_card *card);
 extern int cmdq_is_reset(struct mmc_host *host);
 extern int mmc_blk_cmdq_halt(struct mmc_card *card);
 #endif
-#if defined(CONFIG_HISI_DEBUG_FS)
-extern unsigned int sd_test_reset_flag;
-#endif
 
 #endif

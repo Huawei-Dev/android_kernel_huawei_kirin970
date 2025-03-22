@@ -466,37 +466,6 @@ iomap_fin:
 	return ret;
 }
 
-/*lint -e715*/
-#ifdef CONFIG_HISI_DEBUG_FS
-/*
- * Soft timer timeout callback
- */
-static void smart_softtimer_timeout(unsigned long data)
-{
-	(void)data;
-	pr_err("[%s] smart_softtimer_timeout\n", __func__);
-	return ;
-}
-/*lint -e727*/
-struct softtimer_list timer = {0};
-void smart_softtimer_test(int timeout)
-{
-	int ret;
-	static int  flag;
-	if (flag == 0) {
-		smart_softtimer_create(&timer, smart_softtimer_timeout, (unsigned long)0, 0);
-		flag = 1;
-	}
-	pr_err("[%s] smart_softtimer_test enter\n", __func__);
-	smart_softtimer_delete(&timer);
-	ret = smart_softtimer_modify(&timer, (unsigned int)timeout);
-	if (ret)
-		pr_err("[%s] %d:\n", __func__, __LINE__);
-	smart_softtimer_add(&timer);
-}
-#endif
-/*lint +e727*/
-/*lint -e715*/
 /*
 * softtimer probe function
 */

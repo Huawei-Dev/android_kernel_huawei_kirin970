@@ -160,18 +160,9 @@ struct req_delay_stage_config {
 	void (*function)(struct request *req);
 };
 
-#ifdef CONFIG_MAS_DEBUG_FS
-static inline void mas_blk_rdr_panic(char *msg)
-{
-	if (msg)
-		pr_err("%s\n", msg);
-	rdr_syserr_process_for_ap((u32)MODID_AP_S_PANIC_STORAGE, 0ull, 0ull);
-}
-#else
 static inline void mas_blk_rdr_panic(char *msg)
 {
 }
-#endif /* CONFIG_MAS_DEBUG_FS */
 
 #ifdef CONFIG_MAS_BLK
 void mas_blk_bio_clone_fast(
@@ -304,107 +295,6 @@ static inline bool mas_blk_bio_is_cp(const struct bio *bio)
 void blk_req_set_make_req_nr(struct request *req);
 
 #define NO_EXTRA_MSG NULL
-
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-ssize_t mas_part_stream_id_show(
-	struct device *dev, struct device_attribute *attr, char *buf);
-ssize_t mas_part_stream_id_store(
-	struct device *dev, struct device_attribute *attr, const char *buf, size_t count);
-ssize_t mas_part_stream_id_tst_show(
-	struct device *dev, struct device_attribute *attr, char *buf);
-ssize_t mas_part_stream_id_tst_store(
-	struct device *dev, struct device_attribute *attr, const char *buf, size_t count);
-ssize_t mas_part_discard_simulate_store(
-	struct device *dev, struct device_attribute *attr, const char *buf, size_t count);
-ssize_t mas_queue_device_pwron_info_show(
-	struct request_queue *q, char *page);
-ssize_t mas_queue_device_reset_ftl_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_device_read_section_show(
-	struct request_queue *q, char *page);
-ssize_t mas_queue_device_config_mapping_partition_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_device_config_mapping_partition_show(
-	struct request_queue *q, char *page);
-ssize_t mas_queue_stream_oob_info_show(
-	struct request_queue *q, char *page);
-ssize_t mas_queue_device_fs_sync_done_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_device_rescue_block_inject_data_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_device_data_move_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_device_data_move_num_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_device_slc_mode_configuration_show(
-	struct request_queue *q, char *page);
-ssize_t mas_queue_device_sync_read_verify_show(
-	struct request_queue *q, char *page);
-ssize_t mas_queue_device_sync_read_verify_cp_verify_l4k_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_device_sync_read_verify_cp_open_l4k_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_device_bad_block_notify_regist_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_device_bad_block_total_num_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_device_bad_block_bad_num_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_unistore_debug_en_show(
-	struct request_queue *q, char *page);
-ssize_t mas_queue_unistore_debug_en_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_unistore_en_show(
-	struct request_queue *q, char *page);
-ssize_t mas_queue_recovery_debug_on_show(
-	struct request_queue *q, char *page);
-ssize_t mas_queue_recovery_debug_on_store(
-	struct request_queue *q, const char *page, size_t count);
-#endif
-ssize_t mas_queue_io_latency_warning_threshold_store(
-	const struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_timeout_tst_enable_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_io_latency_tst_enable_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_busyidle_tst_enable_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_busyidle_multi_nb_tst_enable_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_busyidle_tst_proc_result_simulate_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_busyidle_tst_proc_latency_simulate_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_apd_tst_enable_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_suspend_tst_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_io_prio_sim_show(
-	const struct request_queue *q, char *page);
-ssize_t mas_queue_io_prio_sim_store(
-	struct request_queue *q, const char *page, size_t count);
-#ifdef CONFIG_MAS_MQ_USING_CP
-ssize_t mas_queue_cp_enabled_show(struct request_queue *q, char *page);
-ssize_t mas_queue_cp_enabled_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_cp_debug_en_show(struct request_queue *q, char *page);
-ssize_t mas_queue_cp_debug_en_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_cp_limit_show(struct request_queue *q, char *page);
-ssize_t mas_queue_cp_limit_store(
-	struct request_queue *q, const char *page, size_t count);
-#endif /* CONFIG_MAS_MQ_USING_CP */
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-ssize_t mas_queue_order_enabled_show(struct request_queue *q, char *page);
-ssize_t mas_queue_order_enabled_store(
-	struct request_queue *q, const char *page, size_t count);
-ssize_t mas_queue_order_debug_en_show(struct request_queue *q, char *page);
-ssize_t mas_queue_order_debug_en_store(
-	struct request_queue *q, const char *page, size_t count);
-int mas_blk_order_debug_en(void);
-#endif /* CONFIG_MAS_ORDER_PRESERVE */
-#endif /* CONFIG_MAS_DEBUG_FS */
 
 ssize_t queue_var_store(
 	unsigned long *var, const char *page, size_t count);

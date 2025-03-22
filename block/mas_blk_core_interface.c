@@ -32,16 +32,3 @@ ssize_t __cfi_mas_queue_status_show(struct request_queue *q, char *page)
 {
 	return mas_queue_status_show(q, page, PAGE_SIZE);
 }
-
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-ssize_t __cfi_mas_queue_io_prio_sim_show(struct request_queue *q, char *page)
-{
-	return mas_queue_io_prio_sim_show(q, page);
-}
-
-ssize_t __cfi_mas_queue_io_prio_sim_store(
-	struct request_queue *q, const char *page, size_t count)
-{
-	return mas_queue_io_prio_sim_store(q, page, count);
-}
-#endif

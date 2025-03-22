@@ -86,20 +86,6 @@ static bool match_reset_power_devices(struct usb_device *udev)
 static int never_hifi_usb;
 static int always_hifi_usb;
 
-#ifdef CONFIG_HISI_DEBUG_FS
-int never_use_hifi_usb(int val)
-{
-	never_hifi_usb = val;
-	return val;
-}
-
-int always_use_hifi_usb(int val)
-{
-	always_hifi_usb = val;
-	return val;
-}
-#endif
-
 int get_never_hifi_usb_value(void)
 {
 	return never_hifi_usb;
@@ -269,12 +255,6 @@ static void hifi_usb_notifier_start(struct usb_device *udev)
 			info("%s, to start hifi usb\n", HUAWEI_USB_C_AUDIO_ADAPTER);
 			(void)usb_start_hifi_usb();
 			return;
-		}
-#endif
-#ifdef CONFIG_HISI_DEBUG_FS
-		if (get_always_hifi_usb_value()) {
-			info("always_hifi_usb, to start hifi usb\n");
-			(void)usb_start_hifi_usb();
 		}
 #endif
 	}

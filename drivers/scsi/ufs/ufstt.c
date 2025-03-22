@@ -140,21 +140,6 @@ static struct scsi_device *ufstt_sdev;
 static struct ufs_hba *ufstt_hba;
 static u64 ufstt_capacity;
 
-#ifdef CONFIG_HISI_DEBUG_FS
-/* debugfs gathering ... */
-struct ufstt_debugfs {
-	struct dentry *root;
-	struct dentry *enable;
-	struct dentry *statistics;
-	int32_t hits;
-	int32_t total;
-	int32_t update_work_times;
-	int32_t update_cnt;
-	u32 batch_mode_met;
-};
-static struct ufstt_debugfs debugfs;
-#endif
-
 static struct ufstt_node *ufstt_node_lookup(uint16_t nid)
 {
 	return radix_tree_lookup(&node_tree, nid);
@@ -397,9 +382,6 @@ static void ufstt_node_hit(struct ufs_hba *hba, struct ufstt_node *node,
 
 		ppn = node->ppn[LBA_OFF_OF_NID(lba)];
 		if (ufstt_valid_ppn(ppn)) {
-#ifdef CONFIG_HISI_DEBUG_FS
-			debugfs.hits++;
-#endif
 			ufstt_ppn_prep(lrbp, ppn);
 
 			if (lrbp->ufstt_private)
@@ -422,9 +404,6 @@ static void ufstt_prep_lrbp(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 	if (lba + PPNT_NODE_SIZE / BIT(PPN_SHIFT) >= ufstt_capacity)
 		return;
 	spin_lock_irqsave(&node_lock, flags);
-#ifdef CONFIG_HISI_DEBUG_FS
-	debugfs.total++;
-#endif
 	node = ufstt_node_lookup(nid);
 
 	if (!node) {
@@ -583,11 +562,6 @@ static void ufstt_node_update_fn(struct work_struct *work)
 	bool batch_mode = node_batch_mode_met();
 
 	spin_lock_irqsave(&node_lock, flags);
-#ifdef CONFIG_HISI_DEBUG_FS
-	debugfs.update_work_times++;
-	if (batch_mode)
-		debugfs.batch_mode_met++;
-#endif
 
 	while (!ufshcd_in_shutdown_or_suspend() &&
 	       !list_empty(&node_update_list) &&
@@ -617,10 +591,6 @@ static void ufstt_node_update_fn(struct work_struct *work)
 		list_del_init(&node->entry);
 		list_add(&node->entry, &node_lru);
 		atomic_dec(&node_update_cnt);
-#ifdef CONFIG_HISI_DEBUG_FS
-		if (!ret)
-			debugfs.update_cnt++;
-#endif
 	}
 	spin_unlock_irqrestore(&node_lock, flags);
 }
@@ -682,116 +652,12 @@ static int ufstt_work_halt(struct notifier_block *nb, ulong event, void *buf)
 
 static struct notifier_block ufstt_notifier = { ufstt_work_halt, NULL, 0 };
 
-#ifdef CONFIG_HISI_DEBUG_FS
-static int ufstt_dbg_enable_show(struct seq_file *file, void *data)
-{
-	struct ufs_hba *hba = (struct ufs_hba *)file->private;
-
-	seq_printf(file, "%s\n", hba->ufstt_enabled ? "true" : "false");
-	return 0;
-}
-
-static ssize_t ufstt_dbg_enable_store(struct file *filp,
-				      const char __user *ubuf, size_t cnt,
-				      loff_t *ppos)
-{
-	bool val = false;
-	int ret;
-	struct ufs_hba *hba = filp->f_mapping->host->i_private;
-
-	ret = kstrtobool_from_user(ubuf, cnt, &val);
-	if (ret) {
-		dev_err(hba->dev, "%s: Invalid argument\n", __func__);
-		return ret;
-	}
-
-	hba->ufstt_enabled = val;
-	return cnt;
-}
-
-static int ufstt_dbg_enable_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, ufstt_dbg_enable_show, inode->i_private);
-}
-
-static const struct file_operations ufstt_dbg_enable_fops = {
-	.open = ufstt_dbg_enable_open,
-	.read = seq_read,
-	.write = ufstt_dbg_enable_store,
-};
-
-static int ufstt_dbg_statistics_show(struct seq_file *file, void *data)
-{
-	struct ufstt_debugfs *d = (struct ufstt_debugfs *)file->private;
-
-	seq_printf(file, "rand read totals  : 0x%x\n", d->total);
-	seq_printf(file, "rand read hits    : 0x%x\n", d->hits);
-	seq_printf(file, "io_timeout_cnt    : 0x%x\n",
-		   ufstt_hba->io_timeout_cnt);
-	seq_printf(file, "batch_mode_met    : 0x%x\n", d->batch_mode_met);
-#ifdef CONFIG_MAS_BLK
-	seq_printf(file, "prio tag used   : 0x%x\n",
-		   get_mq_prio_tag_used(ufstt_sdev->request_queue));
-	seq_printf(file, "all tag used    : 0x%x\n",
-		   get_mq_all_tag_used(ufstt_sdev->request_queue));
-#endif
-	seq_printf(file, "current node count: 0x%x\n",
-		   atomic_read(&node_counts));
-	seq_printf(file, "node cnt in update list: 0x%x\n",
-		   atomic_read(&node_update_cnt));
-	seq_printf(file, "update work times  : 0x%x\n", d->update_work_times);
-	seq_printf(file, "node update succ times : 0x%x\n", d->update_cnt);
-	return 0;
-}
-
-static int ufstt_dbg_statistics_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, ufstt_dbg_statistics_show, inode->i_private);
-}
-
-static const struct file_operations ufstt_dbg_statistics_fops = {
-	.open = ufstt_dbg_statistics_open,
-	.read = seq_read,
-};
-
-static void ufstt_add_debugfs(struct ufs_hba *hba)
-{
-	debugfs.root = debugfs_create_dir("ufstt", NULL);
-	if (IS_ERR(debugfs.root))
-		goto err_no_root;
-
-	debugfs.enable = debugfs_create_file("enable", S_IRUSR, debugfs.root,
-					     hba, &ufstt_dbg_enable_fops);
-	if (IS_ERR(debugfs.enable))
-		goto err_remove_debugfs_file;
-
-	debugfs.statistics =
-		debugfs_create_file("statistics", S_IRUSR, debugfs.root,
-				    &debugfs, &ufstt_dbg_statistics_fops);
-	if (IS_ERR(debugfs.statistics))
-		goto err_remove_debugfs_file;
-
-	return;
-
-err_remove_debugfs_file:
-	debugfs_remove_recursive(debugfs.root);
-err_no_root:
-	return;
-}
-
-static void ufstt_remove_debugfs(struct ufs_hba *hba)
-{
-	if (!IS_ERR(debugfs.root))
-		debugfs_remove_recursive(debugfs.root);
-}
-#else
 static void ufstt_add_debugfs(struct ufs_hba *hba)
 {
 }
 static void ufstt_remove_debugfs(struct ufs_hba *hba)
 {
 }
-#endif
 
 void ufstt_set_sdev(struct scsi_device *dev)
 {

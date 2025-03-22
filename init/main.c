@@ -98,9 +98,7 @@
 
 #include <chipset_common/security/root_scan.h>
 
-#ifndef CONFIG_HISI_DEBUG_FS
 #include <uapi/scsi/ufs/ufs.h>
-#endif
 
 #ifdef CONFIG_FSCK_BOOST
 #include <linux/fsck_boost.h>
@@ -385,10 +383,8 @@ static void __init setup_command_line(char *command_line)
 	static_command_line = memblock_virt_alloc(strlen(command_line) + 1, 0);
 	strcpy(saved_command_line, boot_command_line);
 	strcpy(static_command_line, command_line);
-#ifndef CONFIG_HISI_DEBUG_FS
 #ifdef CONFIG_SCSI_UFSHCD
 	delete_ufs_product_name(saved_command_line);
-#endif
 #endif
 }
 

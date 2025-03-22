@@ -2774,11 +2774,6 @@ int32_t oal_wifi_platform_load_pcie(void)
 #ifdef _PRE_PLAT_FEATURE_HI110X_PCIE
     ret = oal_pcie_110x_init();
 #endif
-#if (defined(CONFIG_PCIE_KIRIN_SLT_HI110X) || defined(CONFIG_PCIE_KPORT_SLT_DEVICE)) && defined(CONFIG_HISI_DEBUG_FS)
-    if (ret == OAL_SUCC) {
-        hi1103_pcie_chip_rc_slt_register();
-    }
-#endif
     return ret;
 }
 
@@ -2787,10 +2782,6 @@ void oal_wifi_platform_unload_pcie(void)
     if (oal_pcie_110x_working_check() != OAL_TRUE) {
         return;
     }
-
-#if (defined(CONFIG_PCIE_KIRIN_SLT_HI110X) || defined(CONFIG_PCIE_KPORT_SLT_DEVICE)) && defined(CONFIG_HISI_DEBUG_FS)
-    hi1103_pcie_chip_rc_slt_unregister();
-#endif
 }
 
 #ifdef _PRE_PLAT_FEATURE_HI110X_PCIE

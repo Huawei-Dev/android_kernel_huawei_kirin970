@@ -63,7 +63,6 @@ obj-$(CONFIG_MMC_DW_EXYNOS)	+= dw_mmc-exynos.o
 obj-$(CONFIG_MMC_DW_K3)		+= dw_mmc-k3.o
 obj-$(CONFIG_MMC_DW_HI3XXX)	+= dw_mmc_hi3xxx.o dw_mmc_hi3xxx_helper.o
 obj-$(CONFIG_MMC_DW_MUX_SDSIM)	+= dw_mmc_mux_sdsim.o
-obj-$(CONFIG_HISI_DEBUG_FS)     += dw_mmc_test.o
 obj-$(CONFIG_MMC_DW_HI3XXX)     += dw_mmc_clk_for_calibration.o
 obj-$(CONFIG_MMC_DW_PCI)	+= dw_mmc-pci.o
 obj-$(CONFIG_MMC_DW_ROCKCHIP)	+= dw_mmc-rockchip.o

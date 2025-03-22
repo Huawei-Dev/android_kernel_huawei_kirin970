@@ -247,39 +247,6 @@ STATIC int shmem_recv_init(void)
 	return 0;
 }
 
-#ifdef CONFIG_HISI_DEBUG_FS
-#define SHMEM_TEST_TAG (TAG_END-1)
-/*
- * sharemem测试代码，不商用
- */
-void shmem_recv_test(const void __iomem *buf_addr, unsigned int size)
-{
-	pr_info("%s: get size %d, send back;\n", __func__, size);
-	if (shmem_send(SHMEM_TEST_TAG, buf_addr, size))
-		pr_info("%s: shmem send fail\n", __func__);
-}
-
-int shmem_notify_test(const struct pkt_header *head)
-{
-	shmem_recv_test((void __iomem *)head, (unsigned int)(head->length + sizeof(struct pkt_header)));
-	return 0;
-}
-
-int shmem_start_test(void)
-{
-	if (register_mcu_event_notifier(SHMEM_TEST_TAG, CMD_SHMEM_AP_RECV_REQ, shmem_notify_test))
-		pr_info("%s: fail;\n", __func__);
-	else
-		pr_info("%s: ok;\n", __func__);
-
-	return 0;
-}
-// Add the following sentence here to enable test: late_initcall_sync(shmem_start_test);
-#endif
-
-/*
- * sharemem消息发送接口，将数据复制到DDR中，并发送IPC通知contexthub处理
- */
 int shmem_send(enum obj_tag module_id, const void *usr_buf,
 	       unsigned int usr_buf_size)
 {

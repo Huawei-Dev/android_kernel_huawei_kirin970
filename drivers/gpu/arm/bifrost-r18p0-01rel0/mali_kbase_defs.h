@@ -60,10 +60,6 @@
 #include "mali_kbase_fence_defs.h"
 #endif
 
-#ifdef CONFIG_HISI_DEBUG_FS
-#include <linux/debugfs.h>
-#endif /* CONFIG_HISI_DEBUG_FS */
-
 #ifdef CONFIG_PM_DEVFREQ
 #include <linux/devfreq.h>
 #endif /* CONFIG_PM_DEVFREQ */
@@ -263,36 +259,6 @@ struct kbase_device;
 struct kbase_as;
 struct kbase_mmu_setup;
 struct kbase_ipa_model_vinstr_data;
-
-#ifdef CONFIG_HISI_DEBUG_FS
-/**
- * struct base_job_fault_event - keeps track of the atom which faulted or which
- *                               completed after the faulty atom but before the
- *                               debug data for faulty atom was dumped.
- *
- * @event_code:     event code for the atom, should != BASE_JD_EVENT_DONE for the
- *                  atom which faulted.
- * @katom:          pointer to the atom for which job fault occurred or which completed
- *                  after the faulty atom.
- * @job_fault_work: work item, queued only for the faulty atom, which waits for
- *                  the dumping to get completed and then does the bottom half
- *                  of job done for the atoms which followed the faulty atom.
- * @head:           List head used to store the atom in the global list of faulty
- *                  atoms or context specific list of atoms which got completed
- *                  during the dump.
- * @reg_offset:     offset of the register to be dumped next, only applicable for
- *                  the faulty atom.
- */
-struct base_job_fault_event {
-
-	u32 event_code;
-	struct kbase_jd_atom *katom;
-	struct work_struct job_fault_work;
-	struct list_head head;
-	int reg_offset;
-};
-
-#endif
 
 struct gpu_error_num {
 	u32 page_fault;
@@ -745,10 +711,6 @@ struct kbase_jd_atom {
 	struct kbase_jd_atom *x_post_dep;
 
 	u32 flush_id;
-
-#ifdef CONFIG_HISI_DEBUG_FS
-	struct base_job_fault_event fault_event;
-#endif
 
 	struct list_head queue;
 
@@ -1729,27 +1691,6 @@ struct kbase_device {
 	/* procfs entry for gpu_memory */
 	struct proc_dir_entry *proc_gpu_memory_dentry;
 
-#ifdef CONFIG_HISI_DEBUG_FS
-	struct dentry *mali_debugfs_directory;
-	struct dentry *debugfs_ctx_directory;
-
-#ifdef CONFIG_MALI_DEBUG
-	u64 debugfs_as_read_bitmap;
-#endif /* CONFIG_MALI_DEBUG */
-
-	wait_queue_head_t job_fault_wq;
-	wait_queue_head_t job_fault_resume_wq;
-	struct workqueue_struct *job_fault_resume_workq;
-	struct list_head job_fault_event_list;
-	spinlock_t job_fault_event_lock;
-
-#if !MALI_CUSTOMER_RELEASE
-	struct {
-		u16 reg_offset;
-	} regs_dump_debugfs_data;
-#endif /* !MALI_CUSTOMER_RELEASE */
-#endif /* CONFIG_HISI_DEBUG_FS */
-
 	struct clk *clk;
 
 #if MALI_CUSTOMER_RELEASE == 0
@@ -1760,10 +1701,6 @@ struct kbase_device {
 #endif
 
 	atomic_t ctx_num;
-
-#ifdef CONFIG_HISI_DEBUG_FS
-	struct kbase_io_history io_history;
-#endif /* CONFIG_HISI_DEBUG_FS */
 
 	struct kbase_hwaccess_data hwaccess;
 
@@ -2376,18 +2313,6 @@ struct kbase_context {
 	struct mm_struct __rcu *process_mm;
 	u64 gpu_va_end;
 	bool jit_va;
-
-#ifdef CONFIG_HISI_DEBUG_FS
-	char *mem_profile_data;
-	size_t mem_profile_size;
-	struct mutex mem_profile_lock;
-	struct dentry *kctx_dentry;
-
-	unsigned int *reg_dump;
-	atomic_t job_fault_count;
-	struct list_head job_fault_resume_event_list;
-
-#endif /* CONFIG_HISI_DEBUG_FS */
 
 	struct jsctx_queue jsctx_queue
 		[KBASE_JS_ATOM_SCHED_PRIO_COUNT][BASE_JM_MAX_NR_SLOTS];

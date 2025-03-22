@@ -778,9 +778,6 @@ void hufs_pwr_change_pre_change(struct ufs_hba *hba,
 	struct hufs_host *host = (struct hufs_host *)hba->priv;
 
 	pr_info("%s ++\n", __func__);
-#ifdef CONFIG_HISI_DEBUG_FS
-	pr_info("device manufacturer_id is 0x%x\n", hba->manufacturer_id);
-#endif
 
 	/* tx 3.5 gear num : 4 */
 	equalizer = (dev_req_params->gear_tx == 4) ? 0 : TX_EQUALIZER_35DB;

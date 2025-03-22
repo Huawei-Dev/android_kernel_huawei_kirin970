@@ -44,19 +44,6 @@
 		BKOPS_CHK_ACCU_WRITE |                              \
 		BKOPS_CHK_ACCU_DISCARD)
 
-#ifdef CONFIG_MAS_DEBUG_FS
-static int mas_bkops_send_stop;
-void mas_bkops_send_stop_enable(void)
-{
-	mas_bkops_send_stop = 1;
-}
-
-void mas_bkops_send_stop_disable(void)
-{
-	mas_bkops_send_stop = 0;
-}
-#endif /* CONFIG_MAS_DEBUG_FS */
-
 static int mas_bkops_upiu_query_opcode(struct ufs_query_req *request,
 					struct ufs_hba *hba,
 					enum query_opcode opcode,
@@ -197,34 +184,15 @@ int ufshcd_bkops_status_query(void *bkops_data, u32 *status)
 {
 	int err;
 	struct ufs_hba *hba = NULL;
-#ifdef CONFIG_MAS_DEBUG_FS
-	struct mas_bkops *bkops = NULL;
-#endif
 
 	if ((!bkops_data) || (!status))
 		return -EINVAL;
 
 	hba = (struct ufs_hba *)bkops_data;
-#ifdef CONFIG_MAS_DEBUG_FS
-	bkops = hba->ufs_bkops;
-#endif
 
 	pm_runtime_get_sync(hba->dev);
 	err = hba->ufs_dev_bkops_ops->ufs_bkops_query(hba, status);
 	pm_runtime_put_sync(hba->dev);
-#ifdef CONFIG_MAS_DEBUG_FS
-	if (bkops->bkops_debug_ops.sim_critical_bkops) {
-		*status = 1;
-		pr_err("sim_critical_bkops\n");
-		bkops->bkops_debug_ops.sim_critical_bkops = 0;
-	}
-	if (bkops->bkops_debug_ops.sim_bkops_query_fail) {
-		*status = 0;
-		pr_err("simulate bkops query failure!\n");
-		bkops->bkops_debug_ops.sim_bkops_query_fail = false;
-		err = -1;
-	}
-#endif
 	if (err)
 		pr_err("UFS bkops status query failed!\n");
 
@@ -246,39 +214,7 @@ static int ufshcd_bkops_start(struct ufs_hba *hba)
 
 static int ufshcd_bkops_stop(struct ufs_hba *hba)
 {
-#ifdef CONFIG_MAS_DEBUG_FS
-	int ret = 0;
-	struct mas_bkops *bkops = hba->ufs_bkops;
-	struct bkops_stats *bkops_stats_p = &(bkops->bkops_stats);
-	u64 start_time, stop_time, time_interval;
-	start_time = ktime_get_ns();
-
-	if (mas_bkops_send_stop) {
-		pm_runtime_get_sync(hba->dev);
-		ret = hba->ufs_dev_bkops_ops->ufs_bkops_stop(hba);
-		pm_runtime_put_sync(hba->dev);
-	}
-
-	bkops_stats_p->bkops_stop_count++;
-	mas_bkops_update_dur(bkops_stats_p);
-
-	stop_time = ktime_get_ns();
-	time_interval = stop_time - start_time;
-	if (time_interval > bkops_stats_p->bkops_max_stop_time)
-		bkops_stats_p->bkops_max_stop_time = time_interval;
-
-	bkops_stats_p->bkops_avrg_stop_time =
-		((bkops_stats_p->bkops_avrg_stop_time *
-			 (bkops_stats_p->bkops_stop_count - 1)) +
-			time_interval) /
-		bkops_stats_p->bkops_stop_count;
-
-	if (ret)
-		pr_err("UFS bkops stop failed!\n");
-	return ret;
-#else
 	return 0;
-#endif
 }
 
 int ufshcd_bkops_start_stop(void *bkops_data, int start)
@@ -349,18 +285,6 @@ static bool hufs_is_bkops_supported(struct scsi_device *sdev)
 	return false;
 }
 
-#ifdef CONFIG_MAS_DEBUG_FS
-#define BKOPS_STATUS_MAX_HI1861 6
-static const char *bkops_status_str_1861[BKOPS_STATUS_MAX_HI1861] = {
-	"bkops none", "bkops normal", "bkops urgent count", "bkops wl",
-	"bkops not care", "bkops slc cache",
-};
-
-#define BKOPS_STATUS_MAX_HYNIX 2
-static const char *bkops_status_str_hynix[BKOPS_STATUS_MAX_HYNIX] = {
-	"bkops none", "bkops needed",
-};
-#endif
 static void mas_bkops_status_info(struct ufs_hba *hba,
 				  struct mas_bkops *ufs_bkops)
 {
@@ -368,18 +292,10 @@ static void mas_bkops_status_info(struct ufs_hba *hba,
 		ufs_bkops->dev_type = BKOPS_DEV_UFS_1861;
 		ufs_bkops->bkops_flag |= UFS_BKOPS_1861_FLAG;
 		hba->ufs_dev_bkops_ops = &hi1861_bkops_ops;
-#ifdef CONFIG_MAS_DEBUG_FS
-		mas_bkops_set_status_str(ufs_bkops,
-		    BKOPS_STATUS_MAX_HI1861, bkops_status_str_1861);
-#endif
 	} else if (hba->manufacturer_id == UFS_VENDOR_SKHYNIX) {
 		ufs_bkops->dev_type = BKOPS_DEV_UFS_HYNIX;
 		ufs_bkops->bkops_flag |= UFS_BKOPS_HYNIX_FLAG;
 		hba->ufs_dev_bkops_ops = &hynix_bkops_ops;
-#ifdef CONFIG_MAS_DEBUG_FS
-		mas_bkops_set_status_str(ufs_bkops,
-		    BKOPS_STATUS_MAX_HYNIX, bkops_status_str_hynix);
-#endif
 	}
 }
 

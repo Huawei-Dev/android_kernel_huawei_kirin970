@@ -229,39 +229,6 @@ static int scsi_dev_get_bad_block_info(struct request_queue *q,
 	return sdev->host->hostt->dev_get_bad_block_info(sdev, bad_block_info);
 }
 
-#ifdef CONFIG_MAS_DEBUG_FS
-static int scsi_dev_rescue_block_inject_data(
-	struct request_queue *q, unsigned int lba)
-{
-	struct scsi_device *sdev = q->queuedata;
-
-	if (!sdev || sdev->type != TYPE_DISK ||
-		!sdev->host->hostt->dev_rescue_block_inject_data)
-		return -EINVAL;
-
-	if (sdev->host->host_self_blocked || sdev->sdev_state != SDEV_RUNNING)
-		return -EINVAL;
-
-	return sdev->host->hostt->dev_rescue_block_inject_data(sdev, lba);
-}
-
-static int scsi_dev_bad_block_error_inject(struct request_queue *q,
-		unsigned char bad_slc_cnt, unsigned char bad_tlc_cnt)
-{
-	struct scsi_device *sdev = q->queuedata;
-
-	if (!sdev || sdev->type != TYPE_DISK ||
-		!sdev->host->hostt->dev_bad_block_error_inject)
-		return -EINVAL;
-
-	if (sdev->host->host_self_blocked || sdev->sdev_state != SDEV_RUNNING)
-		return -EINVAL;
-
-	return sdev->host->hostt->dev_bad_block_error_inject(sdev,
-		bad_slc_cnt, bad_tlc_cnt);
-}
-#endif
-
 static int scsi_dev_bad_block_notify_register(
 	struct request_queue *q, void (*func)(struct Scsi_Host *host,
 		struct stor_dev_bad_block_info *bad_block_info))
@@ -322,12 +289,4 @@ void scsi_dev_unistore_register(struct Scsi_Host *shost)
 	mas_blk_mq_tagset_get_program_size_register(
 		&shost->tag_set, shost->hostt->dev_get_program_size ?
 		scsi_dev_get_program_size : NULL);
-#ifdef CONFIG_MAS_DEBUG_FS
-	mas_blk_mq_tagset_rescue_block_inject_data_register(
-		&shost->tag_set, shost->hostt->dev_rescue_block_inject_data ?
-		scsi_dev_rescue_block_inject_data : NULL);
-	mas_blk_mq_tagset_bad_block_error_inject_register(
-		&shost->tag_set, shost->hostt->dev_bad_block_error_inject ?
-		scsi_dev_bad_block_error_inject : NULL);
-#endif
 }

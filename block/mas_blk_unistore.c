@@ -94,17 +94,6 @@ void mas_blk_req_get_order_nr_unistore(struct request *req,
 
 		if (!extern_protect)
 			spin_unlock_irqrestore(&lld->write_num_lock, flags);
-
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-		if (mas_blk_unistore_debug_en() && lld->mas_sec_size)
-			pr_err("%s, new_stream_type = %u, old_stream_type = %u, "
-				"fsync_ind = %d, cur_order = %u, pre_order_cnt = %u, "
-				"lba = 0x%llx - 0x%llx\n",
-				__func__, new_stream_type, lld->last_stream_type,
-				req->mas_req.fsync_ind, *order, *pre_order_cnt,
-				(blk_rq_pos(req) >> SECTION_SECTOR) / (lld->mas_sec_size),
-				(blk_rq_pos(req) >> SECTION_SECTOR) % (lld->mas_sec_size));
-#endif
 	}
 
 	req->mas_req.protocol_nr = *order;
@@ -127,12 +116,6 @@ static void mas_blk_del_section_list(struct blk_dev_lld *lld,
 
 	if ((!stream_type) || (stream_type > MAX_WRITE_STREAM_TYPE))
 		return;
-
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-	if (mas_blk_unistore_debug_en() && lld->mas_sec_size)
-		pr_err("%s, section = 0x%llx, stream_type = %u\n", __func__,
-			section_start_lba / (lld->mas_sec_size), stream_type);
-#endif
 
 	list_for_each_entry(section_info,
 		&lld->section_list[stream_type - 1], section_list) {
@@ -332,16 +315,6 @@ int mas_blk_update_buf_bio_page(struct block_device *bdev,
 
 		list_for_each_entry(pos, &lld->buf_bio_list[i], buf_bio_list_node) {
 			if (mas_blk_update_bio_page(pos, page, cached_page)) {
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-				if (mas_blk_unistore_debug_en() && lld->mas_sec_size)
-					pr_err("%s, page:%pK, bio:%pK, "
-						"lba:0x%llx - 0x%llx is replaced\n",
-						__func__, page, pos,
-						(pos->bi_iter.bi_sector >> SECTION_SECTOR) /
-							(lld->mas_sec_size),
-						(pos->bi_iter.bi_sector >> SECTION_SECTOR) %
-							(lld->mas_sec_size));
-#endif
 				spin_unlock_irqrestore(&lld->buf_bio_list_lock[i], flag);
 				up_read(&lld->recovery_rwsem);
 				return 0;
@@ -380,15 +353,6 @@ static void mas_blk_order_insert_buf_list(struct bio *bio,
 
 	target_list = &lld->buf_bio_list[stream_type];
 
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-	if (mas_blk_unistore_debug_en() && lld->mas_sec_size)
-		pr_err("%s - bio_nr=%u - bio_lba=0x%llx - 0x%llx\n",
-			__func__, bio->bio_nr,
-			(bio->bi_iter.bi_sector >> SECTION_SECTOR) /
-				(lld->mas_sec_size),
-			(bio->bi_iter.bi_sector >> SECTION_SECTOR) %
-				(lld->mas_sec_size));
-#endif
 	if (!list_empty(target_list) && bio->bio_nr) {
 		list_for_each_entry_reverse(pos, target_list, buf_bio_list_node) {
 			if (!pos->bio_nr)
@@ -420,27 +384,9 @@ static void mas_blk_buf_list_update(struct blk_dev_lld *lld,
 	lld->buf_bio_size[stream_type] += bio->ori_bi_iter.bi_size;
 	lld->buf_bio_num[stream_type]++;
 
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-	if (mas_blk_unistore_debug_en() && lld->mas_sec_size)
-		pr_err("%s - buf_io_num = %u - add_bio_lba: 0x%llx - 0x%llx\n",
-			__func__, lld->buf_bio_num[stream_type],
-			(bio->bi_iter.bi_sector >> SECTION_SECTOR) /
-				(lld->mas_sec_size),
-			(bio->bi_iter.bi_sector >> SECTION_SECTOR) %
-				(lld->mas_sec_size));
-#endif
 	if (lld->buf_bio_size[stream_type] > BIO_BUF_LIST_MAX_SIZE) {
 		pos = list_first_entry(&lld->buf_bio_list[stream_type],
 					struct bio, buf_bio_list_node);
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-		if (mas_blk_unistore_debug_en() && lld->mas_sec_size)
-			pr_err("%s - buf_io_num = %u, del_bio_lba: 0x%llx - 0x%llx\n",
-				__func__, lld->buf_bio_num[stream_type],
-				(pos->bi_iter.bi_sector >> SECTION_SECTOR) /
-					(lld->mas_sec_size),
-				(pos->bi_iter.bi_sector >> SECTION_SECTOR) %
-					(lld->mas_sec_size));
-#endif
 		mas_blk_del_bio_in_buf_list(lld, pos, stream_type);
 	}
 }
@@ -511,18 +457,6 @@ static void mas_blk_clear_buf_bio_work(struct work_struct *work)
 			pos = list_first_entry(
 				&lld->buf_bio_list[stream],
 				struct bio, buf_bio_list_node);
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-			if (mas_blk_unistore_debug_en() && lld->mas_sec_size)
-				pr_err("%s, stream = %u, buf_num = %u, buf_size = %u, "
-					"del_bio_lba: 0x%llx - 0x%llx\n",
-					__func__, stream,
-					lld->buf_bio_num[stream],
-					lld->buf_bio_size[stream],
-					(pos->bi_iter.bi_sector >> SECTION_SECTOR) /
-						(lld->mas_sec_size),
-					(pos->bi_iter.bi_sector >> SECTION_SECTOR) %
-						(lld->mas_sec_size));
-#endif
 			mas_blk_del_bio_in_buf_list(lld, pos, stream);
 			j++;
 			spin_unlock_irqrestore(&lld->buf_bio_list_lock[stream], flags);
@@ -613,50 +547,6 @@ need_dispatch:
 	bio->bi_end_io = mas_blk_buf_list_end_bio;
 	return true;
 }
-
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-ssize_t mas_queue_unistore_en_show(struct request_queue *q, char *page)
-{
-	unsigned long offset = 0;
-	struct blk_dev_lld *lld = mas_blk_get_lld(q);
-
-	offset += snprintf(page, PAGE_SIZE, "unistore_enabled: %d\n",
-		(lld->features & BLK_LLD_UFS_UNISTORE_EN) ? 1 : 0);
-
-	return (ssize_t)offset;
-}
-
-static int unistore_debug_en;
-int mas_blk_unistore_debug_en(void)
-{
-	return unistore_debug_en;
-}
-
-ssize_t mas_queue_unistore_debug_en_show(struct request_queue *q, char *page)
-{
-	unsigned long offset;
-	offset = snprintf(page, PAGE_SIZE, "unistore_debug_en: %d\n", unistore_debug_en);
-	return (ssize_t)offset;
-}
-
-ssize_t mas_queue_unistore_debug_en_store(
-	struct request_queue *q, const char *page, size_t count)
-{
-	ssize_t ret;
-	unsigned long val;
-
-	ret = queue_var_store(&val, page, count);
-	if (ret < 0)
-		return (ssize_t)count;
-
-	if (val)
-		unistore_debug_en = val;
-	else
-		unistore_debug_en = 0;
-
-	return (ssize_t)count;
-}
-#endif
 
 static void mas_blk_bad_block_notify_fn(struct Scsi_Host *host,
 	struct stor_dev_bad_block_info *bad_block_info)

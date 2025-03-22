@@ -84,29 +84,3 @@ void ss_di_show(void)
 	coul_core_err("charging_begin_soc = %d\n", di->charging_begin_soc);
 	coul_core_err("charging_state = %d\n", di->charging_state);
 }
-
-#ifdef CONFIG_HISI_DEBUG_FS
-int test_cc_discharge_percent(unsigned int percent)
-{
-	struct smartstar_coul_device *di = get_coul_dev();
-
-	if (di == NULL) {
-		coul_core_err("NULL point in %s\n", __func__);
-		return -1;
-	}
-
-	percent = clamp_val(percent, MIN_VALUE, MAX_VALUE);
-	di->dischg_ocv_soc = percent;
-
-	return di->dischg_ocv_soc;
-}
-
-int test_polar_supply_table(int neg, int temp, int soc)
-{
-	if (neg)
-		temp = -temp;
-	return coul_get_polar_table_val(temp, soc);
-}
-
-#endif
-

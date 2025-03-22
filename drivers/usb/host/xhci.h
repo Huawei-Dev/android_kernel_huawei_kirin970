@@ -1880,9 +1880,6 @@ struct xhci_hcd {
 /* Compliance Mode Timer Triggered every 2 seconds */
 #define COMP_MODE_RCVRY_MSECS 2000
 
-#ifdef CONFIG_HISI_DEBUG_FS
-	struct dentry		*debugfs_root;
-#endif
 	struct notifier_block host_event_nb;
 
 #ifdef CONFIG_USB_DWC3_NYET_ABNORMAL

@@ -2157,42 +2157,6 @@ EXPORT_SYMBOL(hi110x_pcie_chip_transfer);
 EXPORT_SYMBOL(hi110x_pcie_chip_poweroff);
 #endif
 
-#if (defined(CONFIG_PCIE_KIRIN_SLT_HI110X) || defined(CONFIG_PCIE_KPORT_SLT_DEVICE)) && defined(CONFIG_HISI_DEBUG_FS)
-int pcie_slt_hook_register(u32 rc_id, u32 device_type, int (*init)(void *), int (*on)(void *),
-                           int (*off)(void *), int (*setup)(void *), int (*data_transfer)(void *, u32, u32));
-int32_t hi1103_pcie_chip_init(void *data)
-{
-    oal_print_hi11xx_log(HI11XX_LOG_INFO, "slt pcie init");
-    return 0;
-}
-
-int32_t hi1103_pcie_chip_rc_slt_register(void)
-{
-#ifdef _PRE_PLAT_FEATURE_HI110X_PCIE
-    return pcie_slt_hook_register(g_kirin_rc_idx, 0x2,
-                                  hi1103_pcie_chip_init, hi110x_pcie_chip_poweron,
-                                  hi110x_pcie_chip_poweroff, hi1103_pcie_chip_init,
-                                  hi110x_pcie_chip_transfer);
-#else
-    return 0;
-#endif
-}
-
-int32_t hi1103_pcie_chip_rc_slt_unregister(void)
-{
-#ifdef _PRE_PLAT_FEATURE_HI110X_PCIE
-    return pcie_slt_hook_register(g_kirin_rc_idx, 0x2,
-                                  NULL, NULL,
-                                  NULL, NULL,
-                                  NULL);
-#else
-    return 0;
-#endif
-}
-EXPORT_SYMBOL(hi1103_pcie_chip_rc_slt_register);
-EXPORT_SYMBOL(hi1103_pcie_chip_rc_slt_unregister);
-#endif
-
 EXPORT_SYMBOL(hi1103_chip_power_on);
 EXPORT_SYMBOL(hi1103_chip_power_off);
 EXPORT_SYMBOL(hi1103_bfgx_disable);

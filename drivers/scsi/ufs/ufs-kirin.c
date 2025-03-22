@@ -158,9 +158,6 @@ static int __init early_parse_ufs_product_name_cmdline(char *arg)
 		strncpy(ufs_product_name, arg,
 			strnlen(arg, sizeof(ufs_product_name) - 1) + 1);
 		ufs_product_name[PRODUCT_NAME_LEN - 1] = '\0';
-#ifdef CONFIG_HISI_DEBUG_FS
-		pr_info("cmdline ufs_product_name=%s\n", ufs_product_name);
-#endif
 	} else {
 		pr_info("no ufs_product_name cmdline\n");
 	}
@@ -168,7 +165,6 @@ static int __init early_parse_ufs_product_name_cmdline(char *arg)
 }
 early_param("ufs_product_name", early_parse_ufs_product_name_cmdline);
 
-#ifndef CONFIG_HISI_DEBUG_FS
 /*
  * remove product_name info in cmdline,
  * there is no need to pass the length of cmdline as parameter,
@@ -199,7 +195,6 @@ void delete_ufs_product_name(char *cmdline)
 
 	memmove(ufs_param, ufs_param + i, strlen(ufs_param + i) + 1);
 }
-#endif
 
 /* Here external BL31 function declaration for UFS inline encrypt */
 #ifdef CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO_V2
@@ -870,37 +865,6 @@ static u32 bkdrhash_alg(u8 *str, int len)
 
 	return (hash & 0xFFFFFFFF);
 }
-
-#ifdef CONFIG_HISI_DEBUG_FS
-static void test_generate_cci_dun_use_bkdrhash(u8 *key, int key_len)
-{
-	u32 crypto_cci;
-	u64 dun;
-	u32 hash_res;
-
-	hash_res = bkdrhash_alg(key, key_len);
-	crypto_cci = hash_res % MAX_CRYPTO_KEY_INDEX;
-	dun = (u64)hash_res;
-	pr_err("%s: ufs crypto key index is %u, dun is 0x%llu\n", __func__,
-		crypto_cci, dun);
-}
-#endif
-#endif
-
-#if defined(CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO) &&                         \
-	defined(CONFIG_HISI_DEBUG_FS)
-static void hufs_inline_crypto_debug(
-	struct ufs_hba *hba, u32 *hash_res, u32 *crypto_enable, u64 dun)
-{
-	if (hba->inline_debug_flag == DEBUG_LOG_ON)
-		dev_err(hba->dev, "%s: dun is 0x%llx\n", __func__,
-			(((u64)(*hash_res)) << 32) | dun); /* get low 32bit */
-
-	if (hba->inline_debug_flag == DEBUG_CRYPTO_ON)
-		*crypto_enable = UTP_REQ_DESC_CRYPTO_ENABLE;
-	else if (hba->inline_debug_flag == DEBUG_CRYPTO_OFF)
-		*crypto_enable = 0x0;
-}
 #endif
 
 static void hufs_crypto_set_keyindex(
@@ -929,12 +893,6 @@ static void hufs_crypto_set_keyindex(
 	*crypto_cci = (uint32_t)(key_index);
 #else
 	*crypto_cci = (*hash_res) % MAX_CRYPTO_KEY_INDEX;
-#endif
-
-#ifdef CONFIG_HISI_DEBUG_FS
-	if (hba->inline_debug_flag == DEBUG_LOG_ON)
-		dev_err(hba->dev, "%s: key index is %u\n", __func__,
-			*crypto_cci);
 #endif
 #else
 	*crypto_cci = lrbp->task_tag;
@@ -1018,11 +976,6 @@ void hufs_uie_utrd_prepare(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 	else
 		return;
 	dun = (u64)lrbp->cmd->request->bio->index;
-#if defined(CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO) &&                         \
-	defined(CONFIG_HISI_DEBUG_FS)
-	/* dword[12] used for DESC */
-	hufs_inline_crypto_debug(hba, &hash_res, &dword[12], dun);
-#endif
 	/* set val for dword[8],dword[9],dword[10],dword[11] */
 	hufs_get_meta_data_factor(lrbp, hba, &dword[8], &dword[9],
 				       &dword[10], &dword[11]);
@@ -1405,95 +1358,6 @@ void hufs_inline_crypto_attr(struct ufs_hba *hba)
 			"Failed to create sysfs for ufs_inline_state\n");
 }
 
-#if defined(CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO) &&                         \
-	defined(CONFIG_HISI_DEBUG_FS)
-static ssize_t hufs_inline_debug_show(
-	struct device *dev, struct device_attribute *attr, char *buf)
-{
-	struct ufs_hba *hba = dev_get_drvdata(dev);
-
-	if (hba->inline_debug_flag == DEBUG_LOG_ON ||
-	    hba->inline_debug_flag == DEBUG_CRYPTO_ON) {
-		return snprintf(buf, PAGE_SIZE, "%s\n",
-				"on"); /* unsafe_function_ignore: snprintf */
-	} else {
-		return snprintf(buf, PAGE_SIZE, "%s\n",
-				"off"); /* unsafe_function_ignore: snprintf */
-	}
-}
-
-static ssize_t hufs_inline_debug_store(
-	struct device *dev, struct device_attribute *attr, const char *buf,
-	size_t count)
-{
-	struct ufs_hba *hba = dev_get_drvdata(dev);
-
-	if (sysfs_streq(buf, "off")) {
-		hba->inline_debug_flag = DEBUG_LOG_OFF;
-	} else if (sysfs_streq(buf, "on")) {
-		hba->inline_debug_flag = DEBUG_LOG_ON;
-	} else if (sysfs_streq(buf, "crypto_on")) {
-		hba->inline_debug_flag = DEBUG_CRYPTO_ON;
-	} else if (sysfs_streq(buf, "crypto_off")) {
-		hba->inline_debug_flag = DEBUG_CRYPTO_OFF;
-	} else {
-		dev_err(hba->dev, "%s: invalid input debug parameter.\n", __func__);
-		return -EINVAL;
-	}
-
-	return count;
-}
-
-static ssize_t hufs_inline_dun_cci_test(
-	struct device *dev, struct device_attribute *attr, const char *buf,
-	size_t count)
-{
-	int i;
-#define UFS_CCI_KEY_LEN 65
-	char buf_temp[UFS_CCI_KEY_LEN] = {0};
-
-	if (count != UFS_CCI_KEY_LEN) {
-		dev_err(dev, "%s: the input key len is not 64.\n", __func__);
-		return count;
-	}
-
-	for (i = 0; i < (UFS_CCI_KEY_LEN - 1); i++)
-		buf_temp[i] = buf[i];
-
-	buf_temp[UFS_CCI_KEY_LEN - 1] = '\0';
-	dev_err(dev, "%s: input key is %s\n", __func__, buf_temp);
-	/* bkdr hash length 64 */
-	test_generate_cci_dun_use_bkdrhash((u8 *)buf_temp, 64);
-
-	return count;
-}
-
-static void hufs_inline_crypto_debug_init(struct ufs_hba *hba)
-{
-	hba->inline_debug_flag = DEBUG_LOG_OFF;
-
-	hba->inline_debug_state.inline_attr.show = hufs_inline_debug_show;
-	hba->inline_debug_state.inline_attr.store =
-		hufs_inline_debug_store;
-	sysfs_attr_init(&hba->inline_debug_state.inline_attr.attr);
-	hba->inline_debug_state.inline_attr.attr.name = "ufs_inline_debug";
-	hba->inline_debug_state.inline_attr.attr.mode = 0640; /* 0640 node attribute mode */
-	if (device_create_file(hba->dev, &hba->inline_debug_state.inline_attr))
-		dev_err(hba->dev,
-			"Failed to create sysfs for inline_debug_state\n");
-
-	hba->inline_dun_cci_test.inline_attr.store =
-		hufs_inline_dun_cci_test;
-	sysfs_attr_init(&hba->inline_dun_cci_test.inline_attr.attr);
-	hba->inline_dun_cci_test.inline_attr.attr.name =
-		"ufs_inline_dun_cci_test";
-	hba->inline_dun_cci_test.inline_attr.attr.mode = 0200; /* 0200 node attribute mode */
-	if (device_create_file(hba->dev, &hba->inline_dun_cci_test.inline_attr))
-		dev_err(hba->dev,
-			"Failed to create sysfs for inline_dun_cci_test\n");
-}
-#endif
-
 void hufs_set_pm_lvl(struct ufs_hba *hba)
 {
 	hba->rpm_lvl = UFS_PM_LVL_1;
@@ -1616,11 +1480,6 @@ static void hufs_populate_mgc_dt(
 		ret = of_property_read_u32(child_np, "manufacturer_id",
 					   &man_id);
 		if (ret) {
-#ifdef CONFIG_HISI_DEBUG_FS
-			dev_err(host->hba->dev,
-				"check the manufacturer_id %s\n",
-				child_np->name);
-#endif
 			continue;
 		}
 
@@ -1722,9 +1581,6 @@ void hufs_populate_dt(struct device *dev, struct hufs_host *host)
 	ret = of_property_match_string(
 		np, "ufs-0db-equalizer-product-names", ufs_product_name);
 	if (ret >= 0) {
-#ifdef CONFIG_HISI_DEBUG_FS
-		dev_info(dev, "find %s in dts\n", ufs_product_name);
-#endif
 		host->tx_equalizer = 0;
 	} else {
 #ifdef UFS_TX_EQUALIZER_0DB
@@ -1811,10 +1667,6 @@ void sel_equalizer_by_device(struct ufs_hba *hba, u32 *equalizer)
 	ret = of_property_match_string(
 		np, "ufs-35db-equalizer-product-names", ufs_product_name);
 	if (ret >= 0) {
-#ifdef CONFIG_HISI_DEBUG_FS
-		dev_err(dev, "%s found in 3.5db product names\n",
-			ufs_product_name);
-#endif
 		*equalizer = TX_EQUALIZER_35DB; /* 35DB */
 	}
 }
@@ -1890,10 +1742,6 @@ static int hufs_init(struct ufs_hba *hba)
 		rpmb_ufs_init(hba->host->is_emulator);
 #endif
 		hufs_inline_crypto_attr(hba);
-#if defined(CONFIG_SCSI_UFS_ENHANCED_INLINE_CRYPTO) &&                         \
-	defined(CONFIG_HISI_DEBUG_FS)
-		hufs_inline_crypto_debug_init(hba);
-#endif
 #ifdef CONFIG_HISI_BOOTDEVICE
 	}
 #endif

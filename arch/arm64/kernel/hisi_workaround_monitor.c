@@ -153,61 +153,16 @@ static void __exit wa2_monitor_exit(void)
 }
 #endif /* CONFIG_HISI_HARDEN_BRANCH_PREDICTOR */
 
-#ifdef CONFIG_HISI_DEBUG_FS
-
-#define WA_COUNTER_SIZE 11U
-static int wa_counter_show(struct seq_file *s, void *unused)
-{
-	struct arm_smccc_res res;
-	unsigned int i;
-
-	for (i = 0; i < WA_COUNTER_SIZE; i++) {
-		arm_smccc_1_1_smc(HISI_GET_WA_COUNTER_FID_VALUE, i, &res);
-		seq_printf(s, "wa_counter[%u]:%llu\n", i, res.a0);
-	}
-
-	return 0;
-}
-
-static int wa_counter_open(struct inode *inode, struct file *file)
-{
-	if (inode == NULL || file == NULL)
-		return -EPERM;
-
-	return single_open(file, wa_counter_show, &inode->i_private);
-}
-
-static const struct file_operations g_wa_counter_fops = {
-	.owner = THIS_MODULE,
-	.open = wa_counter_open,
-	.read = seq_read,
-	.llseek = seq_lseek,
-	.release = single_release,
-};
-
-static struct dentry *g_wa_counter_dir;
-#endif /* CONFIG_HISI_DEBUG_FS */
-
 static int __init wa_monitor_init(void)
 {
 #ifdef CONFIG_HISI_HARDEN_BRANCH_PREDICTOR
 	wa2_monitor_init();
-#endif
-#ifdef CONFIG_HISI_DEBUG_FS
-	g_wa_counter_dir = debugfs_create_file("wa_counter", 0440,
-					       NULL, NULL,
-					       &g_wa_counter_fops);
-	if (g_wa_counter_dir == NULL)
-		pr_err("fail to create fs for wa counter\n");
 #endif
 	return 0;
 }
 
 static void __exit wa_monitor_exit(void)
 {
-#ifdef CONFIG_HISI_DEBUG_FS
-	debugfs_remove(g_wa_counter_dir);
-#endif
 #ifdef CONFIG_HISI_HARDEN_BRANCH_PREDICTOR
 	wa2_monitor_exit();
 #endif

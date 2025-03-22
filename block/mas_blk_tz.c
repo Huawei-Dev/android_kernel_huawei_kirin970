@@ -69,15 +69,3 @@ int blk_lld_tz_ctrl(
 	return -EPERM;
 }
 
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-ssize_t mas_queue_tz_write_bytes_show(struct request_queue *q, char *page)
-{
-	unsigned long offset = 0;
-
-	offset += snprintf(page, PAGE_SIZE, "tz_write_bytes: %lu\n",
-			   q->mas_queue.tz_write_bytes);
-
-	return (ssize_t)offset;
-}
-#endif
-

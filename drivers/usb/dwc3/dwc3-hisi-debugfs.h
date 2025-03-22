@@ -13,12 +13,6 @@
 #include <linux/fs.h>
 #include "core.h"
 
-#ifdef CONFIG_HISI_DEBUG_FS
-void dwc3_chip_debugfs_init(struct dwc3 *dwc, struct dentry *root);
-void dwc3_chip_debugfs_exit(void);
-int dwc3_is_test_noc_err(void);
-uint32_t dwc3_get_noc_err_addr(uint32_t addr);
-#else
 static inline void dwc3_chip_debugfs_init(struct dwc3 *dwc, struct dentry *root) {}
 static inline void dwc3_chip_debugfs_exit(void) {}
 static inline int dwc3_is_test_noc_err(void)
@@ -30,6 +24,4 @@ static inline uint32_t dwc3_get_noc_err_addr(uint32_t addr)
 {
 	return 0;
 }
-#endif
-
 #endif /* _DWC3_CHIP_DEBUGFS_H_ */

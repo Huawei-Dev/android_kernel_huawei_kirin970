@@ -29,6 +29,5 @@ config SND_SOC_SLIMBUS_DAI
 	tristate "Support SLIMBUS DAI"
 	default y
 
-source "sound/soc/hisilicon/pcm_codec/Kconfig"
 endmenu
 

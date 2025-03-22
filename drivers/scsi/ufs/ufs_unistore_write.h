@@ -34,11 +34,4 @@ void ufshcd_dev_data_move_done(struct scsi_cmnd *cmd,
 	struct utp_upiu_rsp *ucd_rsp_ptr);
 void ufschd_data_move_prepare_buf(struct scsi_device *sdev,
 	struct stor_dev_data_move_info *data_move_info, unsigned char *buf);
-#ifdef CONFIG_MAS_DEBUG_FS
-int ufshcd_dev_rescue_block_inject_data(
-	struct scsi_device *sdev, unsigned int lba);
-int ufshcd_dev_bad_block_error_inject(
-	struct scsi_device *sdev, unsigned char bad_slc_cnt,
-	unsigned char bad_tlc_cnt);
-#endif
 #endif

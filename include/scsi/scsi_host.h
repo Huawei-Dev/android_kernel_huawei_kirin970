@@ -139,12 +139,6 @@ struct scsi_host_template {
 	int (*dev_bad_block_notify_register)(struct scsi_device *dev,
 		void (*func)(struct Scsi_Host *host,
 		struct stor_dev_bad_block_info *bad_block_info));
-#ifdef CONFIG_MAS_DEBUG_FS
-	int (*dev_rescue_block_inject_data)(struct scsi_device *dev,
-		unsigned int lba);
-	int (*dev_bad_block_error_inject)(struct scsi_device *dev,
-		unsigned char bad_slc_cnt, unsigned char bad_tlc_cnt);
-#endif
 #endif
 	/*
 	 * The queuecommand function is used to queue up a scsi

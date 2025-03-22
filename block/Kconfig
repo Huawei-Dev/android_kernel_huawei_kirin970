@@ -152,11 +152,6 @@ config MAS_BLK_BW_OPTIMIZE
 	depends on MAS_BLK
 	default n
 
-config MAS_DEBUG_FS
-	bool "mas debug fs"
-	depends on MAS_BLK
-	default n
-
 config MMC_BLOCK_IOMMU_64BIT
         bool "Block bounce limit"
         depends on BLOCK
@@ -189,13 +184,6 @@ config MAS_BKOPS
 	help
 		MAS BKOPS feature
 
-config MAS_BLK_DEBUG
-	bool "MAS_BLK_DEBUG"
-	depends on MAS_BLK
-	default n
-	help
-		MAS block debug, need to be removed!
-
 config MAS_STORAGE
     bool "MAS Storage related change"
     default n
@@ -222,20 +210,6 @@ config MAS_UNISTORE_PRESERVE
 	default n
 	help
 		mas unistorage preserving in block layer
-
-config MAS_IO_TRACE
-	bool "MAS_IO_TRACE"
-	depends on MAS_DEBUG_FS
-	default n
-	help
-		MAS io trace event, as supplement to block_rq_issue and block_rq_complete
-
-config MAS_IO_DEBUG_TRACE
-	bool "MAS_IO_DEBUG_TRACE"
-	depends on MAS_IO_TRACE
-	default n
-	help
-		MAS io debug trace event
 
 config PARTITION_TABLE
         bool "hisi partition"

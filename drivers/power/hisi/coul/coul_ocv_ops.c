@@ -238,62 +238,6 @@ int coul_dsm_report_ocv_cali_info(struct smartstar_coul_device *di,
 #endif
 }
 
-
-#ifdef CONFIG_PM
-#ifdef CONFIG_HISI_DEBUG_FS
-int control_ocv_level(int level, int val)
-{
-	if ((level >= OCV_LEVEL_MAX) || (level < OCV_LEVEL_0))
-		return -1;
-	if (val == 1)
-		g_ocv_level_para[level].is_enabled = 1;
-	else if (val == 0)
-		g_ocv_level_para[level].is_enabled = 0;
-	else
-		return -1;
-	coul_core_info("ocv level[%d]is set[%d]\n",
-		level, g_ocv_level_para[level].is_enabled);
-	return 0;
-}
-
-int print_multi_ocv_threshold(void)
-{
-	int i;
-
-	coul_core_info("%s++++", __func__);
-	coul_core_info("duty_ratio_limit|sleep_time_limit|wake_time_limit|max_avg_curr_limit|temp_limit|ocv_gap_time_limit|delta_soc_limit|ocv_update_anyway|allow_fcc_update|is_enabled|\n");
-	for (i = 0; i < OCV_LEVEL_MAX; i++)
-		coul_core_info("%4d|%4d|%4d|%4d|%4d|%4d|%4d|%4d|%4d|%4d|\n",
-			g_ocv_level_para[i].duty_ratio_limit,
-			g_ocv_level_para[i].sleep_time_limit,
-			g_ocv_level_para[i].wake_time_limit,
-			g_ocv_level_para[i].max_avg_curr_limit,
-			g_ocv_level_para[i].temp_limit,
-			g_ocv_level_para[i].ocv_gap_time_limit,
-			g_ocv_level_para[i].delta_soc_limit,
-			g_ocv_level_para[i].ocv_update_anyway,
-			g_ocv_level_para[i].allow_fcc_update,
-			g_ocv_level_para[i].is_enabled);
-	coul_core_info("%s----", __func__);
-	return 0;
-}
-
-u8 get_delta_soc(void)
-{
-	if (!g_test_delta_soc_renew_ocv)
-		return g_delta_soc_renew_ocv;
-	return g_test_delta_soc_renew_ocv;
-}
-
-u8 set_delta_soc(u8 delta_soc)
-{
-	g_test_delta_soc_renew_ocv = delta_soc;
-	coul_core_info("delta_soc is set[%d]\n", delta_soc);
-	return g_test_delta_soc_renew_ocv;
-}
-#endif
-#endif
-
 void coul_clear_cc_register(void)
 {
 	int cc_temp;
@@ -408,9 +352,6 @@ void coul_get_initial_ocv(struct smartstar_coul_device *di)
 	di->batt_ocv_temp = di->coul_dev_ops->get_ocv_temp();
 	di->batt_ocv = ocv_uv;
 	di->coul_dev_ops->get_ocv_level(&(di->last_ocv_level));
-#ifdef CONFIG_HISI_DEBUG_FS
-	print_multi_ocv_threshold();
-#endif
 	coul_core_info("initial OCV = %d, OCV_temp=%d, fcc_flag= %d, ocv_level: %d\n",
 		di->batt_ocv, di->batt_ocv_temp,
 		di->batt_ocv_valid_to_refresh_fcc, di->last_ocv_level);

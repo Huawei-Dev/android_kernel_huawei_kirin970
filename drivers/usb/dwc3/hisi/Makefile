@@ -11,8 +11,6 @@ obj-$(CONFIG_USB_DWC3_MAR)		+= combophy_regcfg.o hisi_usb3_31phy.o dwc3-mar.o hi
 obj-$(CONFIG_USB_DWC3_FEB)		+= combophy_regcfg.o hisi_usb3_31phy.o dwc3-feb.o hisi_usb3_bc.o hisi_usb3_misctrl.o
 obj-$(CONFIG_USB_DWC3_CHIP)		+= dwc3-hisi.o hisi_usb_bc12.o hisi_usb_hw.o
 
-obj-$(CONFIG_HISI_DEBUG_FS)		+= hisi_usb_debug.o
-
 ifeq ($(CONFIG_HIFI_MAILBOX), y)
 EXTRA_CFLAGS += -I$(srctree)/drivers/hisi/hifi_mailbox/mailbox
 EXTRA_CFLAGS += -I$(srctree)/drivers/hisi/hifi_mailbox/ipcm

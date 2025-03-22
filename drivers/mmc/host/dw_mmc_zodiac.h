@@ -262,11 +262,6 @@ extern void dw_mci_idmac_reset(struct dw_mci *host);
 extern int dw_mci_check_himntn(int feature);
 extern int mmc_detect_sd_or_mmc(struct mmc_host *host);
 
-#if defined(CONFIG_HISI_DEBUG_FS)
-extern void proc_sd_test_init(void);
-extern void test_sd_delete_host_caps(struct mmc_host *host);
-#endif
-
 struct dw_mci_tuning_data {
 	const u8 *blk_pattern;
 	unsigned int blksz;

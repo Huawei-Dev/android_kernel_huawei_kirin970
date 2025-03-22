@@ -115,9 +115,6 @@ static const struct file_operations fops = {
 
 static int __init slowpath_count_init(void)
 {
-#ifdef CONFIG_HISI_DEBUG_FS
-	debugfs_create_file("slowpath_count", 0440, NULL, NULL, &fops);
-#endif
 	return 0;
 }
 

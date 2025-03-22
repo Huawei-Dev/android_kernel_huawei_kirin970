@@ -744,19 +744,7 @@ static int flp_common_inject_location(unsigned long arg)
  */
 static int flp_common_inject_data(flp_port_t *flp_port, unsigned long arg)
 {
-#ifdef CONFIG_HISI_DEBUG_FS
-	hal_config_t config;
-	int ret;
-
-	if (copy_from_user(&config, (void *)((uintptr_t)arg), sizeof(hal_config_t))) {
-		pr_err("[%s] copy hal config error\n", __func__);
-		return -EFAULT;
-	}
-	ret = flp_fence_shmem(flp_port, &config, FLP_SHMEM_CMD_INJECT_DATA, 0);
-	return ret;
-#else
 	return 0;
-#endif
 }
 #endif
 /*

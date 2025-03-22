@@ -267,10 +267,6 @@ static int pl011_tx_work_init(struct uart_amba_port *uap,
 		pr_err("%s:gen dbgfs_name fail %d\n", __func__, ret);
 		return ret;
 	}
-#ifdef CONFIG_HISI_DEBUG_FS
-	/* 0444 for file read-only */
-	debugfs_create_file(dbgfs_name, 0444, NULL, unit, &pl011_tx_stat_ops);
-#endif
 	return 0;
 }
 

@@ -625,10 +625,6 @@ struct mmc_host {
 	struct timer_list	err_handle_timer;
 	int			reset_num;
 	unsigned int		init_cnt;
-#ifdef CONFIG_HISI_DEBUG_FS
-	u64 sim_remove_sd;
-	u64 sim_remove_nano;
-#endif
 	unsigned long		private[0] ____cacheline_aligned;
 };
 

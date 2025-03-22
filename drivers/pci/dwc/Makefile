@@ -21,7 +21,6 @@ obj-$(CONFIG_PCIE_KPORT_PHY_XW) += pcie-kport-phy-xw.o
 obj-$(CONFIG_PCIE_KPORT_PHY) += pcie-kport-phy.o
 obj-$(CONFIG_PCIE_KPORT_MNTN) += pcie-mntn.o
 obj-$(CONFIG_PCIE_KPORT_TEST) += pcie-kport-test.o
-obj-$(CONFIG_PCIE_KPORT_SLT) += pcie-slt.o
 obj-$(CONFIG_PCIE_KPORT_FEB) += pcie-feb.o
 obj-$(CONFIG_PCIE_KPORT_MAR) += pcie-mar.o
 obj-$(CONFIG_PCIE_KPORT_APR) += pcie-apr.o

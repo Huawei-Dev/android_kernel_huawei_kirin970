@@ -224,9 +224,6 @@ struct rpmb_request {
 	struct request_info info;
 	uint64_t rpmb_atf_start_time;
 	uint64_t rpmb_atf_end_time;
-#ifdef CONFIG_HISI_DEBUG_FS
-	struct _rpmb_debug rpmb_debug;
-#endif
 };
 
 struct rpmb_shared_request_status {

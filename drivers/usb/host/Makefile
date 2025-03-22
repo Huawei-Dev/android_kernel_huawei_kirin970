@@ -25,7 +25,6 @@ endif
 ifneq ($(CONFIG_USB_XHCI_RCAR), )
 	xhci-plat-hcd-y		+= xhci-rcar.o
 endif
-xhci-plat-hcd-$(CONFIG_HISI_DEBUG_FS) += xhci-debugfs.o
 xhci-plat-hcd-$(CONFIG_USB_DWC3_NYET_ABNORMAL) += xhci-local-mem.o
 
 xhci-plat-hcd-$(CONFIG_VENDOR_XHCI_EVENT_DEBUG) += xhci-debug-event.o

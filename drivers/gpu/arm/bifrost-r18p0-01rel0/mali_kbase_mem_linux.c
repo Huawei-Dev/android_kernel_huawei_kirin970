@@ -319,16 +319,6 @@ struct kbase_va_region *kbase_mem_alloc(struct kbase_context *kctx,
 		goto bad_flags;
 	}
 
-#ifdef CONFIG_HISI_DEBUG_FS
-	if (unlikely(kbase_ctx_flag(kctx, KCTX_INFINITE_CACHE))) {
-		/* Mask coherency flags if infinite cache is enabled to prevent
-		 * the skipping of syncs from BASE side.
-		 */
-		*flags &= ~(BASE_MEM_COHERENT_SYSTEM_REQUIRED |
-			    BASE_MEM_COHERENT_SYSTEM);
-	}
-#endif
-
 	if ((*flags & BASE_MEM_UNCACHED_GPU) != 0 &&
 			(*flags & BASE_MEM_COHERENT_SYSTEM_REQUIRED) != 0) {
 		/* Remove COHERENT_SYSTEM_REQUIRED flag if uncached GPU mapping is requested */

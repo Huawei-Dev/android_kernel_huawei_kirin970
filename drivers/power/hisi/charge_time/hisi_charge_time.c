@@ -292,130 +292,13 @@ static void hisi_chg_time_write_param_to_flash(
 	hisi_chg_time_write_flash_data(&di->flash_param, size, CHG_DUR_OFFSET);
 }
 
-#ifdef CONFIG_HISI_DEBUG_FS
-int test_val;
-void hisi_chg_time_output_set(int valid, int sec)
-{
-	if (valid)
-		test_val = (int)((unsigned int)sec | VALID_FLAG);
-	else
-		test_val = sec;
-}
-
-void hisi_chg_time_flash_test(int type, int soc, int time)
-{
-	struct hisi_chg_time_device *di = g_hisi_chg_time_info;
-	struct hisi_chg_time_param *param = NULL;
-
-	if (!di || soc > SOC_FULL || soc < 0)
-		return;
-
-	if (type == PARA_STANDARD)
-		param = &di->flash_param.standard;
-	else if (type == PARA_FCP)
-		param = &di->flash_param.fcp;
-	else if (type == PARA_LVC)
-		param = &di->flash_param.lvc;
-	else if (type == PARA_SC)
-		param = &di->flash_param.sc;
-	else
-		return;
-
-	param->step_time[soc] = time;
-	ct_info("%s type %d, i[%d] = %d\n", __func__, type, soc, time);
-
-	if (soc == SOC_FULL) {
-		param->batt_cycles = di->batt_info.batt_cycles;
-		param->temp_high = NORMAL_TEMP;
-		param->temp_low = NORMAL_TEMP;
-		param->start_soc = 0;
-		hisi_chg_time_write_param_to_flash(di);
-	}
-}
-void hisi_chg_time_test_flag(int flag)
-{
-	struct hisi_chg_time_device *di = g_hisi_chg_time_info;
-
-	if (!di)
-		return;
-
-	di->test_flag = flag;
-}
-
-/*
- * @brief	   : hisi_chg_time_flash_param_show
- * @param[in]  : dev
- * @param[in]  : attr
- * @param[in]  : buf
- * @return	 : ::ssize_t
- */
-ssize_t hisi_chg_time_flash_param_show(
-	struct device *dev, struct device_attribute *attr, char *buf)
-{
-	struct hisi_chg_time_device *di = g_hisi_chg_time_info;
-
-	if (!di)
-		return -EINVAL;
-
-	ct_info("%s()-line=%d\n", __func__, __LINE__);
-	hisi_chg_time_read_param_from_flash(di);
-	return 0;
-}
-
-void hisi_chg_time_clear_flash_data(void)
-{
-	void *p_buf = NULL;
-
-	p_buf = kzalloc(CHG_DUR_SIZE, GFP_KERNEL);
-	if (!p_buf)
-		return;
-
-	hisi_chg_time_write_flash_data(p_buf, CHG_DUR_SIZE, CHG_DUR_OFFSET);
-	kfree(p_buf);
-}
-
-ssize_t hisi_chg_time_flash_param_clear(struct device *dev,
-					struct device_attribute *attr, const char *buf, size_t count)
-{
-	int status = count;
-
-	if (!buf)
-		return -EINVAL;
-
-	ct_info("%s()-line=%d\n", __func__, __LINE__);
-	hisi_chg_time_clear_flash_data();
-
-	return status;
-}
-
-static DEVICE_ATTR(flash_param, 0644,
-		   hisi_chg_time_flash_param_show, hisi_chg_time_flash_param_clear);
-#endif
-
 static int hisi_chg_time_test_soc(void)
 {
-#ifdef CONFIG_HISI_DEBUG_FS
-	static int soc;
-	struct hisi_chg_time_device *di = g_hisi_chg_time_info;
-
-	if (!di)
-		return 0;
-
-	if (soc > SOC_FULL)
-		soc = 0;
-	return soc++;
-#else
 	return 0;
-#endif
 }
 
 int hisi_chg_time_remaining(bool with_valid)
 {
-#ifdef CONFIG_HISI_DEBUG_FS
-	if (test_val)
-		return test_val;
-#endif
-
 	if (!g_hisi_chg_time_info)
 		return -1;
 
@@ -1031,25 +914,11 @@ static int hisi_chg_time_probe(struct platform_device *pdev)
 
 	INIT_DELAYED_WORK(&di->charge_time_work, hisi_charge_time_calc_work);
 
-#ifdef CONFIG_HISI_DEBUG_FS
-	ret = device_create_file(di->dev, &dev_attr_flash_param);
-	if (ret) {
-		ct_err("failed to create file");
-		goto create_file_err;
-	}
-#endif
-
 	g_hisi_chg_time_info = di;
 
 	ct_err("%s succ\n", __func__);
 	return 0;
 
-#ifdef CONFIG_HISI_DEBUG_FS
-create_file_err:
-	ret = power_event_bnc_unregister(POWER_BNT_DC, &di->direct_charger_nb);
-	if (ret)
-		ct_err("%s direct charge unregister fail\n", __func__);
-#endif
 register_ne_err:
 	ret = bci_unregister_notifier(&di->nb, 1);
 	if (ret)

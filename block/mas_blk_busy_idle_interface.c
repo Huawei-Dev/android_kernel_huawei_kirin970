@@ -44,34 +44,3 @@ void __cfi_mas_blk_busyidle_end_rq(struct request *rq, blk_status_t error)
 	mas_blk_busyidle_end_rq(rq, error);
 }
 
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-ssize_t __cfi_mas_queue_busyidle_enable_store(
-	struct request_queue *q, const char *page, size_t count)
-{
-	return mas_queue_busyidle_enable_store(q, page, count);
-}
-
-ssize_t __cfi_mas_queue_busyidle_statistic_reset_store(
-	struct request_queue *q, const char *page, size_t count)
-{
-	return mas_queue_busyidle_statistic_reset_store(q, page, count);
-}
-
-ssize_t __cfi_mas_queue_busyidle_statistic_show(
-	struct request_queue *q, char *page)
-{
-	return mas_queue_busyidle_statistic_show(q, page, PAGE_SIZE);
-}
-
-ssize_t __cfi_mas_queue_hw_idle_enable_show(
-	struct request_queue *q, char *page)
-{
-	return mas_queue_hw_idle_enable_show(q, page, PAGE_SIZE);
-}
-
-ssize_t __cfi_mas_queue_idle_state_show(struct request_queue *q, char *page)
-{
-	return mas_queue_idle_state_show(q, page, PAGE_SIZE);
-}
-#endif /* CONFIG_MAS_BLK_DEBUG */
-

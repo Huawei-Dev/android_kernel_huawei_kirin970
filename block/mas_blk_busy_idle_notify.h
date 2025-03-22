@@ -16,17 +16,6 @@
 #define __MAS_BLK_BUSY_IDLE_NOTIFY__
 #include <linux/blkdev.h>
 
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-#define BLK_IDLE_100MS 100
-#define BLK_IDLE_500MS 500
-#define BLK_IDLE_1000MS 1000
-#define BLK_IDLE_2000MS 2000
-#define BLK_IDLE_4000MS 4000
-#define BLK_IDLE_6000MS 6000
-#define BLK_IDLE_8000MS 8000
-#define BLK_IDLE_10000MS 10000
-#endif
-
 /* Internal structure! */
 struct blk_busyidle_nb {
 	/* list into subscribed_event_list */

@@ -73,23 +73,6 @@ static void ramp_event_regs_show(struct pmic_ramp *pmic_ramp)
 	}
 }
 
-#ifdef CONFIG_HISI_DEBUG_FS
-void pmic_ramp_test(int pmu, u32 addr, u8 v1, u8 v2)
-{
-	pr_err("%s, pmu %d addr 0x%x, v1 0x%x, v2 0x%x\n", __func__,
-		pmu, addr, v1, v2);
-	if (pmu == 1) {
-		hisi_sub_pmic_reg_write(addr, v1);
-		hisi_sub_pmic_reg_write(addr, v2);
-		hisi_sub_pmic_reg_write(addr, v1);
-	} else {
-		pmic_write_reg(addr, v1);
-		pmic_write_reg(addr, v2);
-		pmic_write_reg(addr, v1);
-	}
-}
-#endif
-
 static void ramp_event_regs_clr(struct pmic_ramp *pmic_ramp)
 {
 	int i;

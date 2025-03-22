@@ -1435,39 +1435,6 @@ static void hisp160_update_ddrfreq(unsigned int ddr_bandwidth)
 	}
 }
 
-#ifdef CONFIG_HISI_DEBUG_FS
-static ssize_t hisp_ddr_freq_ctrl_show(struct device *dev,
-	struct device_attribute *attr,char *buf)
-{
-	cam_info("enter %s,current_ddr_bandwidth:%d ",
-		__FUNCTION__, current_ddr_bandwidth);
-	return scnprintf(buf, PAGE_SIZE, "%d ", current_ddr_bandwidth);
-}
-
-static ssize_t hisp_ddr_freq_store(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
-{
-	int ddr_bandwidth = 0;
-	if (buf == NULL) {
-		cam_err("%s,input buffer is invalid ", __FUNCTION__);
-		return -EINVAL;
-	}
-
-	ddr_bandwidth = simple_strtol(buf, NULL, 10);
-	cam_info("%s enter,ddr_bandwidth:%d ", __FUNCTION__, ddr_bandwidth);
-
-	if (ddr_bandwidth < 0) {
-		cam_err("%s,ddr_bandwidth is invalid ", __FUNCTION__);
-		return -EINVAL;
-	} else if (ddr_bandwidth == 0) {
-		hisp160_release_ddrfreq();
-	} else if (ddr_bandwidth > 0) {
-		hisp160_update_ddrfreq(ddr_bandwidth);
-	}
-	return count;
-}
-#endif
-
 static int32_t hisp160_rpmsg_probe(struct rpmsg_device *rpdev)
 {
 	int32_t ret = 0;
@@ -1536,12 +1503,6 @@ static struct rpmsg_driver rpmsg_hisp160_driver = {
 	.remove = hisp160_rpmsg_remove,
 };
 
-#ifdef CONFIG_HISI_DEBUG_FS
-static struct device_attribute hisp_ddr_freq_ctrl_attr =
-		__ATTR(ddr_freq_ctrl, 0660, hisp_ddr_freq_ctrl_show,
-		hisp_ddr_freq_store);
-#endif
-
 static int32_t hisp160_platform_probe(struct platform_device *pdev)
 {
 	int32_t ret = 0;
@@ -1575,16 +1536,6 @@ static int32_t hisp160_platform_probe(struct platform_device *pdev)
 
 	s_hisp160.pdev = pdev;
 
-#ifdef CONFIG_HISI_DEBUG_FS
-	ret = device_create_file(&pdev->dev, &hisp_ddr_freq_ctrl_attr);
-	if (ret < 0) {
-		cam_err("%s failed to creat hisp ddr freq ctrl attribute",
-			__FUNCTION__);
-		unregister_rpmsg_driver(&rpmsg_hisp160_driver);
-		hisp_unregister(s_hisp160.pdev);
-		goto error;
-	}
-#endif
 	return 0;
 
 error:

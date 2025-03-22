@@ -2047,9 +2047,6 @@ ssize_t coul_set_reg_value(struct device *dev,
 
 	if (kstrtol(buf, 0, &val) < 0)
 		return -EINVAL;
-#ifdef CONFIG_HISI_DEBUG_FS
-	COUL_REG_WRITE(g_reg_addr, (char)val);
-#endif
 	return status;
 }
 
@@ -2058,9 +2055,6 @@ ssize_t coul_show_reg_info(
 {
 	u8 val = 0;
 
-#ifdef CONFIG_HISI_DEBUG_FS
-	val = COUL_REG_READ(g_reg_addr);
-#endif
 	return snprintf_s(buf, PAGE_SIZE, PAGE_SIZE - 1, "reg[0x%x]=0x%x\n",
 		(u32)g_reg_addr, val);
 }

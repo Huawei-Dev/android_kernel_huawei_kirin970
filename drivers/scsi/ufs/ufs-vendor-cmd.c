@@ -51,11 +51,7 @@ static int ufshcd_tz_ctrl(struct scsi_device *sdev, int desc_id, uint8_t index)
 	if (!sdev || (index != 0 && index != 1))
 		return -EINVAL;
 
-#ifdef CONFIG_HISI_DEBUG_FS
-	if (desc_id < TZ_RETURN_FLAG || desc_id >= TZ_DESC_MAX)
-#else
 	if (desc_id != TZ_RETURN_FLAG && desc_id != TZ_FORCE_CLOSE_FLAG)
-#endif
 		return -EINVAL;
 
 	hba = shost_priv(sdev->host);

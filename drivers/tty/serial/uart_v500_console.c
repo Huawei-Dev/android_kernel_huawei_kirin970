@@ -220,11 +220,6 @@ static int uart_v500_async_print_work_init(struct uart_v500_port *uap,
 		pr_err("%s:gen debug_fs_name fail %d\n", __func__, ret);
 		return ret;
 	}
-#ifdef CONFIG_HISI_DEBUG_FS
-	/* 0444 for file read-only */
-	debugfs_create_file(debug_fs_name, 0444, NULL, unit,
-		&uart_v500_async_print_stat_ops);
-#endif
 	return 0;
 }
 

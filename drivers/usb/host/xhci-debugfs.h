@@ -103,16 +103,11 @@ struct xhci_slot_priv {
 	struct xhci_virt_device	*dev;
 };
 
-#ifdef CONFIG_HISI_DEBUG_FS
-int xhci_create_debug_file(struct xhci_hcd *xhci);
-void xhci_remove_debug_file(struct xhci_hcd *xhci);
-#else
 static inline int xhci_create_debug_file(struct xhci_hcd *xhci)
 {
 	return 0;
 }
 
 static inline void xhci_remove_debug_file(struct xhci_hcd *xhci) { }
-#endif
 
 #endif /* __LINUX_XHCI_DEBUGFS__H */

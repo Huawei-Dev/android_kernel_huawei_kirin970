@@ -30,14 +30,4 @@ extern ssize_t __cfi_mas_queue_status_show(
 	struct request_queue *q, char *page);
 extern ssize_t mas_queue_status_show(
 	const struct request_queue *q, char *page, unsigned long len);
-#if defined(CONFIG_MAS_DEBUG_FS) || defined(CONFIG_MAS_BLK_DEBUG)
-extern ssize_t __cfi_mas_queue_io_prio_sim_show(
-	struct request_queue *q, char *page);
-extern ssize_t mas_queue_io_prio_sim_show(
-	const struct request_queue *q, char *page);
-extern ssize_t __cfi_mas_queue_io_prio_sim_store(
-	struct request_queue *q, const char *page, size_t count);
-extern ssize_t mas_queue_io_prio_sim_store(
-	struct request_queue *q, const char *page, size_t count);
-#endif
 #endif
