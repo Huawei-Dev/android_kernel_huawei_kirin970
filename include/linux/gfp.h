@@ -462,13 +462,6 @@ static inline int gfp_zonelist(gfp_t flags)
 	return ZONELIST_FALLBACK;
 }
 
-#ifdef CONFIG_MEMORY_AFFINITY
-static inline int gfp_zonelist_affinity(gfp_t flags)
-{
-	return ZONELIST_AFFINITY;
-}
-#endif
-
 /*
  * We get the zone list from the current node and the gfp_mask.
  * This zone list contains a maximum of MAXNODES*MAX_NR_ZONES zones.
@@ -482,13 +475,6 @@ static inline struct zonelist *node_zonelist(int nid, gfp_t flags)
 {
 	return NODE_DATA(nid)->node_zonelists + gfp_zonelist(flags);
 }
-
-#ifdef CONFIG_MEMORY_AFFINITY
-static inline struct zonelist *node_zonelist_affinity(int nid, gfp_t flags)
-{
-	return NODE_DATA(nid)->node_zonelists + gfp_zonelist_affinity(flags);
-}
-#endif
 
 #ifndef HAVE_ARCH_FREE_PAGE
 static inline void arch_free_page(struct page *page, int order) { }

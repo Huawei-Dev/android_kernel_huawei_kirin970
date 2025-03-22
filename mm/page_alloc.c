@@ -4188,18 +4188,8 @@ static inline bool prepare_alloc_pages(gfp_t gfp_mask, unsigned int order,
 		struct alloc_context *ac, gfp_t *alloc_mask,
 		unsigned int *alloc_flags)
 {
-#ifdef CONFIG_MEMORY_AFFINITY
-	if (current->mm && current->mm->dma_zone_tag) {
-		ac->high_zoneidx = ZONE_NORMAL;
-		ac->zonelist = node_zonelist_affinity(preferred_nid, gfp_mask);
-	} else {
-		ac->high_zoneidx = gfp_zone(gfp_mask); /*lint !e446*/
-		ac->zonelist = node_zonelist(preferred_nid, gfp_mask);
-	}
-#else
 	ac->high_zoneidx = gfp_zone(gfp_mask); /*lint !e446*/
 	ac->zonelist = node_zonelist(preferred_nid, gfp_mask);
-#endif
 	ac->nodemask = nodemask;
 	ac->migratetype = gfpflags_to_migratetype(gfp_mask); /*lint !e446*/
 
@@ -5067,26 +5057,6 @@ static int build_zonerefs_node(pg_data_t *pgdat, struct zoneref *zonerefs)
 	return nr_zones;
 }
 
-#ifdef CONFIG_MEMORY_AFFINITY
-static int build_zonerefs_node_affinity(pg_data_t *pgdat,
-					struct zoneref *zonerefs)
-{
-	struct zone *zone;
-	enum zone_type zone_type = 0;
-	int nr_zones = 0;
-
-	do {
-		zone = pgdat->node_zones + zone_type;
-		if (managed_zone(zone)) {
-			zoneref_set_zone(zone, &zonerefs[nr_zones++]);
-			check_highest_zone(zone_type);
-		}
-	} while (++zone_type < MAX_NR_ZONES);
-
-	return nr_zones;
-}
-#endif
-
 #ifdef CONFIG_NUMA
 
 static int __parse_numa_zonelist_order(char *s)
@@ -5339,24 +5309,6 @@ static void build_zonelists(pg_data_t *pgdat)
 	zonerefs->zone = NULL;
 	zonerefs->zone_idx = 0;
 }
-
-#ifdef CONFIG_MEMORY_AFFINITY
-static void build_affinity_zonelists(pg_data_t *pgdat)
-{
-	int node, local_node;
-	struct zoneref *zonerefs_affinity;
-	int nr_zones_affinity;
-
-	zonerefs_affinity =
-		pgdat->node_zonelists[ZONELIST_AFFINITY]._zonerefs;
-	nr_zones_affinity =
-		build_zonerefs_node_affinity(pgdat, zonerefs_affinity);
-	zonerefs_affinity += nr_zones_affinity;
-
-	zonerefs_affinity->zone = NULL;
-	zonerefs_affinity->zone_idx = 0;
-}
-#endif /* CONFIG_MEMORY_AFFINITY */
 #endif	/* CONFIG_NUMA */
 
 /*
@@ -5397,17 +5349,11 @@ static void __build_all_zonelists(void *data)
 	 */
 	if (self && !node_online(self->node_id)) {
 		build_zonelists(self);
-#ifdef CONFIG_MEMORY_AFFINITY
-		build_affinity_zonelists(self);
-#endif
 	} else {
 		for_each_online_node(nid) {
 			pg_data_t *pgdat = NODE_DATA(nid);
 
 			build_zonelists(pgdat);
-#ifdef CONFIG_MEMORY_AFFINITY
-			build_affinity_zonelists(pgdat);
-#endif
 		}
 
 #ifdef CONFIG_HAVE_MEMORYLESS_NODES
@@ -5529,12 +5475,6 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
 			continue;
 		if (!early_pfn_in_nid(pfn, nid))
 			continue;
-#if defined(CONFIG_MEMORY_AFFINITY) && defined(CONFIG_ZONE_DMA)
-		if ((zone == ZONE_DMA) &&
-			!is_affinity_dma_zone_pfn(pfn))
-			continue;
-#endif
-
 #ifdef CONFIG_ZONE_MEDIA
 		if (pfn_check_next_zone(zone, pfn))
 			continue;
@@ -6089,11 +6029,6 @@ static inline unsigned long __meminit zone_spanned_pages_in_node(int nid,
 	unsigned int zone_start = 0;
 
 	*zone_start_pfn = node_start_pfn;
-#if defined(CONFIG_MEMORY_AFFINITY) && defined(CONFIG_ZONE_DMA)
-	zone_start = ZONE_NORMAL;
-	if (zone_type >= ZONE_NORMAL)
-		*zone_start_pfn = affinity_normal_zone_start_pfn();
-#endif
 	for (zone = zone_start; zone < zone_type; zone++)
 		*zone_start_pfn += zones_size[zone];
 

@@ -34,11 +34,6 @@ struct user_struct;
 struct writeback_control;
 struct bdi_writeback;
 
-#ifdef CONFIG_MEMORY_AFFINITY
-bool is_affinity_dma_zone_pfn(unsigned long pfn);
-unsigned long affinity_normal_zone_start_pfn(void);
-#endif
-
 void init_mm_internals(void);
 
 #ifndef CONFIG_NEED_MULTIPLE_NODES	/* Don't use mapnrs, do it properly */

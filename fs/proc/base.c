@@ -1766,39 +1766,6 @@ static const struct file_operations proc_pid_sched_autogroup_operations = {
 
 #endif /* CONFIG_SCHED_AUTOGROUP */
 
-#if defined(CONFIG_MEMORY_AFFINITY) && defined(CONFIG_HISI_DEBUG_FS)
-static ssize_t task_mm_zone_tags_read(struct file *file, char __user *buf,
-					size_t count, loff_t *ppos)
-{
-	struct task_struct *task;
-	struct mm_struct *mm;
-	char buffer[PROC_NUMBUF];
-	size_t len;
-
-	task = get_proc_task(file_inode(file));
-	if (!task)
-		return -ESRCH;
-
-	mm = get_task_mm(task);
-	if (!mm) {
-		put_task_struct(task);
-		return -EINVAL;
-	}
-
-	len = snprintf(buffer, sizeof(buffer), "%lu\n", mm->dma_zone_tag);
-
-	mmput(mm);
-	put_task_struct(task);
-
-	return simple_read_from_buffer(buf, count, ppos, buffer, len);
-}
-
-static const struct file_operations proc_task_mm_zone_tags_operations = {
-	.read		= task_mm_zone_tags_read,
-	.llseek		= default_llseek,
-};
-#endif
-
 static ssize_t comm_write(struct file *file, const char __user *buf,
 				size_t count, loff_t *offset)
 {
@@ -3349,9 +3316,6 @@ static const struct pid_entry tgid_base_stuff[] = {
 #ifdef CONFIG_HUAWEI_SCHED_VIP
 	REG("hisi_vip_prio", S_IRUSR|S_IWUSR, proc_hisi_vip_prio_operations),
 #endif
-#if defined(CONFIG_MEMORY_AFFINITY) && defined(CONFIG_HISI_DEBUG_FS)
-	REG("zone_tag", S_IRUSR, proc_task_mm_zone_tags_operations),
-#endif
 };
 
 static int proc_tgid_base_readdir(struct file *file, struct dir_context *ctx)
@@ -3747,9 +3711,6 @@ static const struct pid_entry tid_base_stuff[] = {
 #endif
 #ifdef CONFIG_HUAWEI_SCHED_VIP
 	REG("hisi_vip_prio", S_IRUSR|S_IWUSR, proc_hisi_vip_prio_operations),
-#endif
-#if defined(CONFIG_MEMORY_AFFINITY) && defined(CONFIG_HISI_DEBUG_FS)
-	REG("zone_tag", S_IRUSR, proc_task_mm_zone_tags_operations),
 #endif
 };
 

@@ -157,12 +157,6 @@ config NO_BOOTMEM
 config MEMORY_ISOLATION
 	bool
 
-config MEMORY_AFFINITY
-	bool "Enable memory affinity"
-	help
-	  To reduce the number of rank switchovers,
-	  the memory allocation of the specified application
-	  should be concentrated on one rank(zone).
 #
 # Only be set on architectures that have completely implemented memory hotplug
 # feature. If you are not sure, don't touch it.

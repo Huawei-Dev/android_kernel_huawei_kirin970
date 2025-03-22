@@ -66,18 +66,6 @@ s64 memstart_addr __ro_after_init = -1;
 s64 phystart_addr __ro_after_init = -1;
 phys_addr_t arm64_dma_phys_limit __ro_after_init;
 static unsigned int dma_zone_only;
-#ifdef CONFIG_MEMORY_AFFINITY
-struct ddr_rank_data {
-	u64 rank0_base;
-	u64 rank0_size;
-	u64 rank1_base;
-	u64 rank1_size;
-	u64 shift_from;
-	u64 shift_to;
-	u64 shift_size;
-};
-static struct ddr_rank_data ddr_rank;
-#endif
 
 #ifdef CONFIG_BLK_DEV_INITRD
 static int __init early_initrd(char *p)
@@ -110,25 +98,6 @@ static int __init early_dma_zone_only(char *arg)
 	return 0;
 }
 early_param("dma_zone_only", early_dma_zone_only); /*lint -e528 */
-
-#ifdef CONFIG_MEMORY_AFFINITY
-static int __init early_ddr_rank_info(char *p)
-{
-	unsigned long size;
-	char *token;
-
-	ddr_rank.rank0_base = memparse(p, &token);
-	ddr_rank.rank0_size = memparse(token + 1, &token);
-	ddr_rank.rank1_base = memparse(token + 1, &token);
-	ddr_rank.rank1_size = memparse(token + 1, &token);
-	ddr_rank.shift_from = memparse(token + 1, &token);
-	ddr_rank.shift_to = memparse(token + 1, &token);
-	ddr_rank.shift_size = memparse(token + 1, NULL);
-
-	return 0;
-}
-early_param("ddr_rank_info", early_ddr_rank_info);
-#endif
 
 #ifdef CONFIG_KEXEC_CORE
 /*
@@ -280,25 +249,6 @@ static phys_addr_t __init max_zone_dma_phys(void)
 		return min(offset + (1ULL << 32), memblock_end_of_DRAM());
 }
 
-#ifdef CONFIG_MEMORY_AFFINITY
-bool is_affinity_dma_zone_pfn(unsigned long pfn)
-{
-	if (pfn < PFN_DOWN(ddr_rank.rank0_base + ddr_rank.rank0_size))
-		return true;
-
-	if (PFN_DOWN(ddr_rank.shift_to) &&
-		(pfn > PFN_DOWN(ddr_rank.shift_to)))
-		return true;
-
-	return false;
-}
-
-unsigned long affinity_normal_zone_start_pfn(void)
-{
-	return PFN_DOWN(ddr_rank.rank1_base);
-}
-#endif
-
 #ifdef CONFIG_NUMA
 
 static void __init zone_sizes_init(unsigned long min, unsigned long max)
@@ -313,65 +263,6 @@ static void __init zone_sizes_init(unsigned long min, unsigned long max)
 }
 
 #else
-
-#ifdef CONFIG_MEMORY_AFFINITY
-static void affinity_zone_size_config(unsigned long min, unsigned long max,
-			unsigned long *zone_size, unsigned long *zhole_size)
-{
-	struct memblock_region *reg;
-	unsigned long max_dma = min;
-	unsigned long normal_zone_start = min;
-	unsigned long normal_zone_end = max;
-#ifdef CONFIG_ZONE_DMA
-	unsigned long dma_zone_end =
-			PFN_DOWN(ddr_rank.rank0_base + ddr_rank.rank0_size);
-	unsigned long dma_shift_start =
-			PFN_DOWN(ddr_rank.shift_to);
-	unsigned long dma_shift_end =
-			PFN_DOWN(ddr_rank.shift_to + ddr_rank.shift_size);
-
-	normal_zone_start = PFN_DOWN(ddr_rank.rank1_base);
-	normal_zone_end = PFN_DOWN(ddr_rank.rank1_base + ddr_rank.rank1_size);
-	max_dma  = max(dma_zone_end, dma_shift_end);
-	zone_size[ZONE_DMA] = max_dma - min;
-#endif
-	zone_size[ZONE_NORMAL] = normal_zone_end - normal_zone_start;
-
-	memcpy(zhole_size, zone_size, MAX_NR_ZONES * sizeof(unsigned long));
-
-	for_each_memblock(memory, reg) {
-		unsigned long start = memblock_region_memory_base_pfn(reg);
-		unsigned long end = memblock_region_memory_end_pfn(reg);
-
-		if (start >= max)
-			continue;
-
-#ifdef CONFIG_ZONE_DMA
-		if (start < dma_zone_end) {
-			unsigned long dma_end = min(end, dma_zone_end);
-
-			zhole_size[ZONE_DMA] -= dma_end - start;
-		}
-
-		if ((dma_shift_start > dma_zone_end) &&
-					(end > dma_shift_start)) {
-			unsigned long dma_end = min(end, dma_shift_end);
-			unsigned long dma_start = max(start, dma_shift_start);
-
-			zhole_size[ZONE_DMA] -= dma_end - dma_start;
-		}
-#endif
-		if ((start < normal_zone_end) &&
-			(end >= normal_zone_start)) {
-			unsigned long normal_end = min(end, normal_zone_end);
-			unsigned long normal_start = max(start,
-							normal_zone_start);
-
-			zhole_size[ZONE_NORMAL] -= normal_end - normal_start;
-		}
-	}
-}
-#endif /* CONFIG_MEMORY_AFFINITY */
 
 static void zone_size_config(unsigned long min, unsigned long max,
 			unsigned long *zone_size, unsigned long *zhole_size)
@@ -419,11 +310,7 @@ static void __init zone_sizes_init(unsigned long min, unsigned long max)
 	zone_size[ZONE_MEDIA] = cma_max_pfn - cma_min_pfn;
 #endif
 
-#ifdef CONFIG_MEMORY_AFFINITY
-	affinity_zone_size_config(min, max, zone_size, zhole_size);
-#else
 	zone_size_config(min, max, zone_size, zhole_size);
-#endif
 
 #ifdef CONFIG_ZONE_MEDIA
 	zhole_size[ZONE_MEDIA] = cma_max_pfn - cma_min_pfn - totalcma_pages;

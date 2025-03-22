@@ -450,9 +450,6 @@ struct mm_struct {
 	mm_context_t context;
 
 	unsigned long flags; /* Must use atomic bitops to access the bits */
-#ifdef CONFIG_MEMORY_AFFINITY
-	u32 dma_zone_tag; /* memory affinity tag */
-#endif
 
 	struct core_state *core_state; /* coredumping support */
 #ifdef CONFIG_MEMBARRIER

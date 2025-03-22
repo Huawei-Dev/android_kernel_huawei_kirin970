@@ -652,9 +652,6 @@ static __latent_entropy int dup_mmap(struct mm_struct *mm,
 	mm->data_vm = oldmm->data_vm;
 	mm->exec_vm = oldmm->exec_vm;
 	mm->stack_vm = oldmm->stack_vm;
-#ifdef CONFIG_MEMORY_AFFINITY
-	mm->dma_zone_tag = oldmm->dma_zone_tag;
-#endif
 
 	rb_link = &mm->mm_rb.rb_node;
 	rb_parent = NULL;
@@ -880,9 +877,6 @@ static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p,
 	mm->mmap = NULL;
 	mm->mm_rb = RB_ROOT;
 	mm->vmacache_seqnum = 0;
-#ifdef CONFIG_MEMORY_AFFINITY
-	mm->dma_zone_tag = 0;
-#endif
 #ifdef CONFIG_SPECULATIVE_PAGE_FAULT
 	rwlock_init(&mm->mm_rb_lock);
 #endif

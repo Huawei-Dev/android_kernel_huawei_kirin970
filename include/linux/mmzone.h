@@ -645,9 +645,6 @@ static inline bool zone_intersects(struct zone *zone,
 
 enum {
 	ZONELIST_FALLBACK,	/* zonelist with fallback */
-#ifdef CONFIG_MEMORY_AFFINITY
-	ZONELIST_AFFINITY,	/* zonelist with memory affinity */
-#endif
 #ifdef CONFIG_NUMA
 	/*
 	 * The NUMA zonelists are doubled because we need zonelists that
