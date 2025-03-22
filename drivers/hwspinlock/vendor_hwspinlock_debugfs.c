@@ -59,10 +59,6 @@ static int locked;
 #define DEBUG_FS_DEC 10
 #define TRY_LOCK_CMD_NUM 3
 
-#if ((LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)) && defined(CONFIG_PRODUCT_ARMPC))
-extern struct hwspinlock *hwspin_lock_lookup(unsigned int id);
-#endif
-
 static struct hwspinlock *debugfs_hwspinlock_request_specific(
 	int id, int *b_id, int *n_locks)
 {

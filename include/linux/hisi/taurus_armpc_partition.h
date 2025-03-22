@@ -48,14 +48,9 @@ static struct partition partition_table_ufs[] =
   {PART_HISEE_FS,                42770*1024,           8*1024,   UFS_PART_3},/* hisee_fs           8M    p11*/
   {PART_HOME,                    42778*1024, (64UL)*1024*1024,   UFS_PART_3},/* home              64G    p12*/
 #else
-#ifdef CONFIG_PRODUCT_ARMPC_USER
-  {PART_HISEE_FS,                33874*1024,           8*1024,   UFS_PART_3},/* hisee_fs           8M    p6*/
-  {PART_HOME,                    33882*1024,  (64UL)*1024*1024,  UFS_PART_3},/* home              64G    p7*/
-#else
   {PART_KERNEL,                  33874*1024,  (8UL)*1024*1024,   UFS_PART_3},/* kerneldump         8G    p6*/
   {PART_HISEE_FS,                42066*1024,           8*1024,   UFS_PART_3},/* hisee_fs           8M    p7*/
   {PART_HOME,                    42074*1024,  (64UL)*1024*1024,  UFS_PART_3},/* home              64G    p8*/
-#endif
 #endif
   {"0", 0, 0, 0},
 };

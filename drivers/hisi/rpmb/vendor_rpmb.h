@@ -11,11 +11,7 @@
 #include <linux/hisi/rpmb.h>
 #include "rpmb_fs.h"
 
-#ifdef CONFIG_PRODUCT_ARMPC
-#define UFS_RPMB_BLOCK_DEVICE_NAME "/dev/bsg/0:0:0:49476"
-#else
 #define UFS_RPMB_BLOCK_DEVICE_NAME "/dev/0:0:0:49476"
-#endif
 
 #define EMMC_RPMB_BLOCK_DEVICE_NAME "/dev/block/mmcblk0rpmb"
 

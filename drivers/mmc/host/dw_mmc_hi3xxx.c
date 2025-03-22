@@ -2260,7 +2260,7 @@ int dw_mci_hs_probe(struct platform_device *pdev)
 	const struct of_device_id *match = NULL;
 	int err;
 
-#if defined(CONFIG_HISI_DEBUG_FS) && (!defined(CONFIG_PRODUCT_ARMPC))
+#ifdef CONFIG_HISI_DEBUG_FS
 	proc_sd_test_init();
 #endif
 

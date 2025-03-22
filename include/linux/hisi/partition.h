@@ -28,11 +28,7 @@
 #elif defined(CONFIG_HISI_PARTITION_CAPRICORN)
 #include "capricorn_partition.h"
 #elif defined(CONFIG_PARTITION_TABLE_PISCES)
-#ifdef CONFIG_PRODUCT_ARMPC
-#include "pisces_armpc_partition.h"
-#else
 #include "pisces_partition.h"
-#endif
 #elif defined(CONFIG_HISI_PARTITION_SCORPIO)
 #include "scorpio_partition.h"
 #elif defined(CONFIG_HISI_PARTITION_LEO)
@@ -47,13 +43,7 @@
 #ifdef HISI_EXTERNAL_MODEM
 #include "taurus_a_plus_b_partition.h"
 #elif defined CONFIG_HISI_PARTITION_CS2
-#ifdef CONFIG_PRODUCT_ARMPC
-#include "taurus_armpc_cs2_partition.h"
-#else
 #include "taurus_cs2_partition.h"
-#endif
-#elif defined CONFIG_PRODUCT_ARMPC
-#include "taurus_armpc_partition.h"
 #elif defined CONFIG_PRODUCT_CDC
 #include "taurus_cdc_partition.h"
 #else

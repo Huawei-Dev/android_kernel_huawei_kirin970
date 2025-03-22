@@ -193,11 +193,7 @@ noinline int atfd_hisi_service_rtc_smc(
 #endif
 
 /* extern from kernel source code to avoid intrusion */
-#if ((LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)) && defined(CONFIG_PRODUCT_ARMPC))
-struct rtc_wkalrm poweroff_rtc_alarm = { 0, 0, {0} };
-#else
 extern struct rtc_wkalrm poweroff_rtc_alarm;
-#endif
 static struct vendor_rtc_dev *g_ldata;
 
 static unsigned int get_pd_charge_flag(void);

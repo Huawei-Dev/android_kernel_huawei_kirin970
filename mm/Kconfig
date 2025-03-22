@@ -959,9 +959,3 @@ config FREE_SWAPCACHE_AGGRESSIVELY
 	 Free swapcache aggressively to save swap size.
 
 	 If unsure, say N to free swapcache normally.
-
-config PRODUCT_ARMPC
-	bool "product armpc"
-	default n
-	help
-	 armpc use this configuration.

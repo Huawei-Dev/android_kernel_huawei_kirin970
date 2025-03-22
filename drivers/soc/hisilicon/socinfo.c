@@ -51,11 +51,7 @@ static int __init socinfo_init(void)
 
 	upper = toupper(nm[0]);
 
-#ifdef CONFIG_PRODUCT_ARMPC
-	ret = sprintf_s(lpcpu_soc_str, SOC_STR_LEN, "%c%s", upper, &nm[1]);
-#else
 	ret = sprintf_s(lpcpu_soc_str, SOC_STR_LEN, "vendor %c%s", upper, &nm[1]);
-#endif
 	if (ret < 0)
 		return ret;
 

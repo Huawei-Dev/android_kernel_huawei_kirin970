@@ -594,13 +594,6 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
 	}
 
 	state = decode_state(buf, n);
-#ifdef CONFIG_PRODUCT_ARMPC
-	if (state == PM_SUSPEND_TO_IDLE) {
-		pr_err("s2idle is not supported!\n");
-		error = -EINVAL;
-		goto out;
-	}
-#endif
 	if (state < PM_SUSPEND_MAX) {
 		if (state == PM_SUSPEND_MEM)
 			state = mem_sleep_current;
