@@ -4756,12 +4756,6 @@ void rt_mutex_setprio(struct task_struct *p, struct task_struct *pi_task)
 	}
 
 	p->prio = prio;
-#ifdef CONFIG_HUAWEI_SCHED_VIP
-	if (likely(is_hw_futex_pi_enabled()) && (p->vip_prio != vip_prio)) {
-		trace_sched_pi_setvipprio(p, p->vip_prio, vip_prio);
-		p->vip_prio = vip_prio;
-	}
-#endif
 	if (queued)
 		enqueue_task(rq, p, queue_flag);
 	if (running)
