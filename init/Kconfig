@@ -547,15 +547,6 @@ config IKCONFIG_PROC
 	  This option enables access to the kernel configuration file
 	  through /proc/config.gz.
 
-config IKHEADERS
-	tristate "Enable kernel headers through /sys/kernel/kheaders.tar.xz"
-	depends on SYSFS
-	help
-	  This option enables access to the in-kernel headers that are generated during
-	  the build process. These can be used to build eBPF tracing programs,
-	  or similar programs.  If you build the headers as a module, a module called
-	  kheaders.ko is built which can be loaded on-demand to get access to headers.
-
 config LOG_BUF_SHIFT
 	int "Kernel log buffer size (16 => 64KB, 17 => 128KB)"
 	range 12 25
@@ -871,14 +862,6 @@ config CGROUP_PIDS
 	  to a cgroup hierarchy will *not* be blocked by the PIDs controller),
 	  since the PIDs limit only affects a process's ability to fork, not to
 	  attach to a cgroup.
-
-config HW_CGROUP_IONICE
-	bool "ionice cgroup controller"
-	depends on BLOCK
-	help
-	  Provides a way to set ionice for tasks in a cgroup.
-	  It's useful in mobile devices where certain background apps
-	  are doing heavy io work.
 
 config CGROUP_RDMA
 	bool "RDMA controller"

@@ -59,9 +59,9 @@
 #ifdef CONFIG_HW_ZEROHUNG
 #include <chipset_common/hwzrhung/zrhung.h>
 #endif
-#include "huawei_hung_task.h"
+#include <linux/hisi/huawei_hung_task.h>
 #ifdef CONFIG_DETECT_HUAWEI_MMAP_SEM
-#include <linux/huawei_check_mmap_sem.h>
+#include <linux/hisi/huawei_check_mmap_sem.h>
 #endif
 #ifdef CONFIG_HW_EAS_SCHED
 #include <linux/hw/eas_hw.h>

@@ -4,7 +4,7 @@
  * Author: Gong Chen <gongchen4@huawei.com>
  * Create: 2020-11-11
  */
-#include <linux/huawei_check_mmap_sem.h>
+#include <linux/hisi/huawei_check_mmap_sem.h>
 
 #include <linux/debugfs.h>
 #include <linux/delay.h>

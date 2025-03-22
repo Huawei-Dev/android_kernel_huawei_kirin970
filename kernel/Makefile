@@ -68,12 +68,10 @@ obj-$(CONFIG_KEXEC_FILE) += kexec_file.o
 obj-$(CONFIG_BACKTRACE_SELF_TEST) += backtracetest.o
 obj-$(CONFIG_COMPAT) += compat.o
 obj-$(CONFIG_CGROUPS) += cgroup/
-obj-$(CONFIG_HW_CGROUP_IONICE) += cgroup_ionice.o
 obj-$(CONFIG_UTS_NS) += utsname.o
 obj-$(CONFIG_USER_NS) += user_namespace.o
 obj-$(CONFIG_PID_NS) += pid_namespace.o
 obj-$(CONFIG_IKCONFIG) += configs.o
-obj-$(CONFIG_IKHEADERS) += kheaders.o
 obj-$(CONFIG_SMP) += stop_machine.o
 obj-$(CONFIG_KPROBES_SANITY_TEST) += test_kprobes.o
 obj-$(CONFIG_AUDIT) += audit.o auditfilter.o
@@ -85,14 +83,11 @@ obj-$(CONFIG_KCOV) += kcov.o
 obj-$(CONFIG_KPROBES) += kprobes.o
 obj-$(CONFIG_KGDB) += debug/
 obj-$(CONFIG_DETECT_HUNG_TASK) += hung_task.o
-obj-$(CONFIG_DETECT_HUAWEI_HUNG_TASK) += huawei_hung_task.o
-obj-$(CONFIG_DETECT_HUAWEI_MMAP_SEM) += huawei_check_mmap_sem.o
 obj-$(CONFIG_LOCKUP_DETECTOR) += watchdog.o
 obj-$(CONFIG_HARDLOCKUP_DETECTOR_PERF) += watchdog_hld.o
 obj-$(CONFIG_SECCOMP) += seccomp.o
 obj-$(CONFIG_RELAY) += relay.o
 obj-$(CONFIG_SYSCTL) += utsname_sysctl.o
-obj-$(CONFIG_TASK_DELAY_ACCT) += delayacct.o
 obj-$(CONFIG_TASKSTATS) += taskstats.o tsacct.o
 obj-$(CONFIG_TRACEPOINTS) += tracepoint.o
 obj-$(CONFIG_LATENCYTOP) += latencytop.o
@@ -115,13 +110,14 @@ obj-$(CONFIG_CRASH_DUMP) += crash_dump.o
 obj-$(CONFIG_JUMP_LABEL) += jump_label.o
 obj-$(CONFIG_CONTEXT_TRACKING) += context_tracking.o
 obj-$(CONFIG_TORTURE_TEST) += torture.o
-obj-$(CONFIG_HW_CGROUP_PIDS) += cgroup_huawei/
+
 obj-$(CONFIG_HAS_IOMEM) += memremap.o
+
+obj-$(CONFIG_HW_CGROUP_PIDS) += cgroup_huawei/
+obj-$(CONFIG_HW_CGROUP_WORKINGSET) += cgroup_workingset/
+obj-$(CONFIG_HW_VIP_THREAD) += cpu_netlink/
 obj-$(CONFIG_HW_VIP_THREAD) += hwcfs/
 obj-$(CONFIG_HW_QOS_THREAD) += hwqos/
-obj-$(CONFIG_HW_VIP_THREAD) += cpu_netlink/
-
-obj-$(CONFIG_HW_CGROUP_WORKINGSET) += cgroup_workingset/
 
 $(obj)/configs.o: $(obj)/config_data.h
 

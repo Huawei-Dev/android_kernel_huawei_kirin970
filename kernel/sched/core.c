@@ -67,7 +67,7 @@
 #include <chipset_common/security/kshield.h>
 
 #ifdef CONFIG_CPUSET_TASKS_CROWDED_WORKAROUND
-#include <linux/huawei_hung_task.h>
+#include <linux/hisi/huawei_hung_task.h>
 #endif
 
 DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);

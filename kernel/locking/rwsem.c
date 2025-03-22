@@ -16,7 +16,7 @@
 #include "rwsem.h"
 
 #ifdef CONFIG_DETECT_HUAWEI_MMAP_SEM_DBG
-#include <linux/huawei_check_mmap_sem.h>
+#include <linux/hisi/huawei_check_mmap_sem.h>
 #endif
 
 /*
