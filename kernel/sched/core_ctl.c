@@ -40,7 +40,7 @@
 
 #include <trace/events/sched.h>
 
-#include "frame/frame.h"
+#include "frame.h"
 #include <securec.h>
 
 /*

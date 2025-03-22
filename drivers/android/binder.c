@@ -92,11 +92,6 @@
 #include <chipset_common/dubai/dubai.h>
 #endif
 
-#ifdef CONFIG_FRAME_RTG
-#include <linux/hisi_rtg.h>
-#include <linux/sched/frame.h>
-#endif
-
 #ifdef CONFIG_HUAWEI_KSTATE
 #include <huawei_platform/power/hw_kcollect.h>
 #endif
@@ -1762,14 +1757,6 @@ static int to_kernel_prio(int policy, int user_priority)
 		return MAX_USER_RT_PRIO - 1 - user_priority;
 }
 
-#ifdef CONFIG_FRAME_RTG
-static bool is_special_rtg(struct task_struct *task)
-{
-	unsigned int grp_id = sched_get_group_id(task);
-	return is_frame_rtg(grp_id) || (grp_id == DEFAULT_AUX_ID);
-}
-#endif
-
 static void binder_do_set_priority(struct task_struct *task,
 				   struct binder_priority desired,
 				   bool verify)
@@ -1780,10 +1767,6 @@ static void binder_do_set_priority(struct task_struct *task,
 
 	if (task->policy == policy && task->normal_prio == desired.prio)
 		return;
-#ifdef CONFIG_FRAME_RTG
-	if (is_special_rtg(task))
-		return;
-#endif
 #ifdef CONFIG_HW_QOS_THREAD
 	if (!should_binder_do_set_priority(task, desired.prio, verify))
 		return;

@@ -71,27 +71,6 @@ static inline int alloc_multi_frame_info(void)
 static inline void release_multi_frame_info(int id) {}
 static inline void clear_multi_frame_info(void) {}
 
-#ifdef CONFIG_FRAME_RTG
-bool is_frame_rtg(int id);
-struct frame_info *rtg_frame_info(int id);
-bool is_frame_task(struct task_struct *task);
-int set_frame_rate(struct frame_info *frame_info, int rate);
-int get_frame_rate(struct frame_info *frame_info);
-int set_frame_margin(struct frame_info *frame_info, int margin);
-int set_frame_status(struct frame_info *frame_info, unsigned long status);
-int set_frame_max_util(struct frame_info *frame_info, int max_util);
-void set_frame_sched_state(struct frame_info *frame_info, bool enable);
-int set_frame_timestamp(struct frame_info *frame_info, unsigned long timestamp);
-int set_frame_min_util(struct frame_info *frame_info, int min_util, bool is_boost);
-int set_frame_min_util_and_margin(struct frame_info *frame_info, int min_util, int margin);
-void update_frame_thread(struct frame_info *frame_info, struct frame_thread_info *frame_thread_info);
-void update_frame_cfs_thread(struct frame_info *frame_info, int tid, int index);
-int update_frame_isolation(void);
-struct frame_info *lookup_frame_info_by_task(struct task_struct *task);
-struct frame_info *lookup_frame_info_by_pid(int pid);
-int get_frame_prio_by_id(int rtgid);
-void set_frame_prio(struct frame_info *frame_info, int prio);
-#else
 static inline bool is_frame_rtg(int id)
 {
 	return false;
@@ -176,6 +155,5 @@ static inline int get_frame_prio_by_id(int rtgid)
 }
 
 static inline void set_frame_prio(struct frame_info *frame_info, int prio) {}
-#endif
 
 #endif // FRAME_EXTERN_H

@@ -13,10 +13,6 @@
 #ifdef CONFIG_HW_QOS_THREAD
 #include <chipset_common/hwqos/hwqos_common.h>
 #endif
-#ifdef CONFIG_FRAME_RTG
-#include <linux/sched/frame.h>
-#include <linux/sched/frame_info.h>
-#endif
 
 /*
  * Tracepoint for calling kthread_stop, performed to end a kthread:
@@ -2286,34 +2282,6 @@ TRACE_EVENT(find_rtg_cpu,
 	TP_printk("comm=%s pid=%d perferred_cpus=%s reason=%s target_cpu=%d",
 		__entry->comm, __entry->pid, __get_bitmask(cpus), __entry->msg, __entry->cpu)
 );
-
-#ifdef CONFIG_FRAME_RTG
-/*
- * Tracepoiny for rtg frame sched
- */
-TRACE_EVENT(rtg_frame_sched,
-
-	TP_PROTO(int rtgid, const char *s, s64 value),
-
-	TP_ARGS(rtgid, s, value),
-	TP_STRUCT__entry(
-		__field(int, rtgid)
-		__field(struct frame_info *, frame)
-		__field(pid_t, pid)
-		__string(str, s)
-		__field(s64, value)
-	),
-
-	TP_fast_assign(
-		__assign_str(str, s);
-		__entry->rtgid = rtgid != -1 ? rtgid : (current->grp ? current->grp->id : 0);
-		__entry->frame = rtg_frame_info(rtgid);
-		__entry->pid = __entry->frame ? ((__entry->frame->pid_task) ? ((__entry->frame->pid_task)->pid) : current->tgid) : current->tgid;
-		__entry->value = value;
-	),
-	TP_printk("C|%d|%s_%d|%lld", __entry->pid, __get_str(str), __entry->rtgid, __entry->value)
-);
-#endif /* CONFIG_FRAME_RTG */
 #endif /* CONFIG_SCHED_RTG */
 
 #ifdef CONFIG_SCHED_PRED_LOAD

@@ -169,11 +169,6 @@ static inline int perf_ctrl_get_task_yield_time(void __user *uarg)
 }
 #endif
 
-#ifdef CONFIG_FRAME_RTG
-int perf_ctrl_set_frame_rate(void __user *uarg);
-int perf_ctrl_set_frame_margin(void __user *uarg);
-int perf_ctrl_set_frame_status(void __user *uarg);
-#else
 static inline int perf_ctrl_set_frame_rate(void __user *uarg)
 {
 	return -EFAULT;
@@ -187,6 +182,3 @@ static inline int perf_ctrl_set_frame_status(void __user *uarg)
 	return -EFAULT;
 }
 #endif
-
-#endif
-
