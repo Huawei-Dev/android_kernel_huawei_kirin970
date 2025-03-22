@@ -122,8 +122,6 @@ obj-$(CONFIG_HAS_IOMEM) += memremap.o
 obj-$(CONFIG_HW_VIP_THREAD) += hwcfs/
 obj-$(CONFIG_HW_QOS_THREAD) += hwqos/
 obj-$(CONFIG_HW_VIP_THREAD) += cpu_netlink/
-obj-$(CONFIG_HW_CPULOAD_NOTI) += cpu_netlink/
-obj-$(CONFIG_HW_IAWARE_THREAD_BOOST) += cpu_netlink/
 
 obj-$(CONFIG_HW_CGROUP_WORKINGSET) += cgroup_workingset/
 obj-$(CONFIG_HW_FUTEX_PI) += hw_pi/
