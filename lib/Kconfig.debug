@@ -912,12 +912,6 @@ config DETECT_HUAWEI_HUNG_TASK
 	help
 	  Say Y here to enable huawei hung tasks detect.
 
-config HUAWEI_INIT_WATCHDOG
-	bool "Enable Huawei Init Watchdog"
-	default n
-	help
-	  Say Y here to enable huawei init watchdog.
-
 config DEFAULT_HUNG_TASK_TIMEOUT
 	int "Default timeout for hung task detection (in seconds)"
 	depends on DETECT_HUNG_TASK

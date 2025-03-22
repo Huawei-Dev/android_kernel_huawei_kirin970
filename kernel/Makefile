@@ -86,7 +86,6 @@ obj-$(CONFIG_KPROBES) += kprobes.o
 obj-$(CONFIG_KGDB) += debug/
 obj-$(CONFIG_DETECT_HUNG_TASK) += hung_task.o
 obj-$(CONFIG_DETECT_HUAWEI_HUNG_TASK) += huawei_hung_task.o
-obj-$(CONFIG_HUAWEI_INIT_WATCHDOG) += huawei_init_watchdog.o
 obj-$(CONFIG_DETECT_HUAWEI_MMAP_SEM) += huawei_check_mmap_sem.o
 obj-$(CONFIG_LOCKUP_DETECTOR) += watchdog.o
 obj-$(CONFIG_HARDLOCKUP_DETECTOR_PERF) += watchdog_hld.o
