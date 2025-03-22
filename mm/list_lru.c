@@ -122,10 +122,9 @@ bool list_lru_add(struct list_lru *lru, struct list_head *item)
 }
 EXPORT_SYMBOL_GPL(list_lru_add);
 
-#if defined(CONFIG_TASK_PROTECT_LRU) || defined(CONFIG_MEMCG_PROTECT_LRU)
+#ifdef CONFIG_MEMCG_PROTECT_LRU
 void list_lru_move(struct list_lru *lru, struct list_head *item)
 {
-	/*lint -save -e648 -e730 -e834*/
 	int nid = page_to_nid(virt_to_page(item));
 	struct list_lru_node *nlru = &lru->node[nid];
 	struct list_lru_one *l = NULL;
@@ -139,7 +138,6 @@ void list_lru_move(struct list_lru *lru, struct list_head *item)
 	} else {
 		list_move_tail(item, &l->list);
 	}
-	/*lint -restore*/
 	spin_unlock(&nlru->lock);
 }
 EXPORT_SYMBOL_GPL(list_lru_move);

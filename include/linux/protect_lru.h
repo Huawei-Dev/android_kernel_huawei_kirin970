@@ -16,45 +16,7 @@
 #ifndef PROTECT_LRU_H
 #define PROTECT_LRU_H
 
-#ifdef CONFIG_TASK_PROTECT_LRU
-#include <linux/sysctl.h>
-#include <linux/mmzone.h>
-#include <linux/page-flags.h>
-
-extern struct ctl_table protect_lru_table[];
-extern unsigned long protect_lru_enable __read_mostly;
-extern unsigned long protect_reclaim_ratio __read_mostly;
-
-void add_page_to_protect_lru_list(
-	struct page *page, struct lruvec *lruvec, bool lru_head);
-void del_page_from_protect_lru_list(
-	struct page *page, struct lruvec *lruvec);
-void protect_lru_set_from_process(struct page *page);
-void protect_lru_set_from_file(struct page *page);
-void protect_lruvec_init(struct lruvec *lruvec);
-void shrink_protect_file(struct lruvec *lruvec, bool force);
-struct page *shrink_protect_lru_by_overlimit(struct page *page);
-void shrink_protect_lru_by_overratio(struct pglist_data *pgdat);
-
-static inline bool is_valid_protect_level(int num)
-{
-	return (num > 0) && (num <= PROTECT_LEVELS_MAX);
-}
-
-static inline bool check_file_page(struct page *page)
-{
-	/*
-	 * When do page migration, the mapping of file page maybe
-	 * set to null, however it still need to be charged.
-	 */
-
-	/* Skip anon page and mlock page */
-	if (PageSwapBacked(page) || PageUnevictable(page))
-		return false;
-
-	return true;
-}
-#elif defined(CONFIG_MEMCG_PROTECT_LRU)
+#ifdef CONFIG_MEMCG_PROTECT_LRU
 #include <linux/sysctl.h>
 #include <linux/memcontrol.h>
 #include <linux/fs.h>

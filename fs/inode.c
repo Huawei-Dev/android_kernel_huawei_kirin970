@@ -20,7 +20,7 @@
 #include <linux/list_lru.h>
 #include <trace/events/writeback.h>
 #include "internal.h"
-#if defined(CONFIG_TASK_PROTECT_LRU) || defined(CONFIG_MEMCG_PROTECT_LRU)
+#ifdef CONFIG_MEMCG_PROTECT_LRU
 #include <linux/protect_lru.h>
 #endif
 
@@ -140,7 +140,7 @@ int inode_init_always(struct super_block *sb, struct inode *inode)
 	static const struct file_operations no_open_fops = {.open = no_open};
 	struct address_space *const mapping = &inode->i_data;
 
-#if defined(CONFIG_TASK_PROTECT_LRU) || defined(CONFIG_MEMCG_PROTECT_LRU)
+#ifdef CONFIG_MEMCG_PROTECT_LRU
 	inode->i_protect = 0;
 #endif
 	inode->i_sb = sb;
@@ -428,7 +428,7 @@ static void inode_lru_list_add(struct inode *inode)
 {
 	if (list_lru_add(&inode->i_sb->s_inode_lru, &inode->i_lru))
 		this_cpu_inc(nr_unused);
-#if defined(CONFIG_TASK_PROTECT_LRU) || defined(CONFIG_MEMCG_PROTECT_LRU)
+#ifdef CONFIG_MEMCG_PROTECT_LRU
 	else if (protect_lru_enable && inode->i_protect != 0)
 		list_lru_move(&inode->i_sb->s_inode_lru, &inode->i_lru);
 #endif

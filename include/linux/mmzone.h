@@ -18,9 +18,6 @@
 #include <linux/pageblock-flags.h>
 #include <linux/page-flags-layout.h>
 #include <linux/atomic.h>
-#ifdef CONFIG_TASK_PROTECT_LRU
-#include <linux/mm_types.h>
-#endif
 #include <asm/page.h>
 
 /* Free memory management - zoned buddy allocator.  */
@@ -147,20 +144,13 @@ enum zone_stat_item {
 	NR_ZONE_INACTIVE_FILE,
 	NR_ZONE_ACTIVE_FILE,
 	NR_ZONE_UNEVICTABLE,
-#ifdef CONFIG_TASK_PROTECT_LRU
-	NR_PROTECT_LRU_BASE,
-	NR_PROTECT_INACTIVE_ANON = NR_PROTECT_LRU_BASE,
-	NR_PROTECT_ACTIVE_ANON,
-	NR_PROTECT_INACTIVE_FILE,
-	NR_PROTECT_ACTIVE_FILE,
-#endif
 	NR_ZONE_WRITE_PENDING,	/* Count of dirty, writeback and unstable pages */
 	NR_MLOCK,		/* mlock()ed pages found and moved off LRU */
 	NR_PAGETABLE,		/* used for pagetables */
 	NR_KERNEL_STACK_KB,	/* measured in KiB */
 	/* Second 128 byte cacheline */
 	NR_BOUNCE,
-#if IS_ENABLED(CONFIG_ZSMALLOC) /*lint !e553*/
+#if IS_ENABLED(CONFIG_ZSMALLOC)
 	NR_ZSPAGES,		/* allocated in zsmalloc */
 #endif
 	NR_FREE_CMA_PAGES,
@@ -273,19 +263,8 @@ struct zone_reclaim_stat {
 };
 #endif
 
-#if defined(CONFIG_TASK_PROTECT_LRU) || defined(CONFIG_MEMCG_PROTECT_LRU)
+#ifdef CONFIG_MEMCG_PROTECT_LRU
 #define PROTECT_LEVELS_MAX	3
-#endif
-#ifdef CONFIG_TASK_PROTECT_LRU
-/* 4 comes from PROTECT_LRU_WIDTH, 3 protect heads and 1 normal head */
-#define PROTECT_HEAD_MAX (PROTECT_LEVELS_MAX + 1)
-#define PROTECT_HEAD_END PROTECT_LEVELS_MAX
-
-struct protect_head {
-	struct page protect_page[NR_LRU_LISTS - 1];
-	unsigned long max_pages;
-	unsigned long pages;
-};
 #endif
 
 struct lruvec {
@@ -308,9 +287,6 @@ struct lruvec {
 	atomic_long_t			nonresident_age;
 	/* Refaults at the time of last reclaim cycle, anon=0, file=1 */
 	unsigned long			refaults[2];
-#endif
-#ifdef CONFIG_TASK_PROTECT_LRU
-	struct protect_head heads[PROTECT_HEAD_MAX];
 #endif
 #ifdef CONFIG_MEMCG
 	struct pglist_data *pgdat;

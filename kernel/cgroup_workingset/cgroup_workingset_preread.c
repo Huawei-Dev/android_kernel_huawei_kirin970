@@ -136,16 +136,6 @@ static int workingset_page_cache_read(struct s_readpages_control *rpc)
 	return ret;
 }
 
-#ifdef CONFIG_TASK_PROTECT_LRU
-static inline struct list_head *get_protect_head_lru(
-	struct lruvec *lruvec, struct page *page)
-{
-	enum lru_list lru = page_lru(page);
-
-	return &lruvec->heads[PROTECT_HEAD_END].protect_page[lru].lru;
-}
-#endif
-
 /*
  * Move inactive page to head of the lru list.
  * @page:	page to move
@@ -155,9 +145,6 @@ static bool workingset_adjust_page_lru(struct page *page)
 	bool adjusted = false;
 
 	if (!PageUnevictable(page) &&
-#ifdef CONFIG_TASK_PROTECT_LRU
-	    !PageProtect(page) &&
-#endif
 	    !PageActive(page)) {
 		if (PageLRU(page)) {
 			struct lruvec *lruvec = NULL;
@@ -171,24 +158,12 @@ static bool workingset_adjust_page_lru(struct page *page)
 			spin_lock_irq(&zone->lru_lock);
 			lruvec = mem_cgroup_page_lruvec(page, zone);
 #endif
-#ifdef CONFIG_TASK_PROTECT_LRU
-			if (PageLRU(page) && !PageProtect(page) &&
-			    !PageSwapBacked(page) &&
-			    !PageUnevictable(page)) {
-				struct list_head *head;
-
-				head = get_protect_head_lru(lruvec, page);
-				list_move(&page->lru, head);
-				adjusted = true;
-			}
-#else
 			if (PageLRU(page) && !PageSwapBacked(page) &&
 			    !PageUnevictable(page)) {
 				list_move(&page->lru,
 					&lruvec->lists[page_lru(page)]);
 				adjusted = true;
 			}
-#endif
 #if KERNEL_VERSION(4, 9, 0) <= LINUX_VERSION_CODE
 			spin_unlock_irq(zone_lru_lock(zone));
 #else

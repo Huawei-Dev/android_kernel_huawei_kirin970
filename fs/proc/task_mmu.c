@@ -1782,7 +1782,7 @@ static int swapin_pte_range(pmd_t *pmd, unsigned long addr,
 static bool reclaim_check_page(struct reclaim_param *rp,
 				struct page *page)
 {
-#if defined(CONFIG_TASK_PROTECT_LRU) || defined(CONFIG_MEMCG_PROTECT_LRU)
+#ifdef CONFIG_MEMCG_PROTECT_LRU
 	/*
 	 * don't reclaim page in protected.
 	 */
