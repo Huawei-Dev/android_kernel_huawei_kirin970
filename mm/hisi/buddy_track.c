@@ -140,11 +140,7 @@ int buddy_track_map(int nid)
 	phys_addr_t size;
 	unsigned long flags;
 	void *base = NULL;
-#ifndef CONFIG_HISI_MEM_OFFLINE
 	size = fmap_size(memblock_end_of_DRAM() - memblock_start_of_DRAM());
-#else
-	size = fmap_size(bootloader_memory_limit - memblock_start_of_DRAM());
-#endif
 	base = memblock_virt_alloc_node_nopanic(size, nid);
 	if (!base)
 		return -ENOMEM;
@@ -175,11 +171,7 @@ int buddy_track_unmap(void)
 	buddy_track_on = 0;
 	spin_unlock_irqrestore(&buddy_lock, flags);
 	p = virt_to_page(func_map);
-#ifndef CONFIG_HISI_MEM_OFFLINE
 	size = fmap_size(memblock_end_of_DRAM() - memblock_start_of_DRAM());
-#else
-	size = fmap_size(bootloader_memory_limit - memblock_start_of_DRAM());
-#endif
 	for (i = 0; (i < (size >> PAGE_SHIFT)) && p; i++, p++) {
 		__ClearPageReserved(p);
 		__free_pages(p, 0);

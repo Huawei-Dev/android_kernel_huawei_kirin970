@@ -96,10 +96,6 @@
 #include <linux/hisi/hisi_cma_debug.h>
 #endif
 
-#ifdef CONFIG_HISI_MEM_OFFLINE
-#include "hisi/mem_offline.h"
-#endif
-
 /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
 static DEFINE_MUTEX(pcp_batch_high_lock);
 #define MIN_PERCPU_PAGELIST_FRACTION	(8)
@@ -4306,11 +4302,6 @@ __alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order, int preferred_nid,
 	if (unlikely(ac.nodemask != nodemask))
 		ac.nodemask = nodemask;
 
-#ifdef CONFIG_HISI_MEM_OFFLINE
-	if ((alloc_mask & __GFP_MOVABLE) &&
-		(!mem_offline_enable_status()))
-		ac.high_zoneidx = ZONE_MOVABLE;
-#endif
 	page = __alloc_pages_slowpath(alloc_mask, order, &ac);
 
 out:

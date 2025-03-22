@@ -466,67 +466,6 @@ static void __init arm64_memory_present(void)
 
 static phys_addr_t memory_limit = (phys_addr_t)ULLONG_MAX;
 
-#ifdef CONFIG_HISI_MEM_OFFLINE
-phys_addr_t bootloader_memory_limit;
-
-static int mem_offline_dt_para_check(phys_addr_t base, phys_addr_t size)
-{
-	if (!base || !size)
-		return -EINVAL;
-
-	if (base & ((PAGES_PER_SECTION << PAGE_SHIFT) - 1))
-		return -EINVAL;
-
-	if (size & ((PAGES_PER_SECTION << PAGE_SHIFT) - 1))
-		return -EINVAL;
-
-	return 0;
-}
-
-static void __init update_memory_limit(void)
-{
-	unsigned long dt_root = of_get_flat_dt_root();
-	unsigned long node;
-	unsigned long long ram_sz;
-	int len;
-	const __be32 *prop;
-	phys_addr_t offline_base, offline_size;
-	int t_len = (dt_root_addr_cells + dt_root_size_cells) * sizeof(__be32);
-
-	ram_sz = memblock_phys_mem_size();
-	node = of_get_flat_dt_subnode_by_name(dt_root, "mem-offline");
-	if (node < 0) {
-		pr_err("mem-offline: node not found in FDT\n");
-		return;
-	}
-
-	prop = of_get_flat_dt_prop(node, "reg", &len);
-	if (prop) {
-		if (len % t_len != 0) {
-			pr_err("mem-offline: invalid offline-sizes property\n");
-			return;
-		}
-
-		offline_base = dt_mem_next_cell(dt_root_addr_cells, &prop);
-		offline_size = dt_mem_next_cell(dt_root_size_cells, &prop);
-	} else {
-		pr_err("mem-offline: offline-sizes property not found in DT\n");
-		return;
-	}
-
-	if (mem_offline_dt_para_check(offline_base, offline_size)) {
-		pr_err("mem-offline: invalid offline memory base or size:"
-		    " base 0x%llx, size 0x%llx\n", offline_base, offline_size);
-		return;
-	}
-
-	memory_limit = (phys_addr_t)(ram_sz - offline_size);
-
-	pr_notice("Memory limit set/overridden to %lldMB\n",
-							memory_limit >> 20);
-}
-#endif
-
 /*
  * Limit the memory size that was specified via FDT.
  */
@@ -609,14 +548,6 @@ void __init arm64_memblock_init(void)
 		memblock_remove(0, memstart_addr);
 	}
 
-#ifdef CONFIG_HISI_MEM_OFFLINE
-	update_memory_limit();
-	/*
-	 * Save bootloader imposed memory limit before we overwirte
-	 * memblock.
-	 */
-	bootloader_memory_limit = memblock_end_of_DRAM();
-#endif
 	/*
 	 * Apply the memory limit if it was set. Since the kernel may be loaded
 	 * high up in memory, add back the kernel region that must be accessible
@@ -658,13 +589,8 @@ void __init arm64_memblock_init(void)
 
 	if (IS_ENABLED(CONFIG_RANDOMIZE_BASE)) {
 		extern u16 memstart_offset_seed;
-#ifndef CONFIG_HISI_MEM_OFFLINE
 		u64 range = linear_region_size -
 			    (memblock_end_of_DRAM() - memblock_start_of_DRAM());
-#else
-		u64 range = linear_region_size -
-			    (bootloader_memory_limit - memblock_start_of_DRAM());
-#endif
 
 		/*
 		 * If the size of the linear region exceeds, by a sufficient

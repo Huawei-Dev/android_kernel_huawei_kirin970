@@ -54,9 +54,6 @@
 #include <linux/migrate.h>
 #include <linux/wait.h>
 #include <linux/pagemap.h>
-#ifdef CONFIG_HISI_MEM_OFFLINE
-#include "hisi/mem_offline.h"
-#endif
 
 #define ZSPAGE_MAGIC	0x58
 
@@ -1666,12 +1663,6 @@ unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t gfp)
 	if (unlikely(!size || size > ZS_MAX_ALLOC_SIZE))
 		return 0;
 
-#ifdef CONFIG_HISI_MEM_OFFLINE
-	if (mem_offline_enable_status()) {
-		gfp &= ~__GFP_HIGHMEM;
-		gfp |= __GFP_DMA;
-	}
-#endif
 	handle = cache_alloc_handle(pool, gfp);
 	if (!handle)
 		return 0;
@@ -2138,10 +2129,8 @@ bool zs_page_isolate(struct page *page, isolate_mode_t mode)
 	struct zspage *zspage;
 	struct address_space *mapping;
 
-#ifndef CONFIG_HISI_MEM_OFFLINE
 #ifndef CONFIG_ZS_COMPACTION
 	return false;
-#endif
 #endif
 
 	/*

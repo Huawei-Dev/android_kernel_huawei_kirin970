@@ -24,17 +24,6 @@ config HISI_PAGE_TRACE_TEST
 	---help---
 	  This option enables hisi page trace test, needed by hisi page trace modules.
 
-config HISI_MEM_OFFLINE
-	bool "Dynamic Memory Region Offline driver"
-	depends on MEMORY_HOTPLUG
-	help
-	  Add support for DDR Self-Refresh power management through the dynamic
-	  memory offline framework. This driver interfaces between the memory
-	  hotplug subsystem and AOP which hot adds or removes memory blocks and
-	  controls the start/stop of self-refresh of these DDR regions. This
-	  helps reduce power consumption during idle mode of the system.
-	  If unsure, say N
-
 config REFAULT_IO_VMSCAN
 	bool "Refault io vmscan"
 	default n
