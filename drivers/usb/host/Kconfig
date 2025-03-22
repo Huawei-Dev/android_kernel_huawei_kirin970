@@ -44,11 +44,6 @@ config USB_XHCI_PLATFORM
 
 	  If unsure, say N.
 
-config VENDOR_XHCI_EVENT_DEBUG
-	bool "Hisilicon USB Xhci Debug Event"
-	---help---
-	This option adds support for Hisilicon Xhci Driver Debug Event.
-
 config USB_XHCI_MTK
 	tristate "xHCI support for Mediatek MT65xx/MT7621"
 	select MFD_SYSCON

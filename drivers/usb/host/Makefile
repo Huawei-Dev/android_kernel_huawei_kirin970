@@ -27,8 +27,6 @@ ifneq ($(CONFIG_USB_XHCI_RCAR), )
 endif
 xhci-plat-hcd-$(CONFIG_USB_DWC3_NYET_ABNORMAL) += xhci-local-mem.o
 
-xhci-plat-hcd-$(CONFIG_VENDOR_XHCI_EVENT_DEBUG) += xhci-debug-event.o
-
 obj-$(CONFIG_USB_WHCI_HCD)	+= whci/
 
 obj-$(CONFIG_USB_PCI)	+= pci-quirks.o

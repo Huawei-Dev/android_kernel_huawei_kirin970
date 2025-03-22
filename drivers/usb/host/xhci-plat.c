@@ -28,7 +28,6 @@
 #include "xhci-mvebu.h"
 #include "xhci-rcar.h"
 #include "xhci-debugfs.h"
-#include "xhci-debug-event.h"
 
 static struct hc_driver __read_mostly xhci_plat_hc_driver;
 
@@ -404,10 +403,6 @@ static int xhci_plat_probe(struct platform_device *pdev)
 		goto dealloc_usb3_hcd;
 	}
 
-	ret = xhci_host_register_eventnb(xhci);
-	if (ret)
-		dev_err(&pdev->dev, "host debug event register failed\n");
-
 	return 0;
 
 dealloc_usb3_hcd:
@@ -446,7 +441,6 @@ static int xhci_plat_remove(struct platform_device *dev)
 
 	/* add for xhci debug */
 	xhci_remove_debug_file(xhci);
-	xhci_host_unregister_eventnb(xhci);
 
 	usb_remove_hcd(xhci->shared_hcd);
 	usb_phy_shutdown(hcd->usb_phy);
