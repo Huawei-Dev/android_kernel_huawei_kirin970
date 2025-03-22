@@ -2469,9 +2469,6 @@ static struct file *do_sync_mmap_readahead(struct vm_fault *vmf)
 	struct file *fpin = NULL;
 	pgoff_t offset = vmf->pgoff;
 
-#ifdef CONFIG_MM_PAGECACHE_DEBUG
-	file->f_path.dentry->mapping_stat.mmap_sync_read_times++;
-#endif
 	/* If we don't want any read-ahead, don't bother */
 	if (vmf->vma_flags & VM_RAND_READ) {
 		pgcache_log_path(BIT_MMAP_SYNC_READ_DUMP, &(file->f_path),
@@ -2564,9 +2561,6 @@ static void do_sync_mmap_readahead(struct vm_area_struct *vma,
 				   pgoff_t offset)
 {
 	struct address_space *mapping = file->f_mapping;
-#ifdef CONFIG_MM_PAGECACHE_DEBUG
-	file->f_path.dentry->mapping_stat.mmap_sync_read_times++;
-#endif
 
 	/* If we don't want any read-ahead, don't bother */
 	if (vma->vm_flags & VM_RAND_READ) {

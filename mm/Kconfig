@@ -841,17 +841,6 @@ config HISI_PAGECACHE_HELPER
 	Select this if you want to optimize your Android system.
 	If unsure, say N.
 
-config MM_PAGECACHE_DEBUG
-	tristate "Page cache trace module"
-	default n
-	depends on HISI_DEBUG_FS
-
-	---help---
-	This selects the page cache trace module.
-
-	Select this if you want to optimize your Android system.
-	If unsure, say N.
-
 config HKIP_EARLY_RODATA_PROTECTION
 	bool "Write protect const data as early as possible in the boot sequence"
 	default y

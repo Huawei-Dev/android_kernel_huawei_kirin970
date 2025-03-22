@@ -1012,12 +1012,6 @@ unsigned long shrink_page_list(struct list_head *page_list,
 
 	unsigned nr_unmap_fail = 0;
 
-#ifdef CONFIG_MM_PAGECACHE_DEBUG
-	struct address_space *d_mapping = NULL;
-	int file_map, freepages = 0, nul_dentry_pages = 0;
-	struct dentry *tmp_dentry = NULL;
-	struct dentry *cur_dentry = NULL;
-#endif
 #ifdef CONFIG_ISOLATE_COUNT
 	int file;
 #endif
@@ -1045,15 +1039,6 @@ unsigned long shrink_page_list(struct list_head *page_list,
 		if (PageProtect(page)) {
 			WARN_ON(1);
 			goto keep;
-		}
-#endif
-
-#ifdef CONFIG_MM_PAGECACHE_DEBUG
-		if (unlikely(pagecache_dump & BIT_MM_SHRINK_INACTIVE_DUMP)) {
-			d_mapping = page_mapping(page);
-			file_map = page_is_file_cache(page);
-			if (file_map)
-				cur_dentry = (d_mapping && d_mapping->host) ? d_find_alias(d_mapping->host) : NULL;
 		}
 #endif
 
@@ -1261,14 +1246,6 @@ unsigned long shrink_page_list(struct list_head *page_list,
 		}
 
 		if (PageDirty(page)) {
-#ifdef CONFIG_MM_PAGECACHE_DEBUG
-			if (unlikely(pagecache_dump & BIT_MM_SHRINK_INACTIVE_DUMP)) {
-				if (file_map)
-					pgcache_log_dentry(BIT_MM_SHRINK_INACTIVE_DUMP, cur_dentry,
-							"shrink_page, this page is dirty");
-			}
-#endif
-
 			/*
 			 * Only kswapd can writeback filesystem pages
 			 * to avoid risk of stack overflow. But avoid
@@ -1406,31 +1383,6 @@ unsigned long shrink_page_list(struct list_head *page_list,
 		 */
 		__ClearPageLocked(page);
 free_it:
-#ifdef CONFIG_MM_PAGECACHE_DEBUG
-		if (unlikely(pagecache_dump & BIT_MM_SHRINK_INACTIVE_DUMP)) {
-			if (file_map) {
-				if (cur_dentry) {
-					if (cur_dentry != tmp_dentry) {
-						if (tmp_dentry) {
-							tmp_dentry->mapping_stat.shrink_page_times++;
-							pgcache_log_dentry(BIT_MM_SHRINK_INACTIVE_DUMP, tmp_dentry,
-									"shrink_page, free pages, %d", freepages);
-						}
-						tmp_dentry = cur_dentry;
-						freepages = 1;
-					} else {
-						freepages++;
-					}
-					dput(cur_dentry);
-				} else {
-					nul_dentry_pages++;
-				}
-			}
-		}
-		if(is_pagecache_stats_enable()) {
-			stat_inc_shrink_pages_count();
-		}
-#endif
 		nr_reclaimed++;
 
 		/*
@@ -1498,20 +1450,6 @@ keep:
 		stat->nr_pageout = nr_pageout;
 #endif
 	}
-
-#ifdef CONFIG_MM_PAGECACHE_DEBUG
-	if (unlikely(pagecache_dump & BIT_MM_SHRINK_INACTIVE_DUMP)) {
-		if (tmp_dentry) {
-			tmp_dentry->mapping_stat.shrink_page_times++;
-			pgcache_log_dentry(BIT_MM_SHRINK_INACTIVE_DUMP, tmp_dentry,
-					"shrink_page, free %d pages", freepages);
-		}
-
-		if (nul_dentry_pages)
-			pgcache_log(BIT_MM_SHRINK_INACTIVE_DUMP,
-					"shrink_page, free %d pages which is null dentry", nul_dentry_pages);
-	}
-#endif
 
 	return nr_reclaimed;
 }

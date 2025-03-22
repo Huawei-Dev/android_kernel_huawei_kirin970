@@ -1642,24 +1642,6 @@ static struct ctl_table vm_table[] = {
 		.proc_handler	= proc_dointvec,
 		.extra1		= &zero,
 	},
-#ifdef CONFIG_MM_PAGECACHE_DEBUG
-	{
-		.procname	= "ufs_dump",
-		.data		= &ufs_dump,
-		.maxlen		= sizeof(ufs_dump),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec,
-		.extra1		= &zero,
-	},
-	{
-		.procname	= "pagecache_dump",
-		.data		= &pagecache_dump,
-		.maxlen		= sizeof(pagecache_dump),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec,
-		.extra1		= &zero,
-	},
-#endif
 	{
 		.procname	= "vfs_cache_pressure",
 		.data		= &sysctl_vfs_cache_pressure,
