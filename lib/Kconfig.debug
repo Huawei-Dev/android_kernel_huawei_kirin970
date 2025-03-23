@@ -931,13 +931,6 @@ config DETECT_HUAWEI_MMAP_SEM
 	  for mmap_sem, and if so, tries to find out which task may hold the
 	  mmap_sem.
 
-config DETECT_HUAWEI_MMAP_SEM_DBG
-	bool "Debug On Check Mmap Sem"
-	help
-	  Say Y here to enable the kernel to hold the mmap_sem and causing
-	  hungtask panic. Then we can test whether the system can find out
-	  which process is holding the mmap_sem.
-
 config BOOTPARAM_HUNG_TASK_PANIC
 	bool "Panic (Reboot) On Hung Tasks"
 	depends on DETECT_HUNG_TASK

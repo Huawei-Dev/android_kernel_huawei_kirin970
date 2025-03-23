@@ -15,10 +15,6 @@
 
 #include "rwsem.h"
 
-#ifdef CONFIG_DETECT_HUAWEI_MMAP_SEM_DBG
-#include <linux/hisi/huawei_check_mmap_sem.h>
-#endif
-
 /*
  * lock for reading
  */
@@ -29,10 +25,6 @@ void __sched down_read(struct rw_semaphore *sem)
 
 	LOCK_CONTENDED(sem, __down_read_trylock, __down_read);
 	rwsem_set_reader_owned(sem);
-
-#ifdef CONFIG_DETECT_HUAWEI_MMAP_SEM_DBG
-	mmap_sem_debug(sem);
-#endif
 }
 
 EXPORT_SYMBOL(down_read);
@@ -63,10 +55,6 @@ void __sched down_write(struct rw_semaphore *sem)
 
 	LOCK_CONTENDED(sem, __down_write_trylock, __down_write);
 	rwsem_set_owner(sem);
-
-#ifdef CONFIG_DETECT_HUAWEI_MMAP_SEM_DBG
-	mmap_sem_debug(sem);
-#endif
 }
 
 EXPORT_SYMBOL(down_write);

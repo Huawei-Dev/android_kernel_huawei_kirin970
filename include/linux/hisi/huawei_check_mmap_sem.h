@@ -12,8 +12,4 @@
 
 void check_mmap_sem(pid_t pid);
 
-#ifdef CONFIG_DETECT_HUAWEI_MMAP_SEM_DBG
-void mmap_sem_debug(const struct rw_semaphore *sem);
-#endif
-
 #endif
