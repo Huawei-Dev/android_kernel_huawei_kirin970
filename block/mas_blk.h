@@ -178,29 +178,6 @@ void mas_blk_bio_merge_done(
 	const struct request *next);
 int mas_blk_account_io_completion(
 	const struct request *req, unsigned int bytes);
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-void mas_blk_partition_remap(
-	struct bio *bio, struct hd_struct *p);
-void mas_blk_update_expected_lba(
-	struct request *req, unsigned int nr_bytes);
-void mas_blk_add_bio_to_buf_list(struct request *req);
-bool mas_blk_bio_need_dispatch(struct bio* bio,
-	struct request_queue *q, struct stor_dev_pwron_info* stor_info);
-void mas_blk_update_recovery_bio_page(struct bio* bio);
-void mas_blk_dev_lld_init_unistore(
-	struct blk_dev_lld *blk_lld);
-void mas_blk_bio_set_opf_unistore(struct bio *bio);
-void mas_blk_request_init_from_bio_unistore(
-	struct request *req, struct bio *bio);
-struct bio* mas_blk_bio_segment_bytes_split(
-	struct bio *bio, struct bio_set *bs, unsigned int bytes,
-	unsigned front_seg_size, unsigned seg_size);
-unsigned int mas_blk_bio_get_residual_byte(
-	struct request_queue *q, struct bvec_iter iter);
-bool mas_blk_bio_check_over_section(
-	struct request_queue *q, struct bio *bio);
-void mas_blk_request_init_unistore(struct request * req);
-#endif
 struct request_queue *mas_blk_get_queue_by_lld(
 	struct blk_dev_lld *lld);
 int mas_blk_cust_ioctl(struct block_device *bdev,

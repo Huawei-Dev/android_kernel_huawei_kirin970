@@ -961,21 +961,10 @@ out:
 
 static int f2fs_dir_open(struct inode *inode, struct file *filp)
 {
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	filp->f_fsync_flag = 0;
-#endif
 	if (f2fs_encrypted_inode(inode))
 		return fscrypt_get_encryption_info(inode) ? -EACCES : 0;
 	return 0;
 }
-
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-static int f2fs_dir_flush(struct file *file, fl_owner_t id)
-{
-	f2fs_flush_wait_fsync(file);
-	return 0;
-}
-#endif
 
 const struct file_operations f2fs_dir_operations = {
 	.llseek		= generic_file_llseek,
@@ -983,9 +972,6 @@ const struct file_operations f2fs_dir_operations = {
 	.iterate_shared	= f2fs_readdir,
 	.fsync		= f2fs_sync_file,
 	.open		= f2fs_dir_open,
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	.flush		= f2fs_dir_flush,
-#endif
 	.unlocked_ioctl	= f2fs_ioctl,
 #ifdef CONFIG_COMPAT
 	.compat_ioctl	= f2fs_compat_ioctl,

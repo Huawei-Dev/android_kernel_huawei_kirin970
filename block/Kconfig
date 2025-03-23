@@ -197,20 +197,6 @@ config MAS_MQ_USING_CP
     help
         MAS UFS Command Priority, good for foreground APP's IO performance
 
-config MAS_ORDER_PRESERVE
-    bool "MAS UFS Order Preserving"
-    depends on MAS_BLK
-    default n
-    help
-        MAS UFS Order Preserving, good for SQL's IO performance
-
-config MAS_UNISTORE_PRESERVE
-	bool "MAS BLK Unistorage Preserving"
-	depends on MAS_BLK
-	default n
-	help
-		mas unistorage preserving in block layer
-
 config PARTITION_TABLE
         bool "hisi partition"
         default n

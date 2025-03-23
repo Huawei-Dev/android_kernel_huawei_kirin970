@@ -2939,51 +2939,6 @@ static void ufshcd_validate_tag(struct Scsi_Host *host, struct ufs_hba *hba,
 #endif
 }
 
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-static int ufshcd_custom_upiu_order(struct utp_upiu_req *ucd_req_ptr,
-				     struct request *req,
-				     struct scsi_cmnd *scmd,
-				     struct ufs_hba *hba)
-{
-	unsigned int wo_nr;
-
-	if (unlikely(!req || !req->q))
-		return 0;
-
-	if (scsi_is_order_cmd(scmd)) {
-		wo_nr = blk_req_get_order_nr(req, true);
-		if (wo_nr) {
-			/* CDB 12-15 for Command Order */
-			ucd_req_ptr->sc.cdb[12] = (unsigned char)(wo_nr);
-			ucd_req_ptr->sc.cdb[13] = (unsigned char)(wo_nr >> 8);
-			ucd_req_ptr->sc.cdb[14] = (unsigned char)(wo_nr >> 16);
-			ucd_req_ptr->sc.cdb[15] = (unsigned char)(wo_nr >> 24);
-		}
-	}
-
-	return 0;
-}
-#endif
-
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-static int ufshcd_custom_upiu(struct utp_upiu_req *ucd_req_ptr,
-				     struct request *req,
-				     struct scsi_cmnd *scmd,
-				     struct ufs_hba *hba)
-{
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	if (hba->host->unistore_enable)
-		return ufshcd_custom_upiu_unistore(ucd_req_ptr, req, scmd, hba);
-#endif
-
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	return ufshcd_custom_upiu_order(ucd_req_ptr, req, scmd, hba);
-#endif
-
-	return 0;
-}
-#endif
-
 /**
  * ufshcd_queuecommand - main entry point for SCSI requests
  * @cmd: command from SCSI Midlayer
@@ -3165,17 +3120,6 @@ static int ufshcd_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmd)
 		}
 		spin_lock_irqsave(hba->host->host_lock, flags);
 	}
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-	/* it has to be put here, without any goto branches behind */
-	if (ufshcd_custom_upiu(lrbp->ucd_req_ptr, lrbp->cmd->request,
-				 lrbp->cmd, hba)) {
-		clear_bit_unlock(tag, &hba->lrb_in_use);
-		err = SCSI_MLQUEUE_HOST_BUSY;
-		spin_unlock_irqrestore(hba->host->host_lock, flags);
-		pm_runtime_put_sync(hba->dev);
-		goto ufstt_unprep;
-	}
-#endif
 	ufshcd_check_disable_dev_tmt_cnt(hba, cmd);
 	ufshcd_send_command(hba, tag);
 out_unlock:
@@ -5323,12 +5267,6 @@ static int ufshcd_slave_configure(struct scsi_device *sdev)
 
 	blk_queue_update_dma_pad(q, PRDT_DATA_BYTE_COUNT_PAD - 1);
 	blk_queue_max_segment_size(q, PRDT_DATA_BYTE_COUNT_MAX);
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	blk_queue_order_enable(q, sdev->host->order_enabled);
-#endif
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	mas_blk_queue_unistore_enable(q, sdev->host->unistore_enable);
-#endif
 #ifdef CONFIG_HISI_UFS_MANUAL_BKOPS
 	hufs_manual_bkops_config(sdev);
 #endif
@@ -6623,9 +6561,6 @@ static int ufshcd_eh_device_reset_handler(struct scsi_cmnd *cmd)
 		tag = cmd->tag;
 
 	dev_err(hba->dev, "%s: occurs\n", __func__);
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	mas_blk_dump_unistore(hba->sdev_ufs_device->request_queue, "DEVICERESET");
-#endif
 	lrbp = &hba->lrb[tag];
 	err = ufshcd_issue_tm_cmd(hba, lrbp->lun, 0, UFS_LOGICAL_RESET, &resp);
 	if (err || resp != UPIU_TASK_MANAGEMENT_FUNC_COMPL) {
@@ -6955,10 +6890,6 @@ static int ufshcd_reset_and_restore(struct ufs_hba *hba)
 	if (err || hba->ufshcd_state == UFSHCD_STATE_ERROR)
 		BUG();  /*lint !e146*/
 
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	if (!err)
-		ufshcd_add_buf_to_recovery_list(hba);
-#endif
 	return err;
 }
 
@@ -6977,9 +6908,6 @@ static int ufshcd_eh_host_reset_handler(struct scsi_cmnd *cmd)
 	hba = shost_priv(cmd->device->host);
 
 	dev_err(hba->dev, "%s occurs\n", __func__);
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	mas_blk_dump_unistore(hba->sdev_ufs_device->request_queue, "HOSTRESET");
-#endif
 	/*
 	 * Check if there is any race with fatal error handling.
 	 * If so, wait for it to complete. Even though fatal error
@@ -7811,10 +7739,6 @@ static enum blk_eh_timer_return ufshcd_eh_timed_out(struct scsi_cmnd *scmd)
 	return (enum blk_eh_timer_return)(found ? BLK_EH_NOT_HANDLED : BLK_EH_RESET_TIMER);
 }
 
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-static int ufshcd_send_request_sense_directly(struct scsi_device *sdp, unsigned int timeout, bool eh_handle);
-#endif
-
 static struct scsi_host_template ufshcd_driver_template = {
 	.module			= THIS_MODULE,
 	.name			= UFSHCD,
@@ -7831,9 +7755,6 @@ static struct scsi_host_template ufshcd_driver_template = {
 #ifdef CONFIG_MAS_BLK
 	.dump_status		= ufshcd_dump_status,
 	.direct_flush		= ufshcd_direct_flush,
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-	.send_request_sense_directly = ufshcd_send_request_sense_directly,
-#endif
 #endif
 	.this_id		= -1,
 #ifdef CONFIG_SCSI_UFS_CUST_MAX_SECTORS
@@ -10851,9 +10772,7 @@ static void ufshcd_err_handler_do_reset(
 	int err = 0;
 	unsigned long max_doorbells;
 	unsigned int nutrs = (unsigned int)(hba->nutrs);
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	mas_blk_dump_unistore(hba->sdev_ufs_device->request_queue, "DORESET");
-#endif
+
 	max_doorbells = GENMASK(nutrs - 1, 0);
 
 	if (hba->saved_err & INT_FATAL_ERRORS ||
@@ -11091,9 +11010,6 @@ static int ufshcd_host_reset_and_restore(struct ufs_hba *hba)
 
 	if (err && hba->vops && hba->vops->dbg_uic_dump)
 		hba->vops->dbg_uic_dump(hba);
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-	blk_order_nr_reset(&hba->host->tag_set);
-#endif
 	return err;
 }
 
@@ -11773,26 +11689,6 @@ free_buffer:
 out:
 	return ret;
 }
-
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-static int ufshcd_send_request_sense_directly(struct scsi_device *sdp,
-				unsigned int timeout, bool eh_handle)
-{
-	int ret;
-	struct ufs_hba *hba;
-	struct Scsi_Host *shost;
-
-	shost = sdp->host;
-	hba = shost_priv(shost);
-
-	ret = ufshcd_send_scsi_request_sense(hba, sdp, timeout, eh_handle);
-	if (ret)
-		dev_err(hba->dev, "%s: failed with err %d\n", __func__, ret);
-
-	return ret;
-}
-#endif
-
 
 #ifdef CONFIG_HUAWEI_UFS_VENDOR_MODE
 int ufshcd_send_vendor_scsi_cmd(struct ufs_hba *hba,

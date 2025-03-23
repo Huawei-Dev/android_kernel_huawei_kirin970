@@ -34,8 +34,4 @@ void ufs_mq_inc_vip_wait_cnt(struct blk_mq_alloc_data *data);
 void ufs_mq_dec_vip_wait_cnt(struct blk_mq_alloc_data *data);
 void reset_vip_wait_cnt(struct blk_mq_alloc_data *data);
 int ufs_mq_vip_tag_wait_cnt(struct blk_mq_alloc_data *data);
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-unsigned int ufs_tagset_bt_get_unistore(
-	struct blk_mq_alloc_data *data, bool *highprio);
-#endif
 #endif

@@ -48,9 +48,6 @@ typedef u8 __bitwise blk_status_t;
 
 struct blk_issue_stat {
 	u64 stat;
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	unsigned int bi_opf;
-#endif
 };
 
 #ifdef CONFIG_MAS_BLK
@@ -97,9 +94,6 @@ struct blk_bio_cust {
 #define MAS_IO_IN_COUNT_ALREADY_ENDED	(1 << 2) /* this BIO has been ended already */
 #define MAS_IO_IN_COUNT_WILL_BE_SEND_AGAIN	(1 << 3)
 #define MAS_IO_IN_COUNT_DONE	(1 << 4)
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-#define MAS_IO_IN_FG_COUNT_SET	(1 << 5)
-#endif
 
 	unsigned char io_in_count; /*the bio has been count in busy idle module or not */
 	unsigned char fs_io_flag; /* io comes from fs or not */
@@ -115,20 +109,6 @@ struct blk_bio_cust {
 	unsigned int pg_count; /* page count in current bio */
 	struct timespec submit_tp;
 	s64 hw_latency; /* IO latency in low level driver */
-
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	/*
-	 * Member for Vertical Opti
-	 */
-	unsigned char stream_type;
-	unsigned char cp_tag;
-	unsigned long data_ino;
-	unsigned long data_idx;
-	bool fsync_ind;
-	bool slc_mode;
-	bool fg_io;
-	unsigned int bi_opf;
-#endif
 };
 #endif /* CONFIG_MAS_BLK */
 
@@ -193,14 +173,6 @@ struct bio {
 	struct blk_bio_cust mas_bio;
 	struct list_head cnt_list;
 	void (*dump_fs)(void);
-
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	bool buf_bio;
-	unsigned int bio_nr;
-	struct bvec_iter ori_bi_iter;
-	struct list_head buf_bio_list_node;
-	struct list_head rec_bio_list_node;
-#endif
 #endif
 
 #ifdef CONFIG_F2FS_TURBO_ZONE
@@ -438,11 +410,6 @@ enum mas_req_flag_bits {
 	((bio)->bi_opf & REQ_OP_MASK)
 #define req_op(req) \
 	((req)->cmd_flags & REQ_OP_MASK)
-
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-#define req_lba(req) \
-	((req)->mas_cmd_flags & MAS_REQ_LBA)
-#endif
 
 /* obsolete, don't use in new code */
 static inline void bio_set_op_attrs(struct bio *bio, unsigned op,

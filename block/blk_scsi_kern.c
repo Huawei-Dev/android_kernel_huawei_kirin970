@@ -30,9 +30,6 @@
 #include <scsi/scsi_request.h>
 #include <linux/types.h>
 #include <linux/version.h>
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-#include "mas_blk.h"
-#endif
 
 struct blk_scsi_device {
 	struct request_queue *queue;
@@ -300,10 +297,6 @@ long blk_scsi_kern_ioctl(unsigned int fd, unsigned int cmd,
 		rq = blk_kern_map_hdr(bd, &hdr);
 		if (IS_ERR(rq))
 			return PTR_ERR(rq);
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-		if (need_order)
-			blk_req_set_make_req_nr(rq);
-#endif
 		at_head = (0 == (hdr.flags & BSG_FLAG_Q_AT_TAIL));
 		blk_scsi_kern_time_record(REQ_EXEC_START);
 		blk_execute_rq(bd->queue, NULL, rq, at_head);

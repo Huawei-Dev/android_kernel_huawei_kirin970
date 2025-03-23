@@ -815,10 +815,6 @@ int blk_queue_enter(struct request_queue *q, bool nowait)
 
 		if (nowait)
 			return -EBUSY;
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-		if (blk_queue_query_unistore_enable(q))
-			blk_flush_plug(current);
-#endif
 		/*
 		 * read pair of barrier in blk_freeze_queue_start(),
 		 * we need to order reading __PERCPU_REF_DEAD flag of
@@ -2074,9 +2070,6 @@ static inline int blk_partition_remap(struct bio *bio)
 		bio->bi_orig_partno = bio->bi_partno;
 #endif
 		bio->bi_partno = 0;
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-		mas_blk_partition_remap(bio, p);
-#endif
 		trace_block_bio_remap(bio->bi_disk->queue, bio, part_devt(p),
 				bio->bi_iter.bi_sector - p->start_sect);
 	} else {

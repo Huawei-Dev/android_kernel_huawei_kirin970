@@ -946,11 +946,6 @@ struct f2fs_inode_info {
 	struct timespec i_crtime;	/* inode creation time */
 	struct timespec i_disk_time[4];	/* inode disk times */
 	unsigned int skip_count;
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	struct delayed_work fsync_work;
-	unsigned char i_fsync_flag;
-	wait_queue_head_t fsync_wq;
-#endif
 };
 
 static inline void get_extent_info(struct extent_info *ext,
@@ -3537,10 +3532,6 @@ long f2fs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 long f2fs_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
 int f2fs_transfer_project_quota(struct inode *inode, kprojid_t kprojid);
 int f2fs_pin_file_control(struct inode *inode, bool inc);
-
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-void f2fs_flush_wait_fsync(struct file *file);
-#endif
 
 /*
  * inode.c

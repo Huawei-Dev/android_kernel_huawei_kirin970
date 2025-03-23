@@ -36,12 +36,6 @@
 #include "turbo_zone.h"
 #endif
 
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-#define F2FS_WAIT_FSYNC_TIMEOUT 100
-#define F2FS_I_FSYNC_FLAG_SCHED_WORK 1
-#define F2FS_I_FSYNC_FLAG_WAITING 2
-#endif
-
 static int f2fs_filemap_fault(struct vm_fault *vmf)
 {
 	struct inode *inode = file_inode(vmf->vma->vm_file);
@@ -224,50 +218,6 @@ static void try_to_fix_pino(struct inode *inode)
 	up_write(&fi->i_sem);
 }
 
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-void f2fs_flush_wait_fsync(struct file *file)
-{
-	struct inode *inode = file_inode(file);
-	struct f2fs_inode_info *fi = F2FS_I(inode);
-
-	if ((file->f_fsync_flag) && (fi->i_fsync_flag)) {
-		cancel_delayed_work_sync(&fi->fsync_work);
-		if (fi->i_fsync_flag) {
-			spin_lock(&fi->vfs_inode.i_lock);
-			fi->i_fsync_flag = F2FS_I_FSYNC_FLAG_WAITING;
-			spin_unlock(&fi->vfs_inode.i_lock);
-
-			filemap_fdatawait_range(fi->vfs_inode.i_mapping, 0, LLONG_MAX);
-			spin_lock(&fi->vfs_inode.i_lock);
-			fi->i_fsync_flag = 0;
-			spin_unlock(&fi->vfs_inode.i_lock);
-		}
-	}
-
-	if (file->f_fsync_flag) {
-		spin_lock(&file->f_lock);
-		file->f_fsync_flag = 0;
-		spin_unlock(&file->f_lock);
-	}
-}
-
-void f2fs_wait_writeback_work_fn(struct work_struct *work)
-{
-	struct f2fs_inode_info *fi = container_of(work,
-				struct f2fs_inode_info, fsync_work.work);
-
-	spin_lock(&fi->vfs_inode.i_lock);
-	fi->i_fsync_flag = F2FS_I_FSYNC_FLAG_WAITING;
-	spin_unlock(&fi->vfs_inode.i_lock);
-
-	filemap_fdatawait_range(fi->vfs_inode.i_mapping, 0, LLONG_MAX);
-	spin_lock(&fi->vfs_inode.i_lock);
-	fi->i_fsync_flag = 0;
-	spin_unlock(&fi->vfs_inode.i_lock);
-	return;
-}
-#endif
-
 static int f2fs_do_sync_file(struct file *file, loff_t start, loff_t end,
 						int datasync, bool atomic)
 {
@@ -286,13 +236,6 @@ static int f2fs_do_sync_file(struct file *file, loff_t start, loff_t end,
 	u64 fsync_begin = 0, fsync_end = 0, wr_file_end, cp_begin = 0,
 	cp_end = 0, sync_node_begin = 0, sync_node_end = 0,
 	flush_begin = 0, flush_end = 0;
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	struct f2fs_inode_info *fi = F2FS_I(inode);
-	bool f2fs_ff_enable = blk_dev_write_order_preserved(sbi->sb->s_bdev) &&
-				!blk_mq_get_io_in_list_count(sbi->sb->s_bdev) &&
-				(fi->i_fsync_flag != F2FS_I_FSYNC_FLAG_WAITING);
-	int i;
-#endif
 
 	if (unlikely(f2fs_readonly(inode->i_sb) ||
 				is_sbi_flag_set(sbi, SBI_CP_DISABLED)))
@@ -313,15 +256,7 @@ static int f2fs_do_sync_file(struct file *file, loff_t start, loff_t end,
 #endif
 		set_inode_flag(inode, FI_NEED_IPU);
 
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	if (f2fs_ff_enable)
-		ret = __filemap_fdatawrite_range(file->f_mapping,
-					start, end, WB_SYNC_ALL);
-	else
-		ret = file_write_and_wait_range(file, start, end);
-#else
 	ret = file_write_and_wait_range(file, start, end);
-#endif
 
 	wr_file_end = local_clock();
 	clear_inode_flag(inode, FI_NEED_IPU);
@@ -404,11 +339,7 @@ sync_nodes:
 	 * roll-forward recovery. It means we'll recover all or none node blocks
 	 * given fsync mark.
 	 */
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	if (!atomic && (!f2fs_ff_enable)) {
-#else
 	if (!atomic) {
-#endif
 		ret = f2fs_wait_on_node_pages_writeback(sbi, seq_id);
 		if (ret)
 			goto out;
@@ -419,12 +350,7 @@ sync_nodes:
 	clear_inode_flag(inode, FI_APPEND_WRITE);
 	sync_node_end = local_clock();
 flush_out:
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	if (!atomic && F2FS_OPTION(sbi).fsync_mode != FSYNC_MODE_NOBARRIER &&
-							(!f2fs_ff_enable)) {
-#else
 	if (!atomic && F2FS_OPTION(sbi).fsync_mode != FSYNC_MODE_NOBARRIER) {
-#endif
 		flush_begin = local_clock();
 		ret = f2fs_issue_flush(sbi, inode->i_ino);
 		flush_end = local_clock();
@@ -436,31 +362,6 @@ flush_out:
 	}
 	f2fs_update_time(sbi, REQ_TIME);
 out:
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	if (f2fs_ff_enable) {
-		if (fi->i_fsync_flag == F2FS_I_FSYNC_FLAG_WAITING) {
-			filemap_fdatawait_range(fi->vfs_inode.i_mapping, start, end);
-		} else {
-			spin_lock(&file->f_lock);
-			if (!file->f_fsync_flag)
-				file->f_fsync_flag = 1;
-			spin_unlock(&file->f_lock);
-
-			spin_lock(&inode->i_lock);
-			if (!fi->i_fsync_flag) {
-				fi->i_fsync_flag = F2FS_I_FSYNC_FLAG_SCHED_WORK;
-				for (i = 1; i <= NR_CPUS; i++) {
-					if (cpu_online((raw_smp_processor_id() + i) % NR_CPUS))
-						break;
-				}
-				schedule_delayed_work_on(
-					(raw_smp_processor_id() + i) % NR_CPUS,
-					&fi->fsync_work, msecs_to_jiffies(10));
-			}
-			spin_unlock(&inode->i_lock);
-		}
-	}
-#endif
 	trace_f2fs_sync_file_exit(inode, cp_reason, datasync, ret);
 	pgcache_log_path(BIT_FSYNC_SYSCALL_DUMP, &(file->f_path),
 			"f2fs sync file end");
@@ -661,10 +562,6 @@ static int f2fs_file_open(struct inode *inode, struct file *filp)
 
 	if (err)
 		return err;
-
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	filp->f_fsync_flag = 0;
-#endif
 
 	filp->f_mode |= FMODE_NOWAIT;
 
@@ -1805,9 +1702,6 @@ static int f2fs_release_file(struct inode *inode, struct file *filp)
 static int f2fs_file_flush(struct file *file, fl_owner_t id)
 {
 	struct inode *inode = file_inode(file);
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	f2fs_flush_wait_fsync(file);
-#endif
 
 	/*
 	 * If the process doing a transaction is crashed, we should do

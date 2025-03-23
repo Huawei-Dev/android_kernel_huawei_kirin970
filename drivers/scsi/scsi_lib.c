@@ -750,28 +750,6 @@ static blk_status_t __scsi_error_from_host_byte(struct scsi_cmnd *cmd,
 	}
 }
 
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-static bool scsi_disorder_check_unistore(struct scsi_cmnd *cmd,
-	struct scsi_sense_hdr *sshdr)
-{
-	if (!scsi_unistore(cmd))
-		return false;
-
-	/* disorder when asc = 0x6A, ascq = 0x05 */
-	return (sshdr->asc == 0x6A && sshdr->ascq == 0x05);
-}
-#endif
-
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-static void scsi_io_completion_dump_unistore(struct scsi_cmnd *cmd,
-	struct request_queue *q, struct scsi_sense_hdr *sshdr, bool *sense_valid)
-{
-	if (sense_valid && sshdr->sense_key == 0x09 && q &&
-		scsi_disorder_check_unistore(cmd, sshdr))
-		mas_blk_dump_unistore(q, "100E");
-}
-#endif
-
 /*
  * Function:    scsi_io_completion()
  *
@@ -813,11 +791,6 @@ void scsi_io_completion(struct scsi_cmnd *cmd, unsigned int good_bytes)
 	enum {ACTION_FAIL, ACTION_REPREP, ACTION_RETRY,
 	      ACTION_DELAYED_RETRY} action;
 	unsigned long wait_for = (cmd->allowed + 1) * req->timeout;
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-	struct scsi_device *sdev = NULL;
-	struct scsi_target *starget = NULL;
-	struct Scsi_Host *shost = NULL;
-#endif
 
 	if (result) {
 		sense_valid = scsi_command_normalize_sense(cmd, &sshdr);
@@ -905,45 +878,7 @@ void scsi_io_completion(struct scsi_cmnd *cmd, unsigned int good_bytes)
 		result = 0;
 		error = BLK_STS_OK;
 	}
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-	if (sense_valid && (sshdr.sense_key == VENDOR_SPEC))
-		/*lint -save -e644*/
-		sdev_printk(KERN_ERR, cmd->device,
-			"%s, vendor_specific err, asc = %x, ascq = %x\n",
-			__func__, sshdr.asc, sshdr.ascq);
-		/*lint -restore*/
 
-	if (error && cmd->request && scsi_is_order_cmd(cmd) &&
-			scsi_order_enable(cmd)) {
-		if ((cmd->cmnd[0] == SECURITY_PROTOCOL_OUT) &&
-			!(blk_rq_bytes(req) == 0 && error) &&
-			(cmd->eh_eflags & SCSI_EH_IN_FLUSH_DONE_Q)) {
-			sdev_printk(KERN_ERR, cmd->device,
-				"%s, during eh flush done q\n", __func__);
-			scsi_end_request(req, error, blk_rq_bytes(req), 0);
-			return;
-		}
-
-		sdev_printk(KERN_ERR, cmd->device,
-			"%s, error_from_host_byte, passthrough or no data cmd, "
-			"error=%d, cmd=%u cmd_order=%u\n",
-				__func__, error, cmd->cmnd[0],
-				cmd->request->mas_req.protocol_nr);
-
-		sdev = cmd->device;
-		starget = scsi_target(sdev);
-		shost = sdev->host;
-
-		atomic_inc(&sdev->device_busy);
-		atomic_inc(&shost->host_busy);
-		if (starget->can_queue > 0)
-			atomic_inc(&starget->target_busy);
-
-		blk_power_off_flush(0);
-		scsi_eh_scmd_add(cmd);
-		return;
-	}
-#endif
 	/*
 	 * special case: failed zero length commands always need to
 	 * drop down into the retry code. Otherwise, if we finished
@@ -1052,16 +987,6 @@ void scsi_io_completion(struct scsi_cmnd *cmd, unsigned int good_bytes)
 			/* See SSC3rXX or current. */
 			action = ACTION_FAIL;
 			break;
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-		case VENDOR_SPEC:
-			/* None Connective Order */
-			if ((sshdr.asc == 0x68 && sshdr.ascq == 0x00) ||
-				scsi_disorder_check_unistore(cmd, &sshdr))
-				action = ACTION_REPREP;
-			else
-				action = ACTION_FAIL;
-			break;
-#endif
 		default:
 			action = ACTION_FAIL;
 			break;
@@ -1072,36 +997,6 @@ void scsi_io_completion(struct scsi_cmnd *cmd, unsigned int good_bytes)
 	if (action != ACTION_FAIL &&
 	    time_before(cmd->jiffies_at_alloc + wait_for, jiffies))
 		action = ACTION_FAIL;
-
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-	if ((action == ACTION_REPREP || action == ACTION_RETRY ||
-			action == ACTION_DELAYED_RETRY) &&
-			cmd->request && scsi_is_order_cmd(cmd) &&
-			scsi_order_enable(cmd)) {
-
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-		scsi_io_completion_dump_unistore(cmd, q, &sshdr, &sense_valid);
-#endif
-		sdev = cmd->device;
-		starget = scsi_target(sdev);
-		shost = sdev->host;
-
-		sdev_printk(KERN_ERR, cmd->device,
-			"%s, error_from_host_byte, "
-			"error=%d, cmd=%u cmd_order=%u\n",
-				__func__, error, cmd->cmnd[0],
-				cmd->request->mas_req.protocol_nr);
-
-		atomic_inc(&sdev->device_busy);
-		atomic_inc(&shost->host_busy);
-		if (starget->can_queue > 0)
-			atomic_inc(&starget->target_busy);
-
-		blk_power_off_flush(0);
-		scsi_eh_scmd_add(cmd);
-		return;
-	}
-#endif
 
 	switch (action) {
 	case ACTION_FAIL:
@@ -1779,14 +1674,6 @@ static void scsi_softirq_done(struct request *rq)
 	}
 
 	scsi_log_completion(cmd, disposition);
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-	if ((disposition != SUCCESS) && scsi_is_order_cmd(cmd) &&
-			scsi_order_enable(cmd)) {
-			blk_power_off_flush(0);
-			scsi_eh_scmd_add(cmd);
-			return;
-	}
-#endif
 	switch (disposition) {
 		case SUCCESS:
 			scsi_finish_command(cmd);
@@ -2310,12 +2197,6 @@ void __scsi_init_queue(struct Scsi_Host *shost, struct request_queue *q)
 	if (shost->queue_quirk_flag & SHOST_QUIRK(SHOST_QUIRK_HUFS_MQ))
 		q->backing_dev_info->ra_pages_cr =
 			(VM_MAX_READAHEAD_CR * 1024) / PAGE_SIZE;
-#endif
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	blk_queue_order_enable(q, shost->order_enabled);
-#endif
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	mas_blk_set_up_unistore_env(q, shost->mas_sec_size, shost->unistore_enable);
 #endif
 #endif /* CONFIG_MAS_BLK */
 }

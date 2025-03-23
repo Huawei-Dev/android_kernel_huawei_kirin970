@@ -1008,10 +1008,6 @@ static int parse_options(struct super_block *sb, char *options)
 }
 
 
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-extern void f2fs_wait_writeback_work_fn(struct work_struct *work);
-#endif
-
 static struct inode *f2fs_alloc_inode(struct super_block *sb)
 {
 	struct f2fs_inode_info *fi;
@@ -1040,12 +1036,6 @@ static struct inode *f2fs_alloc_inode(struct super_block *sb)
 
 	/* Will be used by directory only */
 	fi->i_dir_level = F2FS_SB(sb)->dir_level;
-
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	fi->i_fsync_flag = 0;
-	INIT_DELAYED_WORK(&fi->fsync_work, f2fs_wait_writeback_work_fn);
-	init_waitqueue_head(&fi->fsync_wq);
-#endif
 
 	return &fi->vfs_inode;
 }
@@ -1161,20 +1151,11 @@ static void f2fs_i_callback(struct rcu_head *head)
 {
 	struct inode *inode = container_of(head, struct inode, i_rcu);
 
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	struct f2fs_inode_info *fi = F2FS_I(inode);
-	WARN_ON(timer_pending(&(fi->fsync_work.timer)));
-#endif
-
 	kmem_cache_free(f2fs_inode_cachep, F2FS_I(inode));
 }
 
 static void f2fs_destroy_inode(struct inode *inode)
 {
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	struct f2fs_inode_info *fi = F2FS_I(inode);
-	cancel_delayed_work_sync(&fi->fsync_work);
-#endif
 #ifdef CONFIG_FILE_MAP
 	file_map_entry_del_inode(inode);
 #endif

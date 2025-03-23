@@ -133,10 +133,6 @@ enum pageflags {
 #ifdef CONFIG_HMFS_FS
 	PG_cpdata,
 #endif
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	PG_cached,
-#endif
-
 	PG_gpu,
 
 	__NR_PAGEFLAGS,
@@ -355,11 +351,6 @@ PAGEFLAG(Reclaim, reclaim, PF_NO_TAIL)
 PAGEFLAG(Readahead, reclaim, PF_NO_COMPOUND)
 	TESTCLEARFLAG(Readahead, reclaim, PF_NO_COMPOUND)
 
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-TESTPAGEFLAG(Cached, cached, PF_NO_TAIL)
-SETPAGEFLAG(Cached, cached, PF_NO_TAIL)
-CLEARPAGEFLAG(Cached, cached, PF_NO_TAIL)
-#endif
 #ifdef CONFIG_ZRAM_NON_COMPRESS
 PAGEFLAG(NonCompress, non_compress, PF_NO_TAIL)
 	TESTSCFLAG(NonCompress, non_compress, PF_NO_TAIL)

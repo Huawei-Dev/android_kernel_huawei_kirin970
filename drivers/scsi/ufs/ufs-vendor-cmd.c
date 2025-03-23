@@ -288,21 +288,6 @@ static void ufshcd_vcmd_set_init(struct ufs_hba *hba,
 
 static void ufshcd_order_preserving_init(struct ufs_hba *hba, uint32_t feature)
 {
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	hba->host->order_enabled = 0;
-	if (hba->manufacturer_id != UFS_VENDOR_HI1861)
-		return;
-
-#ifdef CONFIG_SCSI_UFS_UNISTORE
-	if (ufshcd_unistore_is_support(hba, feature))
-		return;
-#endif
-
-	if (feature & VENDOR_FEATURE_ORDER) {
-		hba->host->order_enabled = 1;
-		dev_info(hba->dev, "support order feature\n");
-	}
-#endif
 }
 
 static void ufshcd_tt_support(struct ufs_hba *hba, uint32_t feature)

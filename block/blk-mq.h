@@ -46,11 +46,6 @@ bool blk_mq_get_driver_tag(struct request *rq, struct blk_mq_hw_ctx **hctx,
 void blk_mq_free_rqs(struct blk_mq_tag_set *set, struct blk_mq_tags *tags,
 		     unsigned int hctx_idx);
 void blk_mq_free_rq_map(struct blk_mq_tags *tags);
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-int blk_mq_alloc_rq_maps(struct blk_mq_tag_set *set);
-void blk_mq_free_map_and_requests(struct blk_mq_tag_set *set,
-					 unsigned int hctx_idx);
-#endif
 struct blk_mq_tags *blk_mq_alloc_rq_map(struct blk_mq_tag_set *set,
 					unsigned int hctx_idx,
 					unsigned int nr_tags,
@@ -125,9 +120,6 @@ struct blk_mq_alloc_data {
 #ifdef CONFIG_MAS_BLK
 	unsigned long io_flag;
 	unsigned long mas_io_flag;
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	struct bio *bio;
-#endif
 	ktime_t wait_tag_start;
 #endif
 	unsigned int flags;

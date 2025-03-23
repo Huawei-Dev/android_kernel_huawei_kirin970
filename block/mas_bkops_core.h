@@ -29,10 +29,6 @@ enum bkops_operation {
 #define BKOPS_CHK_ACCU_DISCARD BIT(3)
 #define BKOPS_CHK_TIME_INTERVAL BIT(4)
 #define BKOPS_ASYNC_WORK_STARTED 5
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-#define BKOPS_IDLE_STATE 6
-#define BKOPS_FS_STARTED 7
-#endif
 
 enum bkops_dev_type {
 	BKOPS_DEV_NONE = 0,

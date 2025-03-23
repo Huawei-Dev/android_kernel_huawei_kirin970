@@ -503,17 +503,6 @@ struct request *blk_mq_alloc_request_hctx(struct request_queue *q,
 }
 EXPORT_SYMBOL_GPL(blk_mq_alloc_request_hctx);
 
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-static void blk_mq_stat_handle_unistore(struct request *rq)
-{
-	if ((rq->rq_flags & RQF_STATS) &&
-		blk_queue_query_unistore_enable(rq->q)) {
-		blk_mq_poll_stats_start(rq->q);
-		blk_stat_add(rq);
-	}
-}
-#endif
-
 void blk_mq_free_request(struct request *rq)
 {
 	struct request_queue *q = rq->q;
@@ -566,14 +555,11 @@ void blk_mq_free_request(struct request *rq)
 	blk_queue_exit(q);
 }
 EXPORT_SYMBOL_GPL(blk_mq_free_request);
-/*lint -save -e695*/
+
 inline void __blk_mq_end_request(struct request *rq, blk_status_t error)
 {
 	blk_account_io_done(rq);
 
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	blk_mq_stat_handle_unistore(rq);
-#endif
 	if (rq->end_io) {
 		wbt_done(rq->q->rq_wb, &rq->issue_stat,
 			 (bool)(rq->cmd_flags & REQ_FG));
@@ -666,18 +652,6 @@ int blk_mq_request_started(struct request *rq)
 }
 EXPORT_SYMBOL_GPL(blk_mq_request_started);
 
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-static void wbt_issue_unistore(struct request *rq)
-{
-	if (blk_queue_query_unistore_enable(rq->q))
-		wbt_issue(rq->q->rq_wb, &rq->issue_stat,
-			(bool)(rq->issue_stat.bi_opf & REQ_FG));
-	else
-		wbt_issue(rq->q->rq_wb, &rq->issue_stat,
-			(bool)(rq->cmd_flags & REQ_FG));
-}
-#endif
-
 void blk_mq_start_request(struct request *rq)
 {
 	struct request_queue *q = rq->q;
@@ -693,12 +667,8 @@ void blk_mq_start_request(struct request *rq)
 		blk_stat_set_issue(&rq->issue_stat, blk_rq_sectors(rq));
 		rq->rq_flags |= RQF_STATS;
 
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-		wbt_issue_unistore(rq);
-#else
 		wbt_issue(q->rq_wb, &rq->issue_stat,
 			 (bool)(rq->cmd_flags & REQ_FG));
-#endif
 	}
 
 	blk_add_timer(rq);
@@ -2292,13 +2262,8 @@ static bool __blk_mq_alloc_rq_map(struct blk_mq_tag_set *set, int hctx_idx)
 	return false;
 }
 
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-void blk_mq_free_map_and_requests(struct blk_mq_tag_set *set,
-					 unsigned int hctx_idx)
-#else
 static void blk_mq_free_map_and_requests(struct blk_mq_tag_set *set,
 					 unsigned int hctx_idx)
-#endif
 {
 	if (set->tags[hctx_idx]) {
 		blk_mq_free_rqs(set, set->tags[hctx_idx], hctx_idx);
@@ -2722,11 +2687,7 @@ out_unwind:
  * may reduce the depth asked for, if memory is tight. set->queue_depth
  * will be updated to reflect the allocated depth.
  */
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-int blk_mq_alloc_rq_maps(struct blk_mq_tag_set *set)
-#else
 static int blk_mq_alloc_rq_maps(struct blk_mq_tag_set *set)
-#endif
 {
 	unsigned int depth;
 	int err;

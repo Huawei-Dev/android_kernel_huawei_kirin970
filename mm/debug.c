@@ -43,10 +43,6 @@ const struct trace_print_flags pageflag_names[] = {
 #ifdef CONFIG_HMFS_FS
 	{1UL << PG_cpdata,                 "cpdata"         },
 #endif
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	{1UL << PG_cached,                 "unistore"       },
-#endif
-
 	{0, NULL}
 };
 

@@ -28,9 +28,6 @@ struct blk_busyidle_nb {
 	/* provided by subscriber module */
 	/* for internal maintenance */
 	enum blk_io_state last_state;
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	enum blk_fg_io_state last_fg_io_state;
-#endif
 };
 
 #endif /* __MAS_BLK_BUSY_IDLE_NOTIFY__ */

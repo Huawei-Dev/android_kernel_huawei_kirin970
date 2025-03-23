@@ -4502,12 +4502,7 @@ void f2fs_wait_on_page_writeback(struct page *page,
 
 		f2fs_submit_merged_write_cond(sbi, NULL, page, 0, type);
 
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-		if ((ordered) || ((page->mapping) &&
-			(F2FS_I(page->mapping->host)->i_fsync_flag)))
-#else
 		if (ordered)
-#endif
 			wait_on_page_writeback(page);
 		else
 			wait_for_stable_page(page);

@@ -514,11 +514,6 @@ static unsigned int ufs_tag_cnt_two;
 static unsigned int ufs_tag_cnt_three;
 static unsigned int ufs_tag_cnt_four;
 
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-#define IO_UNISTORE_DMD_CODE 914009001
-static unsigned int io_unistore_stats[UNISTORE_TYPE_MAX];
-#endif
-
 static struct file *open_log_file(char *name)
 {
 	mm_segment_t oldfs;
@@ -611,222 +606,7 @@ static void io_trace_clear_account(void)
 	ufs_tag_cnt_two = 0;
 	ufs_tag_cnt_three = 0;
 	ufs_tag_cnt_four = 0;
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	memset(io_unistore_stats, 0, sizeof(io_unistore_stats));
-#endif
 }
-
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-static unsigned int io_trace_unistore_stream(struct imonitor_eventobj *obj)
-{
-	unsigned int ret = 0;
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM0_TOTAL_WRITE_INT,
-		io_unistore_stats[UNISTORE_STREAM0_TOTAL_WRITE]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM1_TOTAL_WRITE_INT,
-		io_unistore_stats[UNISTORE_STREAM1_TOTAL_WRITE]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM2_TOTAL_WRITE_INT,
-		io_unistore_stats[UNISTORE_STREAM2_TOTAL_WRITE]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM3_TOTAL_WRITE_INT,
-		io_unistore_stats[UNISTORE_STREAM3_TOTAL_WRITE]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM4_TOTAL_WRITE_INT,
-		io_unistore_stats[UNISTORE_STREAM4_TOTAL_WRITE]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM0_WRITE_DELAY_4K_AVG_INT,
-		io_unistore_stats[UNISTORE_STREAM0_WRITE_DELAY_4K_AVG]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM1_WRITE_DELAY_4K_AVG_INT,
-		io_unistore_stats[UNISTORE_STREAM1_WRITE_DELAY_4K_AVG]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM2_WRITE_DELAY_4K_AVG_INT,
-		io_unistore_stats[UNISTORE_STREAM2_WRITE_DELAY_4K_AVG]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM3_WRITE_DELAY_4K_AVG_INT,
-		io_unistore_stats[UNISTORE_STREAM3_WRITE_DELAY_4K_AVG]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM4_WRITE_DELAY_4K_AVG_INT,
-		io_unistore_stats[UNISTORE_STREAM4_WRITE_DELAY_4K_AVG]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM0_WRITE_DELAY_128K_AVG_INT,
-		io_unistore_stats[UNISTORE_STREAM0_WRITE_DELAY_128K_AVG]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM1_WRITE_DELAY_128K_AVG_INT,
-		io_unistore_stats[UNISTORE_STREAM1_WRITE_DELAY_128K_AVG]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM2_WRITE_DELAY_128K_AVG_INT,
-		io_unistore_stats[UNISTORE_STREAM2_WRITE_DELAY_128K_AVG]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM3_WRITE_DELAY_128K_AVG_INT,
-		io_unistore_stats[UNISTORE_STREAM3_WRITE_DELAY_128K_AVG]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM4_WRITE_DELAY_128K_AVG_INT,
-		io_unistore_stats[UNISTORE_STREAM4_WRITE_DELAY_128K_AVG]);
-
-	return ret;
-
-}
-
-static unsigned int io_trace_unistore_interface(struct imonitor_eventobj *obj)
-{
-	unsigned int ret = 0;
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_PON_SYNC_SEND_CNT_INT,
-		io_unistore_stats[UNISTORE_PON_SYNC_SEND_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_PON_SYNC_FAIL_CNT_INT,
-		io_unistore_stats[UNISTORE_PON_SYNC_FAIL_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_GET_STREAM_OOB_SEND_CNT_INT,
-		io_unistore_stats[UNISTORE_GET_STREAM_OOB_SEND_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_GET_STREAM_OOB_FAIL_CNT_INT,
-		io_unistore_stats[UNISTORE_GET_STREAM_OOB_FAIL_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_RESET_FTL_SEND_CNT_INT,
-		io_unistore_stats[UNISTORE_RESET_FTL_SEND_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_RESET_FTL_FAIL_CNT_INT,
-		io_unistore_stats[UNISTORE_RESET_FTL_FAIL_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_DATA_MOVE_SEND_CNT_INT,
-		io_unistore_stats[UNISTORE_DATA_MOVE_SEND_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_DATA_MOVE_FAIL_CNT_INT,
-		io_unistore_stats[UNISTORE_DATA_MOVE_FAIL_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_SLC_MODE_SEND_CNT_INT,
-		io_unistore_stats[UNISTORE_SLC_MODE_SEND_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_SLC_MODE_FAIL_CNT_INT,
-		io_unistore_stats[UNISTORE_SLC_MODE_FAIL_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_FS_SYNC_DONE_SEND_CNT_INT,
-		io_unistore_stats[UNISTORE_FS_SYNC_DONE_SEND_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_FS_SYNC_DONE_FAIL_CNT_INT,
-		io_unistore_stats[UNISTORE_FS_SYNC_DONE_FAIL_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_SYNC_READ_VERIFY_SEND_CNT_INT,
-		io_unistore_stats[UNISTORE_SYNC_READ_VERIFY_SEND_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_SYNC_READ_VERIFY_FAIL_CNT_INT,
-		io_unistore_stats[UNISTORE_SYNC_READ_VERIFY_FAIL_CNT]);
-
-	return ret;
-
-}
-
-static unsigned int io_trace_unistore_account(struct imonitor_eventobj *obj)
-{
-	unsigned int ret = 0;
-
-	ret |= io_trace_unistore_stream(obj);
-
-	ret |= io_trace_unistore_interface(obj);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_FSYNC_INC_ORDER_CNT_INT,
-		io_unistore_stats[UNISTORE_FSYNC_INC_ORDER_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_STREAM_INC_ORDER_CNT_INT,
-		io_unistore_stats[UNISTORE_STREAM_INC_ORDER_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_RPMB_INC_ORDER_CNT_INT,
-		io_unistore_stats[UNISTORE_RPMB_INC_ORDER_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_EXP_LBA_SECOND_MATCH_CNT_INT,
-		io_unistore_stats[UNISTORE_EXP_LBA_SECOND_MATCH_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_EXP_LBA_SECOND_MATCH_DELAY_AVG_INT,
-		io_unistore_stats[UNISTORE_EXP_LBA_SECOND_MATCH_DELAY_AVG]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_REQUEUE_SEARCH_CNT_AVG_INT,
-		io_unistore_stats[UNISTORE_REQUEUE_SEARCH_CNT_AVG]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_SPLIT_OVER_SECTION_CNT_INT,
-		io_unistore_stats[UNISTORE_SPLIT_OVER_SECTION_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_BKOPS_FS_QUERY_CNT_INT,
-		io_unistore_stats[UNISTORE_BKOPS_FS_QUERY_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_BKOPS_FS_START_CNT_INT,
-		io_unistore_stats[UNISTORE_BKOPS_FS_START_CNT]);
-
-	ret |= (unsigned int)imonitor_set_param_integer_v2(obj,
-		V914009001_BKOPS_FS_STOP_CNT_INT,
-		io_unistore_stats[UNISTORE_BKOPS_FS_STOP_CNT]);
-
-	return ret;
-}
-
-static void io_trace_unistore_count_upload(void)
-{
-	unsigned int ret = 0;
-	struct imonitor_eventobj *obj = NULL;
-
-	obj = imonitor_create_eventobj(IO_UNISTORE_DMD_CODE);
-	if (!obj) {
-		io_trace_print("obj create failed! %d \n", IO_UNISTORE_DMD_CODE);
-		return;
-	}
-
-	ret |= io_trace_unistore_account(obj);
-
-	if (ret) {
-		imonitor_destroy_eventobj(obj);
-		io_trace_clear_account();
-		return;
-	} else {
-		imonitor_send_event(obj);
-		io_trace_print(
-			"%d, upload unistore count succeed!\n",
-			IO_UNISTORE_DMD_CODE);
-	}
-
-	imonitor_destroy_eventobj(obj);
-}
-#endif
 
 static int io_trace_count_upload(void)
 {
@@ -954,9 +734,6 @@ static int io_trace_count_upload(void)
 		imonitor_destroy_eventobj(obj);
 	}
 
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	io_trace_unistore_count_upload();
-#endif
 	io_trace_clear_account();
 
 	return 0;
@@ -1745,53 +1522,6 @@ static unsigned int io_trace_find_index(struct io_trace_log_entry *begin_entry,
 	return index;
 }
 
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-static void calc_approximate_avg(
-	unsigned int* value, unsigned int add_value)
-{
-	if (!(*value))
-		*value = add_value;
-	else
-		/* average of 4 data stream */
-		*value = (*value + add_value) >> 2;
-}
-
-static void io_trace_unistore_count_io(
-	unsigned int nr_bytes, unsigned long delay, unsigned char stream_type)
-{
-	if (!io_trace_this)
-		return;
-
-	if (!io_trace_this->enable)
-		return;
-
-	io_unistore_stats[UNISTORE_STREAM0_TOTAL_WRITE + stream_type]++;
-	if (nr_bytes == (4 * KB)) /* completed io length = 4KB */
-		calc_approximate_avg(&(
-		io_unistore_stats[UNISTORE_STREAM0_WRITE_DELAY_4K_AVG +
-		stream_type]), delay);
-	else if (nr_bytes == (128 * KB)) /* completed io length = 128KB */
-		calc_approximate_avg(&(
-		io_unistore_stats[UNISTORE_STREAM0_WRITE_DELAY_128K_AVG +
-		stream_type]), delay);
-}
-
-void io_trace_unistore_count(enum unistore_account_type type, unsigned int count)
-{
-	if (!io_trace_this)
-		return;
-
-	if (!io_trace_this->enable)
-		return;
-
-	if (type == UNISTORE_REQUEUE_SEARCH_CNT_AVG ||
-		type == UNISTORE_EXP_LBA_SECOND_MATCH_DELAY_AVG)
-		calc_approximate_avg(&(io_unistore_stats[type]), count);
-	else
-		io_unistore_stats[type] += count;
-}
-#endif
-
 static unsigned long io_trace_direct_delay(struct io_trace_pid *trace_pid,
 		unsigned int action, unsigned int parent, unsigned long log_time,
 		unsigned long inode)
@@ -1995,143 +1725,6 @@ static void io_trace_global_log(unsigned int action, unsigned long sector,
 
 	return;
 }
-
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-static unsigned long io_trace_get_ft_time(unsigned long ftrace_time)
-{
-	unsigned long ft_time;
-
-	ft_time = ftrace_time;
-	if (!ft_time) {
-		ft_time = trace_clock_local();
-		ft_time = (ft_time / 1000) + 1 +
-		(((ft_time % 1000) / 100) >= 5 ? 1 : 0); /* over half (500) */
-	}
-
-	return ft_time;
-}
-
-static void io_trace_all_cnt_update(unsigned int action,
-	unsigned int rw_flags)
-{
-	if (action == BLOCK_RQ_COMPLETE_TAG) {
-		if ((rw_flags & IO_TRACE_WRITE) == 0)
-			all_read_cnt++;
-		else if ((rw_flags & IO_TRACE_WRITE) == 1)
-			all_write_cnt++;
-	}
-}
-
-static unsigned long io_trace_get_delay(struct io_trace_ctrl *trace_ctrl,
-	unsigned int action, unsigned int parent, unsigned long sector,
-	unsigned int nr_bytes, unsigned long log_time)
-{
-	struct io_trace_log_entry *begin =
-		(struct io_trace_log_entry *)(trace_ctrl->mem_mngt->all_trace_buff);
-	unsigned int count = io_trace_this->all_log_count;
-	struct io_trace_log_entry *index_entry = NULL;
-	unsigned int index;
-	unsigned long delay;
-
-	index = io_trace_find_index(begin, count, trace_ctrl->all_log_index, 32,
-			action, parent, sector, nr_bytes);
-
-	if (index != (unsigned int)(-1)) {
-		index_entry = (begin + index);
-		delay = log_time - index_entry->time;
-	} else {
-		delay = 0xFFFFFFFF;
-	}
-
-	return delay;
-}
-
-static unsigned long io_trace_count_io_delay(
-	unsigned long delay, unsigned int nr_bytes, unsigned int rw_flags,
-	unsigned char *volname, unsigned char stream_type)
-{
-	if (delay != 0xFFFFFFFF) {
-		io_trace_blk_account_io_completion(nr_bytes, delay,
-			rw_flags, volname);
-		if (rw_flags & IO_TRACE_WRITE)
-			io_trace_unistore_count_io(nr_bytes, delay, stream_type);
-	} else {
-		delay = 0;
-	}
-
-	return delay;
-}
-
-static void io_trace_global_log_unistore(unsigned int action, unsigned long sector,
-	unsigned int nr_bytes, unsigned int parent, unsigned long own_time,
-	unsigned long delay, unsigned int rw_flags, const char *f_name,
-	unsigned long ftrace_time, unsigned char *volname, unsigned char stream_type)
-{
-	struct io_trace_ctrl *trace_ctrl = io_trace_this;
-	struct io_trace_log_entry *all_log_entry = NULL;
-	struct task_struct *tsk = current;
-	pid_t pid;
-	pid_t tgid;
-	struct timespec realts;
-	unsigned long log_time;
-	unsigned long ft_time;
-
-	pid = tsk->pid;
-	tgid = tsk->tgid;
-
-	io_trace_assert(pid < IO_MAX_PROCESS);
-
-	/* dont handle max process */
-	if (pid >= IO_MAX_PROCESS || tgid >= IO_MAX_PROCESS)
-		return;
-
-	log_time = own_time;
-	if (!log_time) {
-		do_posix_clock_monotonic_gettime(&realts);
-		log_time = (unsigned long)realts.tv_sec * 1000000000 +
-					realts.tv_nsec;
-	}
-
-	ft_time = io_trace_get_ft_time(ftrace_time);
-
-	if (sector == ((unsigned long)-1))
-		sector = (unsigned long)0;
-
-	io_trace_all_cnt_update(action, rw_flags);
-
-	if (action == SCSI_BLK_CMD_RW_END_TAG)
-		io_trace_ufs_tag_cnt(delay);
-
-	if (parent && (sector != 0) && (action == BLOCK_RQ_COMPLETE_TAG) &&
-		((nr_bytes == (4 * KB)) || (nr_bytes == (128 * KB)) ||
-		(nr_bytes == (1024 * KB))) &&
-		(io_trace_this->all_log_count >= IO_MAX_LOG_PER_GLOBAL)) {
-		delay = io_trace_get_delay(trace_ctrl, action,
-				parent, sector, nr_bytes, log_time);
-		delay = io_trace_count_io_delay(delay, nr_bytes,
-				rw_flags, volname, stream_type);
-	}
-
-	all_log_entry = io_get_all_buf(trace_ctrl);
-	all_log_entry->action = action;
-	all_log_entry->rw = (unsigned char)rw_flags;
-	all_log_entry->cpu = raw_smp_processor_id();
-	all_log_entry->pid = pid;
-	all_log_entry->tgid = tgid;
-	all_log_entry->nr_bytes = nr_bytes;
-	all_log_entry->inode = sector;
-	all_log_entry->time = log_time;
-	all_log_entry->f_time = ft_time;
-	all_log_entry->delay = delay;
-	memcpy(all_log_entry->comm, tsk->comm, IO_P_NAME_LEN);
-	memset(all_log_entry->f_name, '\0', IO_F_NAME_LEN);
-
-	if (f_name)
-		memcpy(all_log_entry->f_name, f_name, IO_F_NAME_LEN);
-
-	return;
-}
-#endif
 
 static int io_trace_need_action(unsigned int action)
 {
@@ -2542,9 +2135,7 @@ static void blk_add_trace_rq_complete(void *ignore, struct request *rq,
 {
 	unsigned char *volname = NULL;
 	unsigned int rw_type;
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	unsigned char stream_type;
-#endif
+
 	if (io_trace_this->enable) {
 		if (rq->part && rq->part->info)
 			volname = rq->part->info->volname;
@@ -2552,16 +2143,6 @@ static void blk_add_trace_rq_complete(void *ignore, struct request *rq,
 			volname = NULL;
 
 		rw_type = iotrace_io_type_parse(req_op(rq), rq->cmd_flags);
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-		if (blk_queue_query_unistore_enable(rq->q)) {
-			stream_type = rq->mas_req.stream_type;
-			io_trace_global_log_unistore(BLOCK_RQ_COMPLETE_TAG,
-				blk_rq_pos(rq), blk_rq_bytes(rq),
-				BLOCK_RQ_ISSUE_TAG, 0, 0, rw_type,
-				NULL, 0, volname, stream_type);
-			return;
-		}
-#endif
 		io_trace_global_log(BLOCK_RQ_COMPLETE_TAG,
 			blk_rq_pos(rq), blk_rq_bytes(rq),
 			BLOCK_RQ_ISSUE_TAG, 0, 0, rw_type, NULL, 0, volname);

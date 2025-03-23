@@ -1217,12 +1217,7 @@ int scsi_eh_get_sense(struct list_head *work_q,
 	 */
 	list_for_each_entry_safe(scmd, next, work_q, eh_entry) {
 		if ((scmd->eh_eflags & SCSI_EH_ABORT_SCHEDULED) ||
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-		    SCSI_SENSE_VALID(scmd) || (scsi_is_order_cmd(scmd) &&
-		    		scsi_order_enable(scmd)))
-#else
 		    SCSI_SENSE_VALID(scmd))
-#endif
 			continue;
 
 		shost = scmd->device->host;
@@ -1418,10 +1413,6 @@ static int scsi_eh_stu(struct Scsi_Host *shost,
 		}
 		stu_scmd = NULL;
 		list_for_each_entry(scmd, work_q, eh_entry) {
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-			if (scsi_is_order_cmd(scmd) && scsi_order_enable(scmd))
-				continue;
-#endif
 			if (scmd->device == sdev && SCSI_SENSE_VALID(scmd) &&
 			    scsi_check_sense(scmd) == FAILED ) {
 				stu_scmd = scmd;
@@ -1489,11 +1480,6 @@ static int scsi_eh_bus_device_reset(struct Scsi_Host *shost,
 		}
 		bdr_scmd = NULL;
 		list_for_each_entry(scmd, work_q, eh_entry) {
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-			if (scsi_is_order_cmd(scmd) &&
-					scsi_order_enable(scmd))
-				continue;
-#endif
 			if (scmd->device == sdev) {
 				bdr_scmd = scmd;
 				break;
@@ -1577,10 +1563,6 @@ static int scsi_eh_target_reset(struct Scsi_Host *shost,
 					     "%s: Target reset failed"
 					     " target: %d\n",
 					     current->comm, id));
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-		if (scsi_is_order_cmd(scmd) && scsi_order_enable(scmd))
-			rtn = FAILED;
-#endif
 		list_for_each_entry_safe(scmd, next, &tmp_list, eh_entry) {
 			if (scmd_id(scmd) != id)
 				continue;
@@ -1649,10 +1631,6 @@ static int scsi_eh_bus_reset(struct Scsi_Host *shost,
 				     "%s: Sending BRST chan: %d\n",
 				     current->comm, channel));
 		rtn = scsi_try_bus_reset(chan_scmd);
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-		if (scsi_is_order_cmd(scmd) && scsi_order_enable(scmd))
-			rtn = FAILED;
-#endif
 		if (rtn == SUCCESS || rtn == FAST_IO_FAIL) {
 			list_for_each_entry_safe(scmd, next, work_q, eh_entry) {
 				if (channel == scmd_channel(scmd)) {
@@ -2137,13 +2115,7 @@ void scsi_eh_flush_done_q(struct list_head *done_q)
 				scmd_printk(KERN_INFO, scmd,
 					     "%s: flush finish cmd\n",
 					     current->comm));
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-			scmd->eh_eflags |= SCSI_EH_IN_FLUSH_DONE_Q;
 			scsi_finish_command(scmd);
-			scmd->eh_eflags &= (~SCSI_EH_IN_FLUSH_DONE_Q);
-#else
-			scsi_finish_command(scmd);
-#endif
 		}
 	}
 }
@@ -2194,24 +2166,6 @@ static void scsi_unjam_host(struct Scsi_Host *shost)
 	scsi_eh_flush_done_q(&eh_done_q);
 }
 
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-static int scsi_eh_send_request_sense(struct scsi_device *sdev)
-{
-	int ret;
-	struct Scsi_Host *shost = sdev->host;
-	unsigned int timeout_ms = 1500;
-
-	if (!shost->hostt->send_request_sense_directly)
-		return FAILED;
-
-	ret = shost->hostt->send_request_sense_directly(sdev, timeout_ms, false);
-	if (ret)
-		pr_err("%s, queuecommand fail, ret=%d \n", __func__, ret);
-
-	return ret;
-}
-#endif
-
 /**
  * scsi_error_handler - SCSI error handler thread
  * @data:	Host for which we are running.
@@ -2224,9 +2178,6 @@ int scsi_error_handler(void *data)
 {
 	struct Scsi_Host *shost = data;
 	struct sched_param param = {.sched_priority = 1};
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-	struct scsi_device *sdev = NULL;
-#endif
 
 	sched_setscheduler(current, SCHED_FIFO, &param);
 
@@ -2285,11 +2236,6 @@ int scsi_error_handler(void *data)
 
 		/* All scmds have been handled */
 		shost->host_failed = 0;
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-		shost_for_each_device(sdev, shost) {
-			scsi_eh_send_request_sense(sdev);
-		}
-#endif
 		/*
 		 * Note - if the above fails completely, the action is to take
 		 * individual devices offline and flush the queue of any

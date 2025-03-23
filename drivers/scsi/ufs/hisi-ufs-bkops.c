@@ -27,10 +27,6 @@
 #include "ufshcd.h"
 #include "ufs-quirks.h"
 
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-#include <linux/blkdev.h>
-#endif
-
 #define QUERY_REQ_RETRIES 3
 #define QUERY_REQ_TIMEOUT 1300 /* msec */
 
@@ -336,10 +332,6 @@ int hufs_manual_bkops_config(struct scsi_device *sdev)
 		goto free_ufs_bkops;
 
 	hba->ufs_bkops_enabled = 1;
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	if (hba->host->unistore_enable)
-		mas_blk_mq_tagset_set_bkops(q, ufs_bkops);
-#endif
 	return 0;
 
 free_ufs_bkops:

@@ -1739,10 +1739,6 @@ int f2fs_fsync_node_pages(struct f2fs_sb_info *sbi, struct inode *inode,
 	nid_t ino = inode->i_ino;
 	int nr_pages;
 	int nwritten = 0;
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	bool f2fs_ff_enable = blk_dev_write_order_preserved(sbi->sb->s_bdev) &&
-				!blk_mq_get_io_in_list_count(sbi->sb->s_bdev);
-#endif
 
 	if (atomic) {
 		last_page = last_fsync_dnode(sbi, ino);
@@ -1812,11 +1808,7 @@ continue_unlock:
 			if (!clear_page_dirty_for_io(page))
 				goto continue_unlock;
 
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-			ret = __write_node_page(page, (!f2fs_ff_enable) && atomic &&
-#else
 			ret = __write_node_page(page, atomic &&
-#endif
 						page == last_page,
 						&submitted, wbc, true,
 						FS_NODE_IO, seq_id);

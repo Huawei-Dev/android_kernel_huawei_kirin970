@@ -109,10 +109,6 @@ static struct bio *blk_bio_segment_split(struct request_queue *q,
 	bool do_split = true;
 	struct bio *new = NULL;
 	const unsigned max_sectors = get_max_io_size(q, bio);
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	unsigned bytes = mas_blk_bio_get_residual_byte(q, bio->bi_iter);
-	bool over_section = mas_blk_bio_check_over_section(q, bio);
-#endif
 
 	bio_for_each_segment(bv, bio, iter) {
 		/*
@@ -121,18 +117,6 @@ static struct bio *blk_bio_segment_split(struct request_queue *q,
 		 */
 		if (bvprvp && bvec_gap_to_prev(q, bvprvp, bv.bv_offset))
 			goto split;
-
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-		if (over_section && (bv.bv_len >=
-			mas_blk_bio_get_residual_byte(q, iter))) {
-			if (nsegs < queue_max_segments(q))
-				nsegs++;
-			*segs = nsegs;
-
-			return mas_blk_bio_segment_bytes_split(
-				bio, bs, bytes, front_seg_size, seg_size);
-		}
-#endif
 
 		if (sectors + (bv.bv_len >> 9) > max_sectors) {
 			/*
@@ -237,30 +221,6 @@ void blk_queue_split(struct request_queue *q, struct bio **bio)
 	}
 }
 EXPORT_SYMBOL(blk_queue_split);
-
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-void mas_blk_queue_split_for_wop_write(struct request_queue *q, struct bio **bio)
-{
-	struct bio *split, *res;
-	unsigned nsegs;
-
-	split = blk_bio_segment_split(q, *bio, q->bio_split, &nsegs);
-
-	/* physical segments can be figured out during splitting */
-	res = split ? split : *bio;
-	res->bi_phys_segments = nsegs;
-	bio_set_flag(res, BIO_SEG_VALID);
-
-	if (split) {
-		/* there isn't chance to merge the splitted bio */
-		split->bi_opf |= REQ_NOMERGE;
-		bio_chain(split, *bio);
-		mas_blk_bio_queue_split(q, bio, split);
-		trace_block_split(q, split, (*bio)->bi_iter.bi_sector);
-		*bio = split;
-	}
-}
-#endif
 
 static unsigned int __blk_recalc_rq_segments(struct request_queue *q,
 					     struct bio *bio,

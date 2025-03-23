@@ -102,12 +102,6 @@ struct partition_meta_info {
 	u8 volname[PARTITION_META_INFO_VOLNAMELTH];
 };
 
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-struct hd_cust {
-	unsigned char default_stream_id;
-};
-#endif
-
 struct hd_struct {
 	sector_t start_sect;
 	/*
@@ -135,10 +129,6 @@ struct hd_struct {
 #endif
 	struct percpu_ref ref;
 	struct rcu_head rcu_head;
-
-#ifdef CONFIG_MAS_UNISTORE_PRESERVE
-	struct hd_cust mas_hd;
-#endif
 };
 
 #define GENHD_FL_REMOVABLE			1

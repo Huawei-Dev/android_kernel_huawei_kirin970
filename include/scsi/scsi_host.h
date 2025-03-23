@@ -390,10 +390,6 @@ struct scsi_host_template {
 #ifdef CONFIG_MAS_BLK
 	int (*direct_flush)(struct scsi_device *);
 	void (*dump_status)(struct Scsi_Host *shost, enum blk_dump_scene dump_type);
-#if defined(CONFIG_MAS_ORDER_PRESERVE) || defined(CONFIG_MAS_UNISTORE_PRESERVE)
-	int (*send_request_sense_directly)(struct scsi_device *,
-					unsigned int, bool);
-#endif
 #endif
 	/*
 	 * Name of proc directory
@@ -835,10 +831,6 @@ struct Scsi_Host {
 
 #ifdef CONFIG_SCSI_UFS_INLINE_CRYPTO
 	int crypto_enabled;
-#endif
-
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	int order_enabled;
 #endif
 
 #ifdef CONFIG_SCSI_UFS_UNISTORE

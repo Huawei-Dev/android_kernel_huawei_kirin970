@@ -912,9 +912,6 @@ struct file {
 #endif /* #ifdef CONFIG_EPOLL */
 	struct address_space	*f_mapping;
 	errseq_t		f_wb_err;
-#ifdef CONFIG_MAS_ORDER_PRESERVE
-	unsigned char f_fsync_flag;
-#endif
 #ifdef CONFIG_HMFS_FS
 	unsigned char hm_fsync_flag;
 #endif
