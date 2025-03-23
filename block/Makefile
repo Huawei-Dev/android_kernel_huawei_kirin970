@@ -54,4 +54,3 @@ obj-$(CONFIG_FSCK_BOOST)        += fsck_boost.o
 ifeq ($(TARGET_VERSION_MODE),factory)
 	EXTRA_CFLAGS += -DBYPASS_AUTHORITY_VERIFY
 endif
-obj-$(CONFIG_HW_SYSTEM_WR_PROTECT) += software_system_wp.o

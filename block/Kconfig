@@ -201,11 +201,6 @@ config PARTITION_TABLE
         bool "hisi partition"
         default n
 
-config HW_SYSTEM_WR_PROTECT
-	bool "write protection function of system partitions."
-	depends on BLOCK
-	default n
-
 config HISI_PARTITION_HI3650
         bool "hi3650 partition"
         depends on PARTITION_TABLE
