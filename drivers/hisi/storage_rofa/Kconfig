@@ -25,14 +25,6 @@ config HUAWEI_DYNAMIC_BRD
 
          If unsure, say N.
 
-config HUAWEI_STORAGE_ROW
-       bool "Huawei redirection on write DM"
-       default n
-       depends on MD
-       ---help---
-         This device-mapper target is virtually a ROW target. This
-         target is setup by reading a string table.
-
 config STORAGE_ROW_SKIP_PART
        bool "Skip DFX partition for storage ROW"
        default n
