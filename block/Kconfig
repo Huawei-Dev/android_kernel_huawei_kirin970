@@ -172,9 +172,6 @@ choice
 
 config MAS_IO_CLASSIFY_FG
      bool "use iaware FG classification"
-config MAS_IO_CLASSIFY_SCHED_TUNE
-     bool "use AI sched tune"
-     depends on SCHED_TUNE
 endchoice
 
 config MAS_BKOPS
