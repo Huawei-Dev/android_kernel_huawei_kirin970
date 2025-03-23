@@ -715,10 +715,6 @@ LDFLAGS		+= -plugin $(LD_LIBRARY_PATH)LLVMgold.so
 # of objdump for processing symbol versions and exports
 LLVM_AR		:= $(CLANG_PREBUILT_BIN)llvm-ar
 LLVM_DIS	:= $(CLANG_PREBUILT_BIN)llvm-dis
-ifdef CONFIG_ARM64_HKRR
-LLVM_OBJCOPY	:= $(CLANG_PREBUILT_BIN)llvm-objcopy
-export LLVM_OBJCOPY
-endif
 export LLVM_AR LLVM_DIS
 endif
 

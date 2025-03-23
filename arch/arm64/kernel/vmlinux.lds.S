@@ -119,19 +119,7 @@ SECTIONS
 			IRQENTRY_TEXT
 			SOFTIRQENTRY_TEXT
 			ENTRY_TEXT
-#ifdef CONFIG_ARM64_HKRR
-			__hkrr_text_start = .;
-			. += 1;		/* keep code away from __hkrr_text_start */
-#endif
 			TEXT_TEXT
-#ifdef CONFIG_ARM64_HKRR
-			. += 4;
-			__hkrr_text_end = .;
-			. += (CONFIG_ARM64_HKRR_EXTRA_TEXT_SIZE << 10);	/* extra space as it gets a bit bigger with LTO */
-			__text_info_start = .;
-			. += (CONFIG_ARM64_HKRR_EXTRA_OBJ_SIZE << 10);	/* extra 64K for objinfo */
-			__hkrr_text_end2 = .;
-#endif
 			SCHED_TEXT
 			CPUIDLE_TEXT
 			LOCK_TEXT
@@ -208,13 +196,7 @@ SECTIONS
 	PERCPU_SECTION(L1_CACHE_BYTES)
 
 	.rela.dyn : ALIGN(8) {
-#if defined(CONFIG_ARM64_HKRR)
-		__hkrr_rela_start = .;
-#endif
 		*(.rela .rela*)
-#if defined(CONFIG_ARM64_HKRR)
-		__hkrr_rela_end = .;
-#endif
 	}
 
 	__rela_offset	= ABSOLUTE(ADDR(.rela.dyn) - KIMAGE_VADDR);

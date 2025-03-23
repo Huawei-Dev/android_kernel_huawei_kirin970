@@ -53,9 +53,6 @@
 #ifdef CONFIG_HHEE
 #define SRC_HHEE_MNTN_MEMORY  "/proc/balong/memory/hhee_mntn_mem"
 #endif
-#ifdef CONFIG_ARM64_HKRR
-#define SRC_HKRR_MNTN_MEMORY  "/proc/balong/memory/hkrr_obj_mem"
-#endif
 #define REG_MAP_SIZE 0x4
 #define MODID_FAIL 1
 #define RDR_CONSOLE_LOGLEVEL_DEFAULT 7

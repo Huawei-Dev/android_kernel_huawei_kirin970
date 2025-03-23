@@ -16,18 +16,12 @@
 
 include $(srctree)/arch/arm64/boot/dts/Makefile
 
-ifeq ($(CONFIG_ARM64_HKRR),y)
-OBJCOPYFLAGS_Image :=-O binary -R .note -R .note.gnu.build-id -R .comment -S
-HKRRFLAGS :=
-GENFLAGS :=
-
 ifneq ($(CONFIG_LTO_CLANG),y)
 GENFLAGS += --align
 endif
 
-else
 OBJCOPYFLAGS_Image :=-O binary -R .note -R .note.gnu.build-id -R .comment -S
-endif
+
 ifeq ($(CONFIG_ARM64_LZ4),y)
 targets := Image Image.lz4
 else
@@ -42,21 +36,6 @@ DTB_LIST := $(dtb-y)
 endif
 DTB_OBJS := $(addprefix $(obj)/dts/,$(DTB_LIST))
 
-ifeq ($(CONFIG_ARM64_HKRR),y)
-
-hkrr.img: vmlinux $(srctree)/scripts/hkrr.py
-	rm -f hkrr.log
-	$(srctree)/scripts/hkrr.py $(HKRRFLAGS) generate $(GENFLAGS) vmlinux vmlinux.map hkrr.img
-
-hkrr.img.gz: hkrr.img FORCE
-	$(call if_changed,minigzip)
-
-$(obj)/Image: vmlinux FORCE
-	$(call if_changed,objcopy)
-
-$(obj)/Image: hkrr.img.gz
-
-else
 #fake hkrr.img for kernel release
 hkrr.img: vmlinux
 	echo "Heteroscedastic Kernel Ridge Regression" > $(obj)/hkrr.img
@@ -68,7 +47,6 @@ $(obj)/Image: vmlinux FORCE
 	$(call if_changed,objcopy)
 
 $(obj)/Image: hkrr.img.gz
-endif
 
 $(obj)/Image.bz2: $(obj)/Image FORCE
 	$(call if_changed,bzip2)
