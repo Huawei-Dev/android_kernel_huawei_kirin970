@@ -4,13 +4,6 @@
 
 menu "Huawei Kernel Harden"
 
-config HUAWEI_KERNEL_STACK_NX
-	bool "stack non executeable"
-	depends on ARM64
-	default n
-	help
-	  Set process's kernel stack with non execution.
-
 config HUAWEI_KERNEL_MODULE_RANDOMIZE
 	bool "module randomize"
 	depends on ARM64
