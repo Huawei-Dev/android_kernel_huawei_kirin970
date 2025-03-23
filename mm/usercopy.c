@@ -297,13 +297,6 @@ void __check_object_size(const void *ptr, unsigned long n, bool to_user)
 	}
 #endif
 
-#ifdef CONFIG_HKIP_PRMEM_HARDENED_USERCOPY
-	/* Check for object overlapping with PRMEM */
-	err = check_prmem_object(ptr, n);
-	if (unlikely(err))
-		goto report;
-#endif
-
 	/* Check for object in kernel to avoid text exposure. */
 	err = check_kernel_text_object(ptr, n);
 	if (!err)

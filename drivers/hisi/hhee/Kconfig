@@ -55,15 +55,6 @@ config PRMEM_MAX_MEMORY
 	help
 	  The system will refuse allocations requests beyond the set value.
 
-config HKIP_PRMEM_HARDENED_USERCOPY
-	bool "Detects read / write operations from userspace to prmem"
-	depends on HKIP_PRMEM
-	default y
-	help
-	  Introduces a sanity check every time a read/write operation is
-	  performed from a userspace interface.
-	  Saying Yes here will add a small delay on each such operation.
-
 config HKIP_PROTECT_BPF
 	bool "Harden the basic protection of the BPF filter"
 	depends on BPF
