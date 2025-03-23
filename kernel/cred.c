@@ -19,11 +19,7 @@
 #include <linux/security.h>
 #include <linux/binfmts.h>
 #include <linux/cn_proc.h>
-#ifdef CONFIG_HKIP_PROTECT_CRED
-#include <linux/hisi/prmem.h>
-#else
 #include <linux/hisi/hkip.h>
-#endif
 
 #if 0
 #define kdebug(FMT, ...)						\
@@ -38,33 +34,6 @@ do {									\
 } while (0)
 #endif
 
-
-#ifdef CONFIG_HKIP_PROTECT_CRED
-/* It's sufficient to align to the size of a machine word (a pointer) */
-#define CRED_ALIGNMENT    sizeof(void *)
-#define CRED_UNITS        CONFIG_HKIP_TASKS_UNITS
-
-#define CRED_POOL_SIZE    SZ_8M
-
-#define CRED_RW_POOL_SIZE SZ_2M
-
-PRMEM_POOL(cred_pool, start_wr_no_recl, CRED_ALIGNMENT, kB(8), CRED_POOL_SIZE);
-PRMEM_CACHE(cred_cache, &cred_pool, sizeof(struct cred), CRED_ALIGNMENT);
-
-PRMEM_POOL(cred_rw_pool, rw_recl, CRED_ALIGNMENT, kB(8), CRED_RW_POOL_SIZE);
-PRMEM_CACHE(cred_rw_cache, &cred_rw_pool, sizeof(struct cred_rw),
-	    CRED_ALIGNMENT);
-
-static struct cred_rw init_cred_rw = {
-	.usage = ATOMIC_INIT(4),
-#ifdef CONFIG_DEBUG_CREDENTIALS
-	.subscribers = ATOMIC_INIT(2),
-#endif
-	.cred_wr = &init_cred,
-};
-
-#endif /* CONFIG_HKIP_PROTECT_CRED */
-
 static struct kmem_cache *cred_jar;
 
 /* init to 2 - one for init_task, one to ensure it is never freed */
@@ -73,19 +42,10 @@ struct group_info init_groups = { .usage = ATOMIC_INIT(2) };
 /*
  * The initial credentials for the initial task
  */
-#ifdef CONFIG_HKIP_PROTECT_CRED
-struct cred init_cred __rw = {
-	.usage			= &init_cred_rw.usage,
-#else
 struct cred init_cred = {
 	.usage			= ATOMIC_INIT(4),
-#endif
 #ifdef CONFIG_DEBUG_CREDENTIALS
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	.subscribers		= &init_cred_rw.subscribers,
-#else
 	.subscribers		= ATOMIC_INIT(2),
-#endif
 	.magic			= CRED_MAGIC,
 #endif
 	.uid			= GLOBAL_ROOT_UID,
@@ -104,30 +64,19 @@ struct cred init_cred = {
 	.user			= INIT_USER,
 	.user_ns		= &init_user_ns,
 	.group_info		= &init_groups,
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	.rcu			= &init_cred_rw.rcu,
-#endif
 };
 
 static inline void set_cred_subscribers(struct cred *cred, int n)
 {
 #ifdef CONFIG_DEBUG_CREDENTIALS
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	atomic_set(cred->subscribers, n);
-#else
 	atomic_set(&cred->subscribers, n);
-#endif
 #endif
 }
 
 static inline int read_cred_subscribers(const struct cred *cred)
 {
 #ifdef CONFIG_DEBUG_CREDENTIALS
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	return atomic_read(cred->subscribers);
-#else
 	return atomic_read(&cred->subscribers);
-#endif
 #else
 	return 0;
 #endif
@@ -137,12 +86,7 @@ static inline void alter_cred_subscribers(const struct cred *_cred, int n)
 {
 #ifdef CONFIG_DEBUG_CREDENTIALS
 	struct cred *cred = (struct cred *) _cred;
-
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	atomic_add(n, cred->subscribers);
-#else
 	atomic_add(n, &cred->subscribers);
-#endif
 #endif
 }
 
@@ -151,18 +95,8 @@ static inline void alter_cred_subscribers(const struct cred *_cred, int n)
  */
 static void put_cred_rcu(struct rcu_head *rcu)
 {
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	struct cred_rw *cred_rw = container_of(rcu, struct cred_rw, rcu);
-	struct cred *cred = NULL;
-	atomic_t *usage = NULL;;
-
-	validate_cred_rw(cred_rw);
-	cred = cred_rw->cred_wr;
-	usage = cred->usage;
-#else
 	struct cred *cred = container_of(rcu, struct cred, rcu);
 	atomic_t *usage = &cred->usage;
-#endif
 
 	kdebug("put_cred_rcu(%p)", cred);
 
@@ -190,15 +124,7 @@ static void put_cred_rcu(struct rcu_head *rcu)
 		put_group_info(cred->group_info);
 	free_uid(cred->user);
 	put_user_ns(cred->user_ns);
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	prmem_cache_free(&cred_rw_cache, cred_rw);
-	if (is_wr(cred, sizeof(struct cred)))
-		prmem_cache_free(&cred_cache, cred);
-	else
-		kmem_cache_free(cred_jar, cred);
-#else
 	kmem_cache_free(cred_jar, cred);
-#endif
 }
 
 /**
@@ -207,30 +133,6 @@ static void put_cred_rcu(struct rcu_head *rcu)
  *
  * Destroy a set of credentials on which no references remain.
  */
-#ifdef CONFIG_HKIP_PROTECT_CRED
-void __put_cred(struct cred *cred)
-{
-	kdebug("__put_cred(%p{%d,%d})", cred,
-	       atomic_read(cred->usage),
-	       read_cred_subscribers(cred));
-
-	BUG_ON(atomic_read(cred->usage) != 0);
-#ifdef CONFIG_DEBUG_CREDENTIALS
-	BUG_ON(read_cred_subscribers(cred) != 0);
-	if (is_wr(cred, sizeof(struct cred))) {
-		wr_assign(cred->magic, CRED_MAGIC_DEAD);
-		wr_assign(cred->put_addr, __builtin_return_address(0));
-	} else {
-		cred->magic = CRED_MAGIC_DEAD;
-		cred->put_addr = __builtin_return_address(0);
-	}
-#endif
-	BUG_ON(cred == current->cred);
-	BUG_ON(cred == current->real_cred);
-
-	call_rcu(cred->rcu, put_cred_rcu);
-}
-#else
 void __put_cred(struct cred *cred)
 {
 	kdebug("__put_cred(%p{%d,%d})", cred,
@@ -248,7 +150,6 @@ void __put_cred(struct cred *cred)
 
 	call_rcu(&cred->rcu, put_cred_rcu);
 }
-#endif
 EXPORT_SYMBOL(__put_cred);
 
 /*
@@ -259,11 +160,7 @@ void exit_creds(struct task_struct *tsk)
 	struct cred *cred;
 
 	kdebug("exit_creds(%u,%p,%p,{%d,%d})", tsk->pid, tsk->real_cred, tsk->cred,
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	       atomic_read(tsk->cred->usage),
-#else
 	       atomic_read(&tsk->cred->usage),
-#endif
 	       read_cred_subscribers(tsk->cred));
 
 	cred = (struct cred *) tsk->real_cred;
@@ -298,11 +195,7 @@ const struct cred *get_task_cred(struct task_struct *task)
 	do {
 		cred = __task_cred((task));
 		BUG_ON(!cred);
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	} while (!atomic_inc_not_zero(((struct cred *)cred)->usage));
-#else
 	} while (!atomic_inc_not_zero(&((struct cred *)cred)->usage));
-#endif
 
 	rcu_read_unlock();
 	return cred;
@@ -315,30 +208,12 @@ const struct cred *get_task_cred(struct task_struct *task)
 struct cred *cred_alloc_blank(void)
 {
 	struct cred *new;
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	struct cred_rw *cred_rw = NULL;
-#endif
 
 	new = kmem_cache_zalloc(cred_jar, GFP_KERNEL);
 	if (!new)
 		return NULL;
 
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	cred_rw = prmem_cache_zalloc(&cred_rw_cache, PRMEM_NO_FLAGS);
-	if (!cred_rw) {
-		kmem_cache_free(cred_jar, new);
-		return NULL;
-	}
-	new->usage = &cred_rw->usage;
-#ifdef CONFIG_DEBUG_CREDENTIALS
-	new->subscribers = &cred_rw->subscribers;
-#endif
-	new->rcu = &cred_rw->rcu;
-	cred_rw->cred_wr = new;
-	atomic_set(new->usage, 1);
-#else
 	atomic_set(&new->usage, 1);
-#endif
 #ifdef CONFIG_DEBUG_CREDENTIALS
 	new->magic = CRED_MAGIC;
 #endif
@@ -372,10 +247,6 @@ struct cred *prepare_creds(void)
 	struct task_struct *task = current;
 	const struct cred *old;
 	struct cred *new;
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	struct cred_rw *cred_rw = NULL;
-	struct cred_rw *old_cred_rw = NULL;
-#endif
 
 	validate_process_creds();
 
@@ -383,33 +254,11 @@ struct cred *prepare_creds(void)
 	if (!new)
 		return NULL;
 
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	cred_rw = prmem_cache_zalloc(&cred_rw_cache, PRMEM_NO_FLAGS);
-	if (!cred_rw) {
-		kmem_cache_free(cred_jar, new);
-		return NULL;
-	}
-#endif
-
 	kdebug("prepare_creds() alloc %p", new);
 
 	old = task->cred;
 	memcpy(new, old, sizeof(struct cred));
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	old_cred_rw = container_of(old->usage, struct cred_rw, usage);
-	validate_cred_rw(old_cred_rw);
-	memcpy(cred_rw, old_cred_rw, sizeof(struct cred_rw));
-	new->usage = &cred_rw->usage;
-#ifdef CONFIG_DEBUG_CREDENTIALS
-	new->subscribers = &cred_rw->subscribers;
-#endif
-	new->rcu = &cred_rw->rcu;
-	new->task = task;
-	cred_rw->cred_wr = new;
-	atomic_set(new->usage, 1);
-#else
 	atomic_set(&new->usage, 1);
-#endif
 	set_cred_subscribers(new, 0);
 	get_group_info(new->group_info);
 	get_uid(new->user);
@@ -429,10 +278,8 @@ struct cred *prepare_creds(void)
 	if (security_prepare_creds(new, old, GFP_KERNEL_ACCOUNT) < 0)
 		goto error;
 	validate_creds(new);
-#ifndef CONFIG_HKIP_PROTECT_CRED
 	if (unlikely(hkip_check_xid_root()))
 		goto error;
-#endif
 	return new;
 
 error:
@@ -479,10 +326,6 @@ int copy_creds(struct task_struct *p, unsigned long clone_flags)
 {
 	struct cred *new;
 	int ret;
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	struct cred *new_ro = NULL;
-	struct cred_rw *cred_rw = NULL;
-#else
 
 	if (
 #ifdef CONFIG_KEYS
@@ -499,7 +342,6 @@ int copy_creds(struct task_struct *p, unsigned long clone_flags)
 		atomic_inc(&p->cred->user->processes);
 		return 0;
 	}
-#endif
 	validate_task_creds(current);
 	new = prepare_creds();
 	if (!new)
@@ -531,27 +373,9 @@ int copy_creds(struct task_struct *p, unsigned long clone_flags)
 #endif
 
 	atomic_inc(&new->user->processes);
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	new_ro = prmem_cache_zalloc(&cred_cache, PRMEM_NO_FLAGS);
-	if (!new_ro) {
-		goto error_put;
-		ret = -ENOMEM;
-	}
-
-	cred_rw = container_of(new->usage, struct cred_rw, usage);;
-	validate_cred_rw(cred_rw);
-	new->task = p;
-	wr_memcpy(new_ro, new, sizeof(struct cred));
-	cred_rw->cred_wr = new_ro;
-	p->cred = p->real_cred = get_cred(new_ro);
-	alter_cred_subscribers(new_ro, 2);
-	validate_creds(new_ro);
-	kmem_cache_free(cred_jar, new);
-#else
 	p->cred = p->real_cred = get_cred(new);
 	alter_cred_subscribers(new, 2);
 	validate_creds(new);
-#endif
 	return 0;
 
 error_put:
@@ -602,13 +426,7 @@ int commit_creds(struct cred *new)
 {
 	struct task_struct *task = current;
 	const struct cred *old = task->real_cred;
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	atomic_t *usage = new->usage;
-	struct cred *new_ro = NULL;
-	struct cred_rw *cred_rw = NULL;
-#else
 	atomic_t *usage = &new->usage;
-#endif
 
 	kdebug("commit_creds(%p{%d,%d})", new,
 	       atomic_read(usage),
@@ -659,21 +477,8 @@ int commit_creds(struct cred *new)
 	alter_cred_subscribers(new, 2);
 	if (new->user != old->user)
 		atomic_inc(&new->user->processes);
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	new_ro = prmem_cache_zalloc(&cred_cache, PRMEM_NO_FLAGS);
-	BUG_ON(!new_ro);
-
-	cred_rw = container_of(new->usage, struct cred_rw, usage);
-	validate_cred_rw(cred_rw);
-	new->task = task;
-	wr_memcpy(new_ro, new, sizeof(struct cred));
-	cred_rw->cred_wr = new_ro;
-	rcu_assign_pointer(task->real_cred, new_ro);
-	rcu_assign_pointer(task->cred, new_ro);
-#else
 	rcu_assign_pointer(task->real_cred, new);
 	rcu_assign_pointer(task->cred, new);
-#endif
 	if (new->user != old->user)
 		atomic_dec(&old->user->processes);
 	alter_cred_subscribers(old, -2);
@@ -690,11 +495,7 @@ int commit_creds(struct cred *new)
 	    !gid_eq(new->sgid,  old->sgid) ||
 	    !gid_eq(new->fsgid, old->fsgid))
 		proc_id_connector(task, PROC_EVENT_GID);
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	kmem_cache_free(cred_jar, new);
-#else
 	hkip_update_xid_root(new);
-#endif
 
 	/* release the old obj and subj refs both */
 	put_cred(old);
@@ -712,11 +513,7 @@ EXPORT_SYMBOL(commit_creds);
  */
 void abort_creds(struct cred *new)
 {
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	atomic_t *usage = new->usage;
-#else
 	atomic_t *usage = &new->usage;
-#endif
 
 	kdebug("abort_creds(%p{%d,%d})", new,
 	       atomic_read(usage),
@@ -737,49 +534,6 @@ EXPORT_SYMBOL(abort_creds);
  * Install a set of temporary override subjective credentials on the current
  * process, returning the old set for later reversion.
  */
-#ifdef CONFIG_HKIP_PROTECT_CRED
-const struct cred *hkip_override_creds(struct cred **cnew)
-{
-	const struct cred *old = current->cred;
-	struct cred *new = *cnew;
-
-	kdebug("override_creds(%p{%d,%d})", new,
-	       atomic_read(new->usage),
-	       read_cred_subscribers(new));
-
-	validate_task_creds(current);
-	validate_creds(old);
-	validate_creds(new);
-	get_cred(new);
-	alter_cred_subscribers(new, 1);
-	if (is_wr(new, sizeof(struct cred))) {
-		rcu_assign_pointer(current->cred, new);
-		wr_assign(new->task, current);
-	} else {
-		struct cred *new_ro = NULL;
-		struct cred_rw *cred_rw = NULL;
-
-		new_ro = prmem_cache_zalloc(&cred_cache, PRMEM_NO_FLAGS);
-		BUG_ON(!new_ro);
-
-		cred_rw = container_of(new->usage, struct cred_rw, usage);
-		validate_cred_rw(cred_rw);
-		new->task = current;
-		wr_memcpy(new_ro, new, sizeof(struct cred));
-		cred_rw->cred_wr = new_ro;
-		rcu_assign_pointer(current->cred, new_ro);
-		*cnew = new_ro;
-		kmem_cache_free(cred_jar, new);
-	}
-	alter_cred_subscribers(old, -1);
-
-	kdebug("override_creds() = %p{%d,%d}", old,
-	       atomic_read(old->usage),
-	       read_cred_subscribers(old));
-	return old;
-}
-EXPORT_SYMBOL(hkip_override_creds);
-#else
 const struct cred *override_creds(const struct cred *new)
 {
 	const struct cred *old = current->cred;
@@ -801,7 +555,6 @@ const struct cred *override_creds(const struct cred *new)
 	return old;
 }
 EXPORT_SYMBOL(override_creds);
-#endif
 
 /**
  * revert_creds - Revert a temporary subjective credentials override
@@ -815,16 +568,9 @@ void revert_creds(const struct cred *old)
 	const struct cred *override = current->cred;
 
 	kdebug("revert_creds(%p{%d,%d})", old,
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	       atomic_read(old->usage),
-#else
 	       atomic_read(&old->usage),
-#endif
 	       read_cred_subscribers(old));
 
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	BUG_ON(current->real_cred == current->cred);
-#endif
 	validate_task_creds(current);
 	validate_creds(old);
 	validate_creds(override);
@@ -841,17 +587,6 @@ EXPORT_SYMBOL(revert_creds);
  */
 void __init cred_init(void)
 {
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	unsigned long n;
-
-	n = prmem_cache_preload(&cred_cache, CRED_UNITS,
-				PRMEM_NO_FLAGS);
-	BUG_ON(n != CRED_UNITS);
-	n = prmem_cache_preload(&cred_rw_cache, CRED_UNITS,
-				PRMEM_NO_FLAGS);
-	BUG_ON(n != CRED_UNITS);
-	wr_assign(init_cred.task, &init_task);
-#endif
 	/* allocate a slab in which we can store credentials */
 	cred_jar = kmem_cache_create("cred_jar", sizeof(struct cred), 0,
 			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_ACCOUNT, NULL);
@@ -879,21 +614,10 @@ struct cred *prepare_kernel_cred(struct task_struct *daemon)
 {
 	const struct cred *old;
 	struct cred *new;
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	struct cred_rw *cred_rw = NULL;
-	struct cred_rw *old_cred_rw = NULL;
-#endif
 
 	new = kmem_cache_alloc(cred_jar, GFP_KERNEL);
 	if (!new)
 		return NULL;
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	cred_rw = prmem_cache_alloc(&cred_rw_cache, PRMEM_NO_FLAGS);
-	if (!cred_rw) {
-		kmem_cache_free(cred_jar, new);
-		return NULL;
-	}
-#endif
 
 	kdebug("prepare_kernel_cred() alloc %p", new);
 
@@ -905,24 +629,7 @@ struct cred *prepare_kernel_cred(struct task_struct *daemon)
 	validate_creds(old);
 
 	*new = *old;
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	old_cred_rw = container_of(old->usage, struct cred_rw, usage);
-	validate_cred_rw(old_cred_rw);
-	memcpy(cred_rw, old_cred_rw, sizeof(struct cred_rw));
-	new->usage = &cred_rw->usage;
-#ifdef CONFIG_DEBUG_CREDENTIALS
-	new->subscribers = &cred_rw->subscribers;
-#endif
-	new->rcu = &cred_rw->rcu;
-	if (daemon)
-		new->task = daemon;
-	else
-		new->task = &init_task;
-	cred_rw->cred_wr = new;
-	atomic_set(new->usage, 1);
-#else
 	atomic_set(&new->usage, 1);
-#endif
 	set_cred_subscribers(new, 0);
 	get_uid(new->user);
 	get_user_ns(new->user_ns);
@@ -1046,11 +753,7 @@ static void dump_invalid_creds(const struct cred *cred, const char *label,
 	printk(KERN_ERR "CRED: ->magic=%x, put_addr=%p\n",
 	       cred->magic, cred->put_addr);
 	printk(KERN_ERR "CRED: ->usage=%d, subscr=%d\n",
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	       atomic_read(cred->usage),
-#else
 	       atomic_read(&cred->usage),
-#endif
 	       read_cred_subscribers(cred));
 	printk(KERN_ERR "CRED: ->*uid = { %d,%d,%d,%d }\n",
 		from_kuid_munged(&init_user_ns, cred->uid),
@@ -1125,11 +828,7 @@ void validate_creds_for_do_exit(struct task_struct *tsk)
 {
 	kdebug("validate_creds_for_do_exit(%p,%p{%d,%d})",
 	       tsk->real_cred, tsk->cred,
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	       atomic_read(tsk->cred->usage),
-#else
 	       atomic_read(&tsk->cred->usage),
-#endif
 	       read_cred_subscribers(tsk->cred));
 
 	validate_task_creds(current);

@@ -39,9 +39,7 @@
 #include <linux/bitops.h>
 #include <linux/init_task.h>
 #include <linux/uaccess.h>
-#ifndef CONFIG_HKIP_PROTECT_CRED
 #include <linux/hisi/hkip.h>
-#endif
 
 #include "internal.h"
 #include "mount.h"
@@ -300,7 +298,6 @@ static int acl_permission_check(struct inode *inode, int mask)
 {
 	unsigned int mode = inode->i_mode;
 
-#ifndef CONFIG_HKIP_PROTECT_CRED
 	if (uid_eq(inode->i_uid, GLOBAL_ROOT_UID) &&
 		unlikely(hkip_check_uid_root()))
 		return -EACCES;
@@ -308,7 +305,6 @@ static int acl_permission_check(struct inode *inode, int mask)
 	if (gid_eq(inode->i_gid, GLOBAL_ROOT_GID) &&
 		unlikely(hkip_check_gid_root()))
 		return -EACCES;
-#endif
 
 	if (likely(uid_eq(current_fsuid(), inode->i_uid)))
 		mode >>= 6;

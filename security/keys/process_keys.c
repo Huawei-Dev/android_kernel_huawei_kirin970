@@ -845,15 +845,7 @@ error:
 void key_change_session_keyring(struct callback_head *twork)
 {
 	const struct cred *old = current_cred();
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	struct cred_rw *cred_rw = container_of(twork, struct cred_rw, rcu);
-	struct cred *new = NULL;
-
-	validate_cred_rw(cred_rw);
-	new = cred_rw->cred_wr;
-#else
 	struct cred *new = container_of(twork, struct cred, rcu);
-#endif
 
 	if (unlikely(current->flags & PF_EXITING)) {
 		put_cred(new);

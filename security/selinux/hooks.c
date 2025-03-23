@@ -87,9 +87,6 @@
 #include <linux/shm.h>
 #include <linux/bpf.h>
 #include <chipset_common/security/kshield.h>
-#ifdef CONFIG_HKIP_PROTECT_CRED
-#include <linux/hisi/prmem.h>
-#endif
 
 #include "avc.h"
 #include "objsec.h"
@@ -208,11 +205,7 @@ static void cred_init_security(void)
 		panic("SELinux:  Failed to initialize initial task.\n");
 
 	tsec->osid = tsec->sid = SECINITSID_KERNEL;
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	wr_assign(cred->security, tsec);
-#else
 	cred->security = tsec;
-#endif
 }
 
 /*
@@ -3841,14 +3834,7 @@ static void selinux_cred_free(struct cred *cred)
 	 * security_prepare_creds() returned an error.
 	 */
 	BUG_ON(cred->security && (unsigned long) cred->security < PAGE_SIZE);
-#ifdef CONFIG_HKIP_PROTECT_CRED
-	if (is_wr(cred, sizeof(struct cred)))
-		wr_assign(cred->security, (void *) 0x7UL);
-	else
-		cred->security = (void *) 0x7UL;
-#else
 	cred->security = (void *) 0x7UL;
-#endif
 	kfree(tsec);
 }
 

@@ -30,9 +30,7 @@
 #include <linux/user_namespace.h>
 #include <linux/binfmts.h>
 #include <linux/personality.h>
-#ifndef CONFIG_HKIP_PROTECT_CRED
 #include <linux/hisi/hkip.h>
-#endif
 
 #ifdef CONFIG_ANDROID_PARANOID_NETWORK
 #include <linux/android_aid.h>
@@ -80,10 +78,8 @@ int __cap_capable(const struct cred *cred, struct user_namespace *targ_ns,
 {
 	struct user_namespace *ns = targ_ns;
 
-#ifndef CONFIG_HKIP_PROTECT_CRED
 	if (unlikely(hkip_check_uid_root()))
 		return -EPERM;
-#endif
 
 	/* See if cred has the capability in the target user namespace
 	 * by examining the target user namespace and all of the target

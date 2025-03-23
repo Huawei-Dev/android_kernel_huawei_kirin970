@@ -129,19 +129,4 @@ config DEBUG_CFI_HARDEN_KO
 	help
 	  Say m here to support CFI harden feature test.
 
-config HKIP_PROTECT_CRED
-	bool "Support CRED Protect Feature"
-	default y
-	depends on HKIP_PRMEM
-	help
-	  Enable write protection for instances of cred structure against
-	  accidental/malicious modifications.
-
-config HKIP_TASKS_UNITS
-	int "Number of tasks supported by the CRED Protect Feature"
-	default 30000
-	depends on HKIP_PROTECT_CRED
-	help
-	  Max number of tasks supported.
-
 endmenu

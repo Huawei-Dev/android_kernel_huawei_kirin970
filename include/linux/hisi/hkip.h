@@ -108,12 +108,10 @@ extern u8 hkip_addr_limit_bits[];
 #define hkip_set_fs(fs) \
 	hkip_set_current_bit(hkip_addr_limit_bits, (fs) == KERNEL_DS)
 
-#ifndef CONFIG_HKIP_PROTECT_CRED
 int hkip_check_uid_root(void);
 int hkip_check_gid_root(void);
 int hkip_check_xid_root(void);
 void hkip_update_xid_root(const struct cred *creds);
-#endif
 
 void hkip_init_task(struct task_struct *task);
 
@@ -121,7 +119,6 @@ void hkip_init_task(struct task_struct *task);
 
 #define hkip_set_fs(fs) ((void)(fs))
 
-#ifndef CONFIG_HKIP_PROTECT_CRED
 static inline int hkip_check_uid_root(void)
 {
 	return 0;
@@ -135,7 +132,6 @@ static inline int hkip_check_xid_root(void)
 	return 0;
 }
 static inline void hkip_update_xid_root(const struct cred *creds) { }
-#endif
 
 static inline void hkip_init_task(struct task_struct *task) { }
 

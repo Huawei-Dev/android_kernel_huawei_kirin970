@@ -1722,11 +1722,9 @@ static __latent_entropy struct task_struct *copy_process(
 	if (!p)
 		goto fork_out;
 
-#ifndef CONFIG_HKIP_PROTECT_CRED
 	retval = hkip_check_xid_root();
 	if (retval)
 		goto bad_fork_free;
-#endif
 
 	cpufreq_task_times_init(p);
 
