@@ -19,6 +19,8 @@ obj-$(CONFIG_HWDPS) += src/tee/hwdps_keyinfo.o \
 obj-$(CONFIG_HWDPS) += src/data/hwdps_packages.o \
 		       src/data/hwdps_data.o
 
+obj-$(CONFIG_HWDPS) += hwdps_fs_hooks.o
+
 EXTRA_CFLAGS := -I../../include/ \
 		-Iinc/base \
 		-Iinc/data \
