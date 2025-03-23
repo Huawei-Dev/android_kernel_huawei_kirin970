@@ -19,13 +19,6 @@ config HW_SLUB_SANITIZE
          sensitive data and helping to mitigate use-after-free bugs.
          For slabs with debug poisoning enabling, this has no impact.
 
-config HUAWEI_HARDEN_DOUBLE_FREE_CHECK_DEBUGFS
-	bool "harden double free check debugfs interface"
-	depends on DEBUG_FS
-	default n
-	help
-	  The debugfs interface for harden double free check feature.
-
 config HUAWEI_FREELIST_RANDOM_DEBUGFS
 	bool "freelist random debugfs interface"
 	depends on DEBUG_FS
