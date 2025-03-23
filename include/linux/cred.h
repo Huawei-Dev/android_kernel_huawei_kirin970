@@ -171,6 +171,9 @@ extern int set_security_override_from_ctx(struct cred *, const char *);
 extern int set_create_files_as(struct cred *, struct inode *);
 extern void __init cred_init(void);
 
+#define validate_task_creds(t)
+#define validate_cred_rw(c)
+
 /*
  * check for validity of credentials
  */
