@@ -10,13 +10,6 @@ config HUAWEI_HIDESYMS
 	help
 	  Hide some sensitive kernel symbols
 
-config HUAWEI_HIDESYMS_DEBUGFS
-	bool "hide symbols debugfs interface"
-	depends on HUAWEI_HIDESYMS && DEBUG_FS
-	default n
-	help
-	  Turn on the debugfs interface for hide symbols
-
 config HW_SLUB_SANITIZE
 	bool "Sanitize Slub allocations"
 	depends on SLUB

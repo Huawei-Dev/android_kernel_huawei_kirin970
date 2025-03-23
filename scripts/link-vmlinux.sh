@@ -267,10 +267,6 @@ kallsyms()
                         sed -e '/^$/d' >> ${tmp_blacklist}
 
 		if [ -s "${tmp_blacklist}" ]; then
-			# Generate debug log
-			if [ -n "${CONFIG_HUAWEI_HIDESYMS_DEBUGFS}" ]; then
-				${NM} -n ${1} | grep -w -f ${tmp_blacklist} > ${debug_blacklist} | cat
-			fi
 
 			${NM} -n ${1} | \
 				grep -vw -f ${tmp_blacklist} | \
