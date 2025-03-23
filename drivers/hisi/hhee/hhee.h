@@ -38,11 +38,7 @@ int hhee_logger_init(void);
 int hhee_init_debugfs(void);
 void hhee_cleanup_debugfs(void);
 #endif
-#ifdef CONFIG_HKIP_MODULE_ALLOC
-void hhee_module_init(void);
-#else
 static inline void hhee_module_init(void){};
-#endif
 void reset_hkip_irq_counters(void);
 
 ssize_t hhee_copy_logs(char __user *buf, size_t count,

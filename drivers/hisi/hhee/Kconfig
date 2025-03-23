@@ -6,13 +6,6 @@ config HHEE
 	help
 	  Say yes here to support the HHEE
 
-config HKIP_MODULE_ALLOC
-	bool "HKIP overload module_alloc for hhee"
-	depends on HHEE
-	default n
-	help
-	  Say yes when overload is needed
-
 config HHEE_DEBUG
 	bool "HKIP HHEE test support"
 	depends on !UBSAN && !KCOV && !KASAN

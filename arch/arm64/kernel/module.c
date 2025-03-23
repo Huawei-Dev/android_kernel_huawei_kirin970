@@ -31,7 +31,6 @@
 #include <asm/sections.h>
 #include <asm/set_memory.h>
 
-#ifndef CONFIG_HKIP_MODULE_ALLOC
 void *module_alloc(unsigned long size)
 {
 	u64 module_alloc_end = module_alloc_base + MODULES_VSIZE;
@@ -72,7 +71,6 @@ void *module_alloc(unsigned long size)
 
 	return p;
 }
-#endif
 
 enum aarch64_reloc_op {
 	RELOC_OP_NONE,
