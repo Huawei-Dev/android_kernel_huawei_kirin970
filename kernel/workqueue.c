@@ -1815,11 +1815,6 @@ static struct worker *create_worker(struct worker_pool *pool)
 		goto fail;
 
 	set_user_nice(worker->task, pool->attrs->nice);
-#if defined (CONFIG_HW_VIP_THREAD) && defined (CONFIG_HW_VIP_KWORKER)
-	/* the number of cpu cores should be greater than 2 */
-	if (pool->attrs->nice == HIGHPRI_NICE_LEVEL && worker->task->nr_cpus_allowed > 2)
-		worker->task->static_vip = 1;
-#endif
 	kthread_bind_mask(worker->task, pool->attrs->cpumask);
 
 	/* successful, attach the worker to the pool */
