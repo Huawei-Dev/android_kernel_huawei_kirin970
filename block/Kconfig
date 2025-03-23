@@ -147,11 +147,6 @@ config BLK_CMDLINE_PARSER
 
 	See Documentation/block/cmdline-partition.txt for more information.
 
-config MAS_BLK_BW_OPTIMIZE
-	bool "Enlarge async inflight when dirty page flashing"
-	depends on MAS_BLK
-	default n
-
 config MMC_BLOCK_IOMMU_64BIT
         bool "Block bounce limit"
         depends on BLOCK

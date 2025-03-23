@@ -1690,10 +1690,6 @@ static void balance_dirty_pages(struct address_space *mapping,
 			break;
 		}
 
-#ifdef CONFIG_MAS_BLK_BW_OPTIMIZE
-		blk_write_throttle(bdi->queue, ASYNC_LIMIT_STAGE_ONE);
-#endif
-
 		if (unlikely(!writeback_in_progress(wb)))
 			wb_start_background_writeback(wb);
 
@@ -1818,9 +1814,6 @@ pause:
 					  pause,
 					  start_time);
 
-#ifdef CONFIG_MAS_BLK_BW_OPTIMIZE
-		blk_write_throttle(bdi->queue, ASYNC_LIMIT_STAGE_TWO);
-#endif
 		__set_current_state(TASK_KILLABLE);
 		wb->dirty_sleep = now;
 		io_schedule_timeout(pause);
