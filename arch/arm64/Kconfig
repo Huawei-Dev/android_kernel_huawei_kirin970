@@ -1155,28 +1155,6 @@ config ARM64_LZ4
 	help
 	  Kernel compression with lz4.
 
-config ARM64_HKRR
-	bool "Kernel self randomization"
-	default n
-	help
-	  Kernel Self Randomization.
-
-	  If unsure, say N.
-
-config ARM64_HKRR_EXTRA_TEXT_SIZE
-	int "Kernel Self Randomization extra text size (KBs)"
-	depends on ARM64_HKRR
-	default 64
-	help
-	  Kernel Self Randomization extra text size.
-
-config ARM64_HKRR_EXTRA_OBJ_SIZE
-	int "Kernel Self Randomization result obj size (KBs)"
-	depends on ARM64_HKRR
-	default 64
-	help
-	  Kernel Self Randomization result obj size.
-
 endmenu
 
 menu "Boot options"
