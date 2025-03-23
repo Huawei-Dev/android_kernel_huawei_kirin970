@@ -283,9 +283,6 @@ struct request {
 	struct hd_struct *part;
 	unsigned long start_time;
 #ifdef CONFIG_MAS_BLK
-#ifdef CONFIG_MMC_MQ_CQ_HCI
-	struct list_head cmdq_list;
-#endif
 	unsigned long mas_cmd_flags;
 
 	struct blk_req_cust mas_req;
@@ -1249,9 +1246,6 @@ static inline bool blk_account_rq(struct request *rq)
 #define blk_queued_rq(rq)	(!list_empty(&(rq)->queuelist))
 
 #define list_entry_rq(ptr)	list_entry((ptr), struct request, queuelist)
-#ifdef CONFIG_MMC_MQ_CQ_HCI
-#define cmdq_list_entry_rq(ptr)	list_entry((ptr), struct request, cmdq_list)
-#endif
 #define rq_data_dir(rq)		(op_is_write(req_op(rq)) ? WRITE : READ)
 
 /*
@@ -2731,11 +2725,6 @@ void blk_dio_ck(struct gendisk *target_disk,
 	ktime_t dio_start, int dio_op, int dio_page_count);
 void blk_mq_tagset_vl_setup(
 	struct blk_mq_tag_set *tag_set, u64 device_capacity);
-
-#ifdef CONFIG_MMC_MQ_CQ_HCI
-extern void mmc_mq_requeue_invalidate_reqs(struct request_queue *q);
-#endif
-
 #endif /* CONFIG_MAS_BLK */
 #else /* CONFIG_BLOCK */
 

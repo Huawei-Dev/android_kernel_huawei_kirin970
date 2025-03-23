@@ -5,15 +5,6 @@
 #include "queue.h"
 #include <linux/device.h>
 
-#ifdef CONFIG_MMC_MQ_CQ_HCI
-enum mmc_issue_type {
-	MMC_ISSUE_SYNC,
-	MMC_ISSUE_DCMD,
-	MMC_ISSUE_ASYNC,
-	MMC_ISSUE_MAX,
-};
-#endif
-
 /*
  * There is one mmc_blk_data per slot.
  */
@@ -75,12 +66,5 @@ extern enum blk_eh_timer_return mmc_blk_cmdq_req_timed_out(struct request *req);
 extern int mmc_blk_cmdq_issue_rq(struct mmc_queue *mq, struct request *req);
 extern void mmc_blk_cmdq_setup_queue(struct mmc_queue *mq, struct mmc_card *card);
 extern void mmc_cmdq_task_info_init(struct mmc_card *card, struct request *req);
-
-#ifdef CONFIG_MMC_MQ_CQ_HCI
-extern int mmc_cmdq_get_tag(struct mmc_card *card, struct request *req);
-extern int mmc_blk_cmdq_wait_for_rw(struct mmc_host *host, struct request *req);
-extern struct request * mmc_blk_cmdq_mq_find_req(struct request_queue *q, int tag);
-extern enum mmc_issue_type mmc_issue_type(struct request *req);
-#endif
 
 #endif

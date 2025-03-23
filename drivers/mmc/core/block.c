@@ -2782,11 +2782,9 @@ static struct mmc_blk_data *mmc_blk_alloc_req(struct mmc_card *card,
                 md->flags |= MMC_BLK_CMD_QUEUE;
                 md->queue.cmdq_error_fn = mmc_blk_cmdq_err;
                 md->queue.cmdq_shutdown = mmc_blk_cmdq_shutdown;
-#ifndef CONFIG_MMC_MQ_CQ_HCI
                 md->queue.cmdq_complete_fn = mmc_blk_cmdq_complete_rq;
                 md->queue.cmdq_issue_fn = mmc_blk_cmdq_issue_rq;
 		md->queue.cmdq_req_timed_out = mmc_blk_cmdq_req_timed_out;
-#endif
 	}
 #endif
 

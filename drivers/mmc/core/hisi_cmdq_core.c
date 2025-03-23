@@ -137,10 +137,6 @@ void mmc_cmdq_post_req(struct mmc_host *host, struct mmc_request *mrq, int err)
 int mmc_cmdq_halt(struct mmc_host *host, bool halt)
 {
 	int err = 0;
-#ifdef CONFIG_MMC_MQ_CQ_HCI
-	struct mmc_blk_data *md = NULL;
-	struct mmc_queue *mq = NULL;
-#endif
 	if ((halt && mmc_host_halt(host)) || (!halt && !mmc_host_halt(host))) {
 		pr_debug("%s: %s: CQE is already %s\n", mmc_hostname(host),
 			__func__, halt ? "halted" : "un-halted");
@@ -153,13 +149,7 @@ int mmc_cmdq_halt(struct mmc_host *host, bool halt)
 			mmc_host_set_halt(host);
 		} else if (!err && !halt) {
 			mmc_host_clr_halt(host);
-#ifdef CONFIG_MMC_MQ_CQ_HCI
-			md = dev_get_drvdata(&host->card->dev);
-			mq = &md->queue;
-			blk_mq_run_hw_queues(mq->queue, true);
-#else
 			wake_up(&host->cmdq_ctx.wait);
-#endif
 		}
 	}
 	return err;

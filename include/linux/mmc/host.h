@@ -338,9 +338,6 @@ struct mmc_cmdq_context_info {
 	/* no free tag available */
 	unsigned long	req_starved;
 	spinlock_t	cmdq_ctx_lock;
-#ifdef CONFIG_MMC_MQ_CQ_HCI
-	struct mutex	cmdq_queue_rq_mutex;
-#endif
 	/* recoving, give up dcmd transfer*/
 	bool in_recovery;
 	int reset_fail_count;

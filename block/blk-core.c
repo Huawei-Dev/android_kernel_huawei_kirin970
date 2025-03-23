@@ -121,9 +121,6 @@ void blk_rq_init(struct request_queue *q, struct request *rq)
 	memset(rq, 0, sizeof(*rq));
 
 	INIT_LIST_HEAD(&rq->queuelist);
-#ifdef CONFIG_MMC_MQ_CQ_HCI
-	INIT_LIST_HEAD(&rq->cmdq_list);
-#endif
 	INIT_LIST_HEAD(&rq->fg_bg_list);
 	INIT_LIST_HEAD(&rq->timeout_list);
 	rq->cpu = -1;
