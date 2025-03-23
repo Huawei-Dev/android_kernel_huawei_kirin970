@@ -4,20 +4,6 @@
 
 menu "Huawei Kernel Harden"
 
-config HUAWEI_KERNEL_STACK_RANDOMIZE
-	bool "stack randomize"
-	depends on ARM64 && !KASAN
-	default n
-	help
-	  Randomizes the base address of process's kernel stack.
-
-config HUAWEI_KERNEL_STACK_RANDOMIZE_STRONG
-	bool "stack randomize strong"
-	depends on ARM64 && !KASAN
-	default n
-	help
-	  Randomizes the base address of process's thread_info struct.
-
 config HUAWEI_KERNEL_STACK_NX
 	bool "stack non executeable"
 	depends on ARM64
