@@ -4,13 +4,6 @@
 
 menu "Huawei Kernel Harden"
 
-config HUAWEI_KERNEL_MODULE_RANDOMIZE
-	bool "module randomize"
-	depends on ARM64
-	default n
-	help
-	  Randomizes the base address of loaded kernel module.
-
 config HUAWEI_KASLR_DEBUGFS
 	bool "kaslr debugfs interface"
 	depends on DEBUG_FS

@@ -6,10 +6,6 @@
 
 #define set_init_stack_nx(x)
 
-#ifndef CONFIG_HUAWEI_KERNEL_MODULE_RANDOMIZE
 #define get_module_load_offset()
-#else
-extern unsigned long get_module_load_offset(void);
-#endif
 
 #endif
