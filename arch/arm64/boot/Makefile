@@ -36,17 +36,8 @@ DTB_LIST := $(dtb-y)
 endif
 DTB_OBJS := $(addprefix $(obj)/dts/,$(DTB_LIST))
 
-#fake hkrr.img for kernel release
-hkrr.img: vmlinux
-	echo "Heteroscedastic Kernel Ridge Regression" > $(obj)/hkrr.img
-
-hkrr.img.gz: hkrr.img FORCE
-	$(call if_changed,minigzip)
-
 $(obj)/Image: vmlinux FORCE
 	$(call if_changed,objcopy)
-
-$(obj)/Image: hkrr.img.gz
 
 $(obj)/Image.bz2: $(obj)/Image FORCE
 	$(call if_changed,bzip2)
@@ -55,7 +46,7 @@ $(obj)/Image-dtb: $(obj)/Image $(DTB_OBJS) FORCE
 	$(call if_changed,cat)
 
 $(obj)/Image.gz: $(obj)/Image FORCE
-	$(call if_changed,minigzip)
+	$(call if_changed,gzip)
 
 $(obj)/Image.lz4: $(obj)/Image FORCE
 	$(call if_changed,lz4)
