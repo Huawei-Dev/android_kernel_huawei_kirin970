@@ -1395,10 +1395,6 @@ struct super_block {
 	const struct fscrypt_operations	*s_cop;
 
 	struct hlist_bl_head	s_anon;		/* anonymous dentries for (nfs) exporting */
-#ifdef CONFIG_UNICODE
-	struct unicode_map *s_encoding;
-	__u16 s_encoding_flags;
-#endif
 	struct list_head	s_mounts;	/* list of mounts; _not_ for fs use */
 	struct block_device	*s_bdev;
 	struct backing_dev_info *s_bdi;
@@ -3277,17 +3273,10 @@ extern int generic_file_fsync(struct file *, loff_t, loff_t, int);
 
 extern int generic_check_addressable(unsigned, u64);
 
-#ifdef CONFIG_UNICODE
-extern int generic_ci_d_hash(const struct dentry *dentry, struct qstr *str);
-extern int generic_ci_d_compare(const struct dentry *dentry, unsigned int len,
-				const char *str, const struct qstr *name);
-extern bool needs_casefold(const struct inode *dir);
-#else
 static inline bool needs_casefold(const struct inode *dir)
 {
 	return 0;
 }
-#endif
 
 #ifdef CONFIG_MIGRATION
 extern int buffer_migrate_page(struct address_space *,

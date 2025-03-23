@@ -1268,39 +1268,6 @@ static void dx_insert_block(struct dx_frame *frame, u32 hash, ext4_lblk_t block)
 	dx_set_count(entries, count + 1);
 }
 
-#ifdef CONFIG_UNICODE
-/*
- * Test whether a case-insensitive directory entry matches the filename
- * being searched for.
- *
- * Returns: 0 if the directory entry matches, more than 0 if it
- * doesn't match or less than zero on error.
- */
-int ext4_ci_compare(const struct inode *parent, const struct qstr *name,
-		    const struct qstr *entry)
-{
-	const struct ext4_sb_info *sbi = EXT4_SB(parent->i_sb);
-	const struct unicode_map *um = sbi->s_encoding;
-	int ret;
-
-	ret = utf8_strncasecmp(um, name, entry);
-	if (ret < 0) {
-		/* Handle invalid character sequence as either an error
-		 * or as an opaque byte sequence.
-		 */
-		if (ext4_has_strict_mode(sbi))
-			return -EINVAL;
-
-		if (name->len != entry->len)
-			return 1;
-
-		return !!memcmp(name->name, entry->name, name->len);
-	}
-
-	return ret;
-}
-#endif
-
 /*
  * Test whether a directory entry matches the filename being searched for.
  *
@@ -1311,9 +1278,6 @@ static inline bool ext4_match(const struct inode *parent,
 			      const struct ext4_dir_entry_2 *de)
 {
 	struct fscrypt_name f;
-#ifdef CONFIG_UNICODE
-	const struct qstr entry = {.name = de->name, .len = de->name_len};
-#endif
 
 	if (!de->inode)
 		return false;
@@ -1322,11 +1286,6 @@ static inline bool ext4_match(const struct inode *parent,
 	f.disk_name = fname->disk_name;
 #ifdef CONFIG_EXT4_FS_ENCRYPTION
 	f.crypto_buf = fname->crypto_buf;
-#endif
-
-#ifdef CONFIG_UNICODE
-	if (EXT4_SB(parent->i_sb)->s_encoding && IS_CASEFOLDED(parent))
-		return (ext4_ci_compare(parent, fname->usr_fname, &entry) == 0);
 #endif
 
 	return fscrypt_match_name(&f, de->name, de->name_len);
@@ -1649,16 +1608,6 @@ static struct dentry *ext4_lookup(struct inode *dir, struct dentry *dentry, unsi
 		}
 	}
 
-#ifdef CONFIG_UNICODE
-	if (!inode && IS_CASEFOLDED(dir)) {
-		/* Eventually we want to call d_add_ci(dentry, NULL)
-		 * for negative dentries in the encoding case as
-		 * well.  For now, prevent the negative dentry
-		 * from being cached.
-		 */
-		return NULL;
-	}
-#endif
 	return d_splice_alias(inode, dentry);
 }
 
@@ -2133,12 +2082,6 @@ static int ext4_add_entry(handle_t *handle, struct dentry *dentry,
 	blocksize = sb->s_blocksize;
 	if (!dentry->d_name.len)
 		return -EINVAL;
-
-#ifdef CONFIG_UNICODE
-	if (ext4_has_strict_mode(sbi) && IS_CASEFOLDED(dir) &&
-	    utf8_validate(sbi->s_encoding, &dentry->d_name))
-		return -EINVAL;
-#endif
 
 	retval = ext4_fname_setup_filename(dir, &dentry->d_name, 0, &fname);
 	if (retval)
@@ -3088,17 +3031,6 @@ static int ext4_rmdir(struct inode *dir, struct dentry *dentry)
 	ext4_update_dx_flag(dir);
 	ext4_mark_inode_dirty(handle, dir);
 
-#ifdef CONFIG_UNICODE
-	/* VFS negative dentries are incompatible with Encoding and
-	 * Case-insensitiveness. Eventually we'll want avoid
-	 * invalidating the dentries here, alongside with returning the
-	 * negative dentries at ext4_lookup(), when it is better
-	 * supported by the VFS for the CI case.
-	 */
-	if (IS_CASEFOLDED(dir))
-		d_invalidate(dentry);
-#endif
-
 end_rmdir:
 	brelse(bh);
 	if (handle)
@@ -3166,17 +3098,6 @@ static int ext4_unlink(struct inode *dir, struct dentry *dentry)
 		ext4_orphan_add(handle, inode);
 	inode->i_ctime = current_time(inode);
 	ext4_mark_inode_dirty(handle, inode);
-
-#ifdef CONFIG_UNICODE
-	/* VFS negative dentries are incompatible with Encoding and
-	 * Case-insensitiveness. Eventually we'll want avoid
-	 * invalidating the dentries here, alongside with returning the
-	 * negative dentries at ext4_lookup(), when it is  better
-	 * supported by the VFS for the CI case.
-	 */
-	if (IS_CASEFOLDED(dir))
-		d_invalidate(dentry);
-#endif
 
 end_unlink:
 	brelse(bh);
