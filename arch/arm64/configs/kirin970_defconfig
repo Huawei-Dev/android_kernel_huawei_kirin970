@@ -4870,11 +4870,6 @@ CONFIG_HW_VOTE=y
 # CONFIG_GPUTOP_FREQ is not set
 
 #
-# NPU PM Options
-#
-# CONFIG_NPU_PM is not set
-
-#
 # Onsys AVS Options
 #
 CONFIG_HISI_INC_MODEM_CONFIG=y
