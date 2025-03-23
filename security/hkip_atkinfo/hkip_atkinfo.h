@@ -111,13 +111,9 @@ struct hhee_event_footer {
 	uint64_t read_offset __aligned(PAGE_SIZE);
 };
 
-#ifdef CONFIG_HKIP_ATKINFO_DEBUGFS
-extern int __init atkinfo_create_debugfs(struct hkip_atkinfo *atkinfo);
-#else
 static inline int atkinfo_create_debugfs(struct hkip_atkinfo *atkinfo)
 {
 	(void)atkinfo;
 	return 0;
 }
-#endif
 #endif /* _HKIP_ATKINFO_H_ */
