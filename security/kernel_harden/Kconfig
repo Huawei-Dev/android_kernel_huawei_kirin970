@@ -4,13 +4,6 @@
 
 menu "Huawei Kernel Harden"
 
-config HUAWEI_KASLR_DEBUGFS
-	bool "kaslr debugfs interface"
-	depends on DEBUG_FS
-	default n
-	help
-	  The debugfs interface for kaslr feature.
-
 config HUAWEI_HIDESYMS
 	bool "hide symbols"
 	default n
