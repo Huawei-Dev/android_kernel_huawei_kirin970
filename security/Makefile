@@ -4,7 +4,6 @@
 #
 
 obj-$(CONFIG_KEYS)			+= keys/
-obj-$(CONFIG_SECURITY_KSHIELD)		+= kshield/
 subdir-$(CONFIG_SECURITY_SELINUX)	+= selinux
 subdir-$(CONFIG_SECURITY_SMACK)		+= smack
 subdir-$(CONFIG_SECURITY_TOMOYO)        += tomoyo

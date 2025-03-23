@@ -86,7 +86,6 @@
 #include <linux/msg.h>
 #include <linux/shm.h>
 #include <linux/bpf.h>
-#include <chipset_common/security/kshield.h>
 
 #include "avc.h"
 #include "objsec.h"
@@ -6104,8 +6103,6 @@ static int selinux_setprocattr(const char *name, void *value, size_t size)
 				goto abort_change;
 		}
 
-		if (kshield_chk_set_procattr(value, size) < 0)
-			goto abort_change;
 		tsec->sid = sid;
 	} else {
 		error = -EINVAL;

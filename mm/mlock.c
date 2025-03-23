@@ -23,7 +23,6 @@
 #include <linux/hugetlb.h>
 #include <linux/memcontrol.h>
 #include <linux/mm_inline.h>
-#include <chipset_common/security/kshield.h>
 
 #include "internal.h"
 
@@ -682,7 +681,6 @@ static __must_check int do_mlock(unsigned long start, size_t len, vm_flags_t fla
 	unsigned long lock_limit;
 	int error = -ENOMEM;
 
-	kshield_chk_mlock();
 	start = untagged_addr(start);
 
 	if (!can_do_mlock())

@@ -9,7 +9,6 @@
 #ifdef CONFIG_HW_SLUB_DF
 #include <linux/slub_def.h> /* for harden double-free check */
 #endif
-#include <chipset_common/security/kshield.h>
 
 #ifdef CONFIG_HHEE
 #include <linux/hisi/hkip_hhee.h> /* for hhee tvm */
@@ -64,7 +63,7 @@ static int handle_stp_proc_write(u32 feature, u32 param, char *str)
 		return 0;
 #endif
 	case KERNEL_STP_KSHIELD:
-		return ks_dev_ioctl(param, str);
+		return 0;
 	case HHEE_SWITCH:
 		return set_hhee_switch(param);
 	default:

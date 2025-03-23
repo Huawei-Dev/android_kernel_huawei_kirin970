@@ -21,7 +21,6 @@
 #include <linux/mount.h>
 #include <linux/fs.h>
 #include <linux/fscrypt_common.h>
-#include <chipset_common/security/kshield.h>
 #include "internal.h"
 
 #include <linux/uaccess.h>
@@ -984,9 +983,6 @@ ssize_t vfs_readv(struct file *file, const struct iovec __user *vec,
 	struct iov_iter iter;
 	ssize_t ret;
 
-	if (vlen > UIO_FASTIOV && vlen < UIO_MAXIOV)
-		kshield_chk_heap_spray(1);
-
 	ret = import_iovec(READ, vec, vlen, ARRAY_SIZE(iovstack), &iov, &iter);
 	if (ret >= 0) {
 		ret = do_iter_read(file, &iter, pos, flags);
@@ -1003,9 +999,6 @@ ssize_t vfs_writev(struct file *file, const struct iovec __user *vec,
 	struct iovec *iov = iovstack;
 	struct iov_iter iter;
 	ssize_t ret;
-
-	if (vlen > UIO_FASTIOV && vlen < UIO_MAXIOV)
-		kshield_chk_heap_spray(1);
 
 	ret = import_iovec(WRITE, vec, vlen, ARRAY_SIZE(iovstack), &iov, &iter);
 	if (ret >= 0) {
@@ -1171,9 +1164,6 @@ static size_t compat_readv(struct file *file,
 	struct iov_iter iter;
 	ssize_t ret;
 
-	if (vlen > UIO_FASTIOV && vlen < UIO_MAXIOV)
-		kshield_chk_heap_spray(1);
-
 	ret = compat_import_iovec(READ, vec, vlen, UIO_FASTIOV, &iov, &iter);
 	if (ret >= 0) {
 		ret = do_iter_read(file, &iter, pos, flags);
@@ -1281,9 +1271,6 @@ static size_t compat_writev(struct file *file,
 	struct iovec *iov = iovstack;
 	struct iov_iter iter;
 	ssize_t ret;
-
-	if (vlen > UIO_FASTIOV && vlen < UIO_MAXIOV)
-		kshield_chk_heap_spray(1);
 
 	ret = compat_import_iovec(WRITE, vec, vlen, UIO_FASTIOV, &iov, &iter);
 	if (ret >= 0) {

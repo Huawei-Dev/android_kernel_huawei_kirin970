@@ -15,7 +15,6 @@
 #include <linux/module.h>
 #include <linux/sched.h>
 #include <linux/vmalloc.h>
-#include <chipset_common/security/kshield.h>
 
 #include <asm/pgtable.h>
 #include <asm/set_memory.h>
@@ -48,9 +47,6 @@ static int __change_memory_common(unsigned long start, unsigned long size,
 	struct page_change_data data;
 	int ret;
 
-	if (kshield_chk_change_mem(start, size, set_mask, clear_mask))
-		return -EINVAL;
-
 	data.set_mask = set_mask;
 	data.clear_mask = clear_mask;
 
@@ -67,9 +63,6 @@ int __change_prmem_common(unsigned long start, unsigned long size,
 {
 	struct page_change_data data;
 	int ret;
-
-	if (kshield_chk_change_mem(start, size, set_mask, clear_mask))
-		return -EINVAL;
 
 	data.set_mask = set_mask;
 	data.clear_mask = clear_mask;

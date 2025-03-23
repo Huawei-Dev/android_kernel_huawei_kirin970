@@ -68,7 +68,6 @@
 #include <linux/freezer.h>
 #include <linux/bootmem.h>
 #include <linux/fault-inject.h>
-#include <chipset_common/security/kshield.h>
 
 #include <asm/futex.h>
 
@@ -1723,7 +1722,6 @@ futex_wake(u32 __user *uaddr, unsigned int flags, int nr_wake, u32 bitset)
 
 	spin_unlock(&hb->lock);
 	wake_up_q(&wake_q);
-	kshield_chk_futex(ret);
 out_put_key:
 	put_futex_key(&key);
 out:
@@ -1866,7 +1864,6 @@ retry_private:
 out_unlock:
 	double_unlock_hb(hb1, hb2);
 	wake_up_q(&wake_q);
-	kshield_chk_futex(ret);
 out_put_keys:
 	put_futex_key(&key2);
 out_put_key1:
@@ -2306,7 +2303,6 @@ retry_private:
 out_unlock:
 	double_unlock_hb(hb1, hb2);
 	wake_up_q(&wake_q);
-	kshield_chk_futex(task_count);
 	hb_waiters_dec(hb2);
 
 	/*

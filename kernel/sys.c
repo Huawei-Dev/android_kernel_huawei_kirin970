@@ -66,7 +66,6 @@
 #include <linux/nospec.h>
 
 #include <linux/kmsg_dump.h>
-#include <chipset_common/security/kshield.h>
 /* Move somewhere else to avoid recompiling? */
 #include <generated/utsrelease.h>
 
@@ -1216,7 +1215,6 @@ SYSCALL_DEFINE1(newuname, struct new_utsname __user *, name)
 {
 	struct new_utsname tmp;
 
-	kshield_chk_kinfo();
 	down_read(&uts_sem);
 	memcpy(&tmp, utsname(), sizeof(tmp));
 	up_read(&uts_sem);
@@ -1238,7 +1236,6 @@ SYSCALL_DEFINE1(uname, struct old_utsname __user *, name)
 {
 	struct old_utsname tmp;
 
-	kshield_chk_kinfo();
 	if (!name)
 		return -EFAULT;
 
@@ -1259,7 +1256,6 @@ SYSCALL_DEFINE1(olduname, struct oldold_utsname __user *, name)
 {
 	struct oldold_utsname tmp = {};
 
-	kshield_chk_kinfo();
 	if (!name)
 		return -EFAULT;
 

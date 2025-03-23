@@ -118,7 +118,6 @@
 #include <chipset_common/hwqos/hwqos_common.h>
 #include <chipset_common/hwqos/hwqos_fork.h>
 #endif
-#include <chipset_common/security/kshield.h>
 
 #ifdef CONFIG_RENDER_RT
 #include <linux/render_rt.h>
@@ -2104,7 +2103,6 @@ static __latent_entropy struct task_struct *copy_process(
 
 	trace_task_newtask(p, clone_flags);
 	uprobe_copy_process(p, clone_flags);
-	kshield_chk_process_num();
 
 	copy_oom_score_adj(clone_flags, p);
 

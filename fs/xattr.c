@@ -21,7 +21,6 @@
 #include <linux/audit.h>
 #include <linux/vmalloc.h>
 #include <linux/posix_acl_xattr.h>
-#include <chipset_common/security/kshield.h>
 
 #include <linux/uaccess.h>
 #include "internal.h"
@@ -462,7 +461,6 @@ setxattr(struct vfsmount *mnt, struct dentry *d, const char __user *name, const 
 	if (size) {
 		if (size > XATTR_SIZE_MAX)
 			return -E2BIG;
-		kshield_chk_heap_spray(1);
 		kvalue = kvmalloc(size, GFP_KERNEL);
 		if (!kvalue)
 			return -ENOMEM;

@@ -64,7 +64,6 @@
 #ifdef CONFIG_HW_QOS_THREAD
 #include <chipset_common/hwqos/hwqos_fork.h>
 #endif
-#include <chipset_common/security/kshield.h>
 
 #ifdef CONFIG_CPUSET_TASKS_CROWDED_WORKAROUND
 #include <linux/hisi/huawei_hung_task.h>
@@ -5576,7 +5575,6 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
 #ifdef CONFIG_ARCH_HISI
 	get_online_cpus();
 #endif
-	kshield_chk_set_affinity();
 	rcu_read_lock();
 
 	p = find_process_by_pid(pid);

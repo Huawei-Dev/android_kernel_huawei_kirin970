@@ -30,7 +30,6 @@
 #include <linux/uaccess.h>
 #include <linux/kobject.h>
 #include <linux/ctype.h>
-#include <chipset_common/security/kshield.h>
 
 /* selinuxfs pseudo filesystem for exporting the security policy API.
    Based on the proc code and the fs/nfsd/nfsctl.c code. */
@@ -490,9 +489,6 @@ static ssize_t sel_write_load(struct file *file, const char __user *buf,
 
 	length = -EFBIG;
 	if (count > 64 * 1024 * 1024)
-		goto out;
-
-	if (kshield_chk_sel_write_load())
 		goto out;
 
 	length = -ENOMEM;

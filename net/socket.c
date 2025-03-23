@@ -108,7 +108,6 @@
 #include <linux/atalk.h>
 #include <net/busy_poll.h>
 #include <linux/errqueue.h>
-#include <chipset_common/security/kshield.h>
 
 #ifdef CONFIG_NET_RX_BUSY_POLL
 unsigned int sysctl_net_busy_read __read_mostly;
@@ -1375,7 +1374,6 @@ SYSCALL_DEFINE3(socket, int, family, int, type, int, protocol)
 	retval = sock_map_fd(sock, flags & (O_CLOEXEC | O_NONBLOCK));
 	if (retval < 0)
 		goto out_release;
-	kshield_chk_sock_spray(1);
 
 out:
 	/* It may be already another descriptor 8) Not kernel problem. */
@@ -2004,8 +2002,6 @@ static int copy_msghdr_from_user(struct msghdr *kmsg,
 		return -EMSGSIZE;
 
 	kmsg->msg_iocb = NULL;
-	if (msg.msg_iovlen > UIO_FASTIOV)
-		kshield_chk_heap_spray(1);
 
 	return import_iovec(save_addr ? READ : WRITE,
 			    msg.msg_iov, msg.msg_iovlen,
@@ -3402,11 +3398,6 @@ int kernel_getsockopt(struct socket *sock, int level, int optname,
 	if (level == SOL_SOCKET) {
 		err = sock_getsockopt(sock, level, optname, uoptval, uoptlen);
 	} else {
-		if (kshield_chk_heap_ret2dir(sock) ||
-		    kshield_chk_fops(sock->ops, sizeof(*sock->ops))) {
-			set_fs(oldfs);
-			return -EINVAL;
-		}
 		err = sock->ops->getsockopt(sock, level, optname, uoptval,
 					    uoptlen);
 	}
@@ -3428,11 +3419,6 @@ int kernel_setsockopt(struct socket *sock, int level, int optname,
 	if (level == SOL_SOCKET) {
 		err = sock_setsockopt(sock, level, optname, uoptval, optlen);
 	} else {
-		if (kshield_chk_heap_ret2dir(sock) ||
-		    kshield_chk_fops(sock->ops, sizeof(*sock->ops))) {
-			set_fs(oldfs);
-			return -EINVAL;
-		}
 		err = sock->ops->setsockopt(sock, level, optname, uoptval,
 					    optlen);
 	}
@@ -3470,11 +3456,6 @@ int kernel_sock_ioctl(struct socket *sock, int cmd, unsigned long arg)
 	int err;
 
 	set_fs(KERNEL_DS);
-	if (kshield_chk_heap_ret2dir(sock) ||
-	    kshield_chk_fops(sock->ops, sizeof(*sock->ops))) {
-		set_fs(oldfs);
-		return -EINVAL;
-	}
 	err = sock->ops->ioctl(sock, cmd, arg);
 	set_fs(oldfs);
 

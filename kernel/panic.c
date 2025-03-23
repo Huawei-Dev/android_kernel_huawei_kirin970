@@ -27,7 +27,6 @@
 #include <linux/nmi.h>
 #include <linux/console.h>
 #include <linux/bug.h>
-#include <chipset_common/security/kshield.h>
 #include <linux/ratelimit.h>
 #ifdef CONFIG_CORESIGHT
 #include <linux/coresight.h>
@@ -555,7 +554,6 @@ void __warn(const char *file, int line, void *caller, unsigned taint,
 {
 	disable_trace_on_warning();
 
-	kshield_chk_warn();
 	pr_warn("------------[ cut here ]------------\n");
 
 	if (file)

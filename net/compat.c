@@ -24,7 +24,6 @@
 #include <linux/security.h>
 #include <linux/audit.h>
 #include <linux/export.h>
-#include <chipset_common/security/kshield.h>
 
 #include <net/scm.h>
 #include <net/sock.h>
@@ -74,9 +73,6 @@ int get_compat_msghdr(struct msghdr *kmsg,
 		kmsg->msg_name = NULL;
 		kmsg->msg_namelen = 0;
 	}
-
-	if (msg.msg_iovlen > UIO_FASTIOV)
-		kshield_chk_heap_spray(1);
 
 	if (msg.msg_iovlen > UIO_MAXIOV)
 		return -EMSGSIZE;

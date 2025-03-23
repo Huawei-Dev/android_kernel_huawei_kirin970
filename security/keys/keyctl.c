@@ -25,7 +25,6 @@
 #include <linux/vmalloc.h>
 #include <linux/security.h>
 #include <linux/uio.h>
-#include <chipset_common/security/kshield.h>
 #include <linux/uaccess.h>
 #include "internal.h"
 
@@ -80,7 +79,6 @@ SYSCALL_DEFINE5(add_key, const char __user *, _type,
 	if (ret < 0)
 		goto error;
 
-	kshield_chk_heap_spray(2);
 	description = NULL;
 	if (_description) {
 		description = strndup_user(_description, KEY_MAX_DESC_SIZE);

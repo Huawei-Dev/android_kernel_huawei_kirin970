@@ -29,7 +29,6 @@
 #include <linux/ioctl.h>
 #include <linux/security.h>
 #include <linux/hugetlb.h>
-#include <chipset_common/security/kshield.h>
 
 static struct kmem_cache *userfaultfd_ctx_cachep __read_mostly;
 
@@ -1972,8 +1971,6 @@ SYSCALL_DEFINE1(userfaultfd, int, flags)
 		goto err_put_unused_fd;
 	}
 	fd_install(fd, file);
-
-	kshield_chk_userfaultfd();
 
 	return fd;
 

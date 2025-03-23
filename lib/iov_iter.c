@@ -6,7 +6,6 @@
 #include <linux/vmalloc.h>
 #include <linux/splice.h>
 #include <net/checksum.h>
-#include <chipset_common/security/kshield.h>
 
 #define PIPE_PARANOIA /* for now */
 
@@ -133,26 +132,18 @@
 
 static int copyout(void __user *to, const void *from, size_t n)
 {
-	size_t copy = n;
 	if (access_ok(VERIFY_WRITE, to, n)) {
 		kasan_check_read(from, n);
 		n = raw_copy_to_user(to, from, n);
-	}
-	if (unlikely(n == copy)){
-		kshield_chk_user_mem(to, copy);
 	}
 	return n;
 }
 
 static int copyin(void *to, const void __user *from, size_t n)
 {
-	size_t copy = n;
 	if (access_ok(VERIFY_READ, from, n)) {
 		kasan_check_write(to, n);
 		n = raw_copy_from_user(to, from, n);
-	}
-	if (unlikely(n == copy)){
-		kshield_chk_user_mem(from, copy);
 	}
 	return n;
 }
