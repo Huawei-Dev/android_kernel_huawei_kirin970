@@ -33,12 +33,6 @@ enum perf_type_id {
 	PERF_TYPE_HW_CACHE			= 3,
 	PERF_TYPE_RAW				= 4,
 	PERF_TYPE_BREAKPOINT			= 5,
-#ifdef CONFIG_KARMA_PMU
-	PERF_TYPE_KARMA,
-#endif
-#ifdef CONFIG_NAMSTO_PMU
-	PERF_TYPE_NAMSTO,
-#endif
 	PERF_TYPE_MAX,				/* non-ABI */
 };
 
