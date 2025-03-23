@@ -6106,7 +6106,6 @@ CONFIG_HUAWEI_SOP=y
 #
 # Huawei kernel mdpp ccmode
 #
-# CONFIG_HUAWEI_MDPP_CCMODE is not set
 CONFIG_CRYPTO=y
 
 #
