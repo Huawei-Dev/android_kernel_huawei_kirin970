@@ -29,7 +29,7 @@
 #include <linux/device.h>
 #include <linux/memcontrol.h>
 #include "internal.h"
-#include <linux/hisi/pagecache_debug.h>
+
 /*
  * 4MB minimal write chunk size
  */
@@ -1827,7 +1827,6 @@ static long wb_writeback(struct bdi_writeback *wb,
 			dirtied_before = jiffies;
 
 		trace_writeback_start(wb, work);
-		pgcache_log(BIT_WRITEBACK_DUMP,	"writeback start");
 		if (list_empty(&wb->b_io))
 			queue_io(wb, work, dirtied_before);
 		if (work->sb)
@@ -2001,10 +2000,6 @@ void wb_workfn(struct work_struct *work)
 		do {
 			pages_written = wb_do_writeback(wb);
 			trace_writeback_pages_written(pages_written);
-			if(is_pagecache_stats_enable()) {
-				stat_inc_wb_count();
-				stat_inc_wb_pages_count(pages_written);
-			}
 		} while (!list_empty(&wb->work_list));
 	} else {
 		/*
@@ -2015,10 +2010,6 @@ void wb_workfn(struct work_struct *work)
 		pages_written = writeback_inodes_wb(wb, 1024,
 						    WB_REASON_FORKER_THREAD);
 		trace_writeback_pages_written(pages_written);
-		if(is_pagecache_stats_enable()) {
-			stat_inc_wb_count();
-			stat_inc_wb_pages_count(pages_written);
-		}
 	}
 
 	if (!list_empty(&wb->work_list))

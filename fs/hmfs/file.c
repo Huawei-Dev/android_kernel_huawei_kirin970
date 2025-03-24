@@ -383,8 +383,6 @@ static int f2fs_do_sync_file(struct file *file, loff_t start, loff_t end,
 		return 0;
 
 	trace_hmfs_sync_file_enter(inode);
-	pgcache_log_path(BIT_FSYNC_SYSCALL_DUMP, &(file->f_path),
-			"hmfs sync file start");
 	fsync_begin = local_clock();
 
 	/* if no dirty page(dirty_pages == 0), should flush inode page */
@@ -502,8 +500,6 @@ out:
 		f2fs_ff_enable_out(file, fi, inode, start, end);
 
 	trace_hmfs_sync_file_exit(inode, cp_reason, datasync, ret);
-	pgcache_log_path(BIT_FSYNC_SYSCALL_DUMP, &(file->f_path),
-			"hmfs sync file end");
 	f2fs_trace_ios(NULL, 1);
 	if (fsync_begin && !ret) {
 		fsync_end = local_clock();
@@ -1962,8 +1958,6 @@ static int f2fs_ioc_start_atomic_write(struct file *filp)
 	struct f2fs_sb_info *sbi = F2FS_I_SB(inode);
 	int ret;
 
-	pgcache_log_path(BIT_FSYNC_SYSCALL_DUMP, &(filp->f_path),
-			"hmfs atomic write start");
 	if (!inode_owner_or_capable(inode))
 		return -EACCES;
 
@@ -2027,8 +2021,6 @@ static int f2fs_ioc_commit_atomic_write(struct file *filp)
 	struct inode *inode = file_inode(filp);
 	int ret;
 
-	pgcache_log_path(BIT_FSYNC_SYSCALL_DUMP, &(filp->f_path),
-			"hmfs atomic write commit");
 	if (!inode_owner_or_capable(inode))
 		return -EACCES;
 

@@ -94,7 +94,6 @@
 #include <scsi/sg.h>
 #endif
 
-#include <linux/hisi/pagecache_debug.h>
 #ifdef CONFIG_MEMCG_PROTECT_LRU
 #include <linux/protect_lru.h>
 #endif

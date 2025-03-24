@@ -37,7 +37,6 @@
 #include <linux/cleancache.h>
 #include <linux/rmap.h>
 #include <linux/hisi/pagecache_manage.h>
-#include <linux/hisi/pagecache_debug.h>
 #include <linux/file_map.h>
 #include <linux/delayacct.h>
 #include <linux/psi.h>
@@ -2465,25 +2464,14 @@ static struct file *do_sync_mmap_readahead(struct vm_fault *vmf)
 
 	/* If we don't want any read-ahead, don't bother */
 	if (vmf->vma_flags & VM_RAND_READ) {
-		pgcache_log_path(BIT_MMAP_SYNC_READ_DUMP, &(file->f_path),
-				"mmap sync read no need pre-fetch(VM_RAND_READ): pg_offset: %ld",
-				offset);
 		return fpin;
 	}
 	if (!ra->ra_pages) {
-		pgcache_log_path(BIT_MMAP_SYNC_READ_DUMP, &(file->f_path),
-				"mmap sync read no need pre-fetch(ra_pages = 0): pg_offset: %ld",
-				offset);
 		return fpin;
 	}
 
 	if (vmf->vma_flags & VM_SEQ_READ) {
 		fpin = maybe_unlock_mmap_for_io(vmf, fpin);
-		pgcache_log_path(BIT_MMAP_SYNC_READ_DUMP, &(file->f_path),
-				"mmap sync readahead(VM_SEQ_READ), pg_offset, %ld, ra_pages, %ld",
-				offset, ra->ra_pages);
-		if (is_pagecache_stats_enable())
-			stat_inc_mmap_syncread_pages_count(ra->ra_pages);
 		page_cache_sync_readahead(mapping, ra, file, offset,
 					  ra->ra_pages);
 		return fpin;
@@ -2537,8 +2525,6 @@ static struct file *do_async_mmap_readahead(struct vm_fault *vmf,
 		ra->mmap_miss--;
 	if (PageReadahead(page)) {
 		fpin = maybe_unlock_mmap_for_io(vmf, fpin);
-		if (is_pagecache_stats_enable())
-			stat_inc_mmap_asyncread_pages_count(ra->ra_pages);
 		page_cache_async_readahead(mapping, ra, file,
 					   page, offset, ra->ra_pages);
 	}
@@ -2558,25 +2544,13 @@ static void do_sync_mmap_readahead(struct vm_area_struct *vma,
 
 	/* If we don't want any read-ahead, don't bother */
 	if (vma->vm_flags & VM_RAND_READ) {
-		pgcache_log_path(BIT_MMAP_SYNC_READ_DUMP, &(file->f_path),
-				"mmap sync read no need pre-fetch(VM_RAND_READ): pg_offset: %ld",
-				offset);
 		return;
 	}
 	if (!ra->ra_pages) {
-		pgcache_log_path(BIT_MMAP_SYNC_READ_DUMP, &(file->f_path),
-				"mmap sync read no need pre-fetch(ra_pages = 0): pg_offset: %ld",
-				offset);
 		return;
 	}
 
 	if (vma->vm_flags & VM_SEQ_READ) {
-		pgcache_log_path(BIT_MMAP_SYNC_READ_DUMP, &(file->f_path),
-				"mmap sync readahead(VM_SEQ_READ), pg_offset, %ld, ra_pages, %ld",
-				offset, ra->ra_pages);
-		if(is_pagecache_stats_enable()) {
-			stat_inc_mmap_syncread_pages_count(ra->ra_pages);
-		}
 		page_cache_sync_readahead(mapping, ra, file, offset,
 					  ra->ra_pages);
 		return;
@@ -2624,9 +2598,6 @@ static void do_async_mmap_readahead(struct vm_area_struct *vma,
 	if (ra->mmap_miss > 0)
 		ra->mmap_miss--;
 	if (PageReadahead(page)) {
-		if(is_pagecache_stats_enable()) {
-			stat_inc_mmap_asyncread_pages_count(ra->ra_pages);
-		}
 		page_cache_async_readahead(mapping, ra, file,
 					   page, offset, ra->ra_pages);
 	}
@@ -2675,9 +2646,6 @@ int filemap_fault(struct vm_fault *vmf)
 	if (unlikely(offset >= max_off))
 		return VM_FAULT_SIGBUS;
 
-	pgcache_log_path(BIT_FILEMAP_FAULT_DUMP, &(file->f_path),
-			"filemap fault pg_offset: %ld maxoff: %ld",
-			offset, max_off);
 #ifdef CONFIG_FILE_MAP
 #ifdef CONFIG_CGROUP_IOLIMIT_IN_FILE_PAGEFAULT
 	task_set_in_pagefault_delay_clear(current);
@@ -2697,9 +2665,6 @@ int filemap_fault(struct vm_fault *vmf)
 		 * We found the page, so try async readahead before
 		 * waiting for the lock.
 		 */
-		if(is_pagecache_stats_enable()) {
-			stat_inc_mmap_hit_count();
-		}
 		task_set_in_pagefault(current);
 #ifdef CONFIG_SPECULATIVE_PAGE_FAULT
 		fpin = do_async_mmap_readahead(vmf, page);
@@ -2723,9 +2688,6 @@ int filemap_fault(struct vm_fault *vmf)
 #endif
 		task_clear_in_pagefault(current);
 
-		if(is_pagecache_stats_enable()) {
-			stat_inc_mmap_miss_count();
-		}
 retry_find:
 		page = pagecache_get_page(mapping, offset,
 					  FGP_CREAT|FGP_FOR_MMAP,
@@ -3456,10 +3418,6 @@ ssize_t __generic_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
 	if (iocb->ki_flags & IOCB_DIRECT) {
 		loff_t pos, endbyte;
 
-		pgcache_log_path(BIT_GENERIC_WRITE_DUMP, &(file->f_path),
-				"generic write direct, offset, %ld, size, %ld",
-				iocb->ki_pos, iov_iter_count(from));
-
 		written = generic_file_direct_write(iocb, from);
 		/*
 		 * If the write stopped short of completing, fall back to
@@ -3503,9 +3461,6 @@ ssize_t __generic_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
 			 */
 		}
 	} else {
-		pgcache_log_path(BIT_GENERIC_WRITE_DUMP, &(file->f_path),
-				"generic write cache, offset, %ld, size, %ld",
-				iocb->ki_pos, iov_iter_count(from));
 		written = generic_perform_write(file, from, iocb->ki_pos);
 		if (likely(written > 0))
 			iocb->ki_pos += written;

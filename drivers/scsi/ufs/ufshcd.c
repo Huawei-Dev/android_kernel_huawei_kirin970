@@ -83,8 +83,6 @@
 #include "ufs_rpmb.h"
 #endif
 
-#include <linux/hisi/pagecache_debug.h>
-
 #ifdef CONFIG_HUAWEI_STORAGE_ROFA
 #include <chipset_common/storage_rofa/storage_rofa.h>
 #endif

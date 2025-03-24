@@ -40,7 +40,6 @@
 #include <linux/mm_inline.h>
 #include <trace/events/writeback.h>
 #include <linux/blk-cgroup.h>
-#include <linux/hisi/pagecache_debug.h>
 
 #include "internal.h"
 
@@ -2508,9 +2507,6 @@ skip:
 		inc_wb_stat(wb, WB_DIRTIED);
 		task_io_account_write(PAGE_SIZE);
 		current->nr_dirtied++;
-		if(is_pagecache_stats_enable()) {
-			stat_inc_dirty_pages_count();
-		}
 		this_cpu_inc(bdp_ratelimits);
 	}
 }
@@ -2529,9 +2525,6 @@ void account_page_cleaned(struct page *page, struct address_space *mapping,
 		dec_zone_page_state(page, NR_ZONE_WRITE_PENDING);
 		dec_wb_stat(wb, WB_RECLAIMABLE);
 		task_io_account_cancelled_write(PAGE_SIZE);
-		if(is_pagecache_stats_enable()) {
-			stat_dec_dirty_pages_count();
-		}
 	}
 }
 

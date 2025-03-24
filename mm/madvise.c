@@ -309,7 +309,6 @@ static long madvise_willneed(struct vm_area_struct *vma,
 		end = vma->vm_end;
 	end = ((end - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
 
-	pgcache_log_path(BIT_READAHEAD_SYSCALL_DUMP, &(file->f_path), "syscall madvise64(willneed)");
 	force_page_cache_readahead(file->f_mapping, file, start, end - start);
 	return 0;
 }
@@ -620,7 +619,6 @@ static long madvise_remove(struct vm_area_struct *vma,
 		up_read(&current->mm->mmap_sem);
 	}
 
-	pgcache_log_path(BIT_MADVISE_SYSCALL_DUMP, &(f->f_path), "syscall madvise64(remove)");
 	error = vfs_fallocate(f,
 				FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
 				offset, end - start);
@@ -812,8 +810,6 @@ SYSCALL_DEFINE3(madvise, unsigned long, start, size_t, len_in, int, behavior)
 	size_t len;
 	struct blk_plug plug;
 
-	pgcache_log(BIT_MADVISE_SYSCALL_DUMP, "syscall madvise64(start:%ld, len:%d, behavior:%d)",
-			start, len_in, behavior);
 	start = untagged_addr(start);
 
 	if (!madvise_behavior_valid(behavior))

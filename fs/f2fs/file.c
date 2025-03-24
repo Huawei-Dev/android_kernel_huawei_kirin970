@@ -242,8 +242,6 @@ static int f2fs_do_sync_file(struct file *file, loff_t start, loff_t end,
 		return 0;
 
 	trace_f2fs_sync_file_enter(inode);
-	pgcache_log_path(BIT_FSYNC_SYSCALL_DUMP, &(file->f_path),
-			"f2fs sync file start");
 	fsync_begin = local_clock();
 	/* if fdatasync is triggered, let's do in-place-update */
 #ifdef CONFIG_F2FS_JOURNAL_APPEND
@@ -363,8 +361,6 @@ flush_out:
 	f2fs_update_time(sbi, REQ_TIME);
 out:
 	trace_f2fs_sync_file_exit(inode, cp_reason, datasync, ret);
-	pgcache_log_path(BIT_FSYNC_SYSCALL_DUMP, &(file->f_path),
-			"f2fs sync file end");
 	f2fs_trace_ios(NULL, 1);
 	if (fsync_begin && !ret) {
 		fsync_end = local_clock();
@@ -1804,8 +1800,6 @@ static int f2fs_ioc_start_atomic_write(struct file *filp)
 	struct f2fs_sb_info *sbi = F2FS_I_SB(inode);
 	int ret;
 
-	pgcache_log_path(BIT_FSYNC_SYSCALL_DUMP, &(filp->f_path),
-			"f2fs atomic write start");
 	if (!inode_owner_or_capable(inode))
 		return -EACCES;
 
@@ -1868,8 +1862,6 @@ static int f2fs_ioc_commit_atomic_write(struct file *filp)
 	struct inode *inode = file_inode(filp);
 	int ret;
 
-	pgcache_log_path(BIT_FSYNC_SYSCALL_DUMP, &(filp->f_path),
-			"f2fs atomic write commit");
 	if (!inode_owner_or_capable(inode))
 		return -EACCES;
 
