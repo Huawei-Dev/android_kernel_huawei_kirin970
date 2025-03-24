@@ -12,9 +12,6 @@
 #include <linux/kernel.h>
 #include <linux/slab.h>
 #include <linux/mm_types.h>
-#ifdef CONFIG_HISI_CMA_RECORD_DEBUG
-#include <linux/hisi/hisi_cma_debug.h>
-#endif
 
 #include "cma.h"
 
@@ -204,10 +201,6 @@ static int __init cma_debugfs_init(void)
 
 	for (i = 0; i < cma_area_count; i++)
 		cma_debugfs_add_one(&cma_areas[i], i);
-
-#ifdef CONFIG_HISI_CMA_RECORD_DEBUG
-	hisi_cma_debugfs_init();
-#endif
 
 	return 0;
 }

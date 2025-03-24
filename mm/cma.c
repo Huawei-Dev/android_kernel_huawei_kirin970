@@ -40,11 +40,6 @@
 #include "cma.h"
 #include "internal.h"
 
-#ifdef CONFIG_HISI_CMA_DEBUG
-#include <linux/hisi/util.h>
-#include <linux/hisi/hisi_cma_debug.h>
-#endif
-
 #ifdef CONFIG_ZONE_MEDIA
 #include <linux/hisi/hisi_ion.h>
 #endif
@@ -186,10 +181,6 @@ static int __init cma_activate_area(struct cma *cma)
 	spin_lock_init(&cma->mem_head_lock);
 #endif
 
-#ifdef CONFIG_HISI_CMA_DEBUG
-	if (cma->flag)
-		cma_add_debug_list(cma);
-#endif
 	return 0;
 
 not_in_zone:
@@ -202,11 +193,6 @@ not_in_zone:
 static int __init cma_init_reserved_areas(void)
 {
 	int i;
-
-#ifdef CONFIG_HISI_CMA_DEBUG
-	if (check_himntn(HIMNTN_CMA_TRACE))
-		set_himntn_cma_trace_flag();
-#endif
 
 	for (i = 0; i < cma_area_count; i++) { /*lint !e574*/
 		int ret = cma_activate_area(&cma_areas[i]);
@@ -464,13 +450,6 @@ static void cma_debug_show_areas(struct cma *cma)
 static inline void cma_debug_show_areas(struct cma *cma) { }
 #endif
 
-#ifdef CONFIG_HISI_CMA_DEBUG
-struct mutex *get_cma_mutex(void)
-{
-	return &cma_mutex;
-}
-#endif
-
 /**
  * cma_alloc() - allocate pages from contiguous area
  * @cma:   Contiguous memory region for which the allocation is performed.
@@ -494,9 +473,6 @@ struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
 #ifdef CONFIG_HISI_KERNELDUMP
 	struct page *tmp_page = NULL;
 	u64 k = 0;
-#endif
-#ifdef CONFIG_HISI_CMA_DEBUG
-	ktime_t time_start;
 #endif
 
 	if (!cma || !cma->count)
@@ -525,9 +501,6 @@ retry:
 		if (bitmap_no >= bitmap_maxno) {
 			mutex_unlock(&cma->lock);
 			pr_info("bitmap_no %ld >= bitmap_maxno %ld\n", bitmap_no, bitmap_maxno);
-#ifdef CONFIG_HISI_CMA_DEBUG
-			ret = -ENOMEM;
-#endif
 			break;
 		}
 		bitmap_set(cma->bitmap, bitmap_no, bitmap_count);
@@ -540,21 +513,10 @@ retry:
 
 		pfn = cma->base_pfn + (bitmap_no << cma->order_per_bit);
 
-#ifdef CONFIG_HISI_CMA_DEBUG
-		cma_mutex_lock_with_record();
-#else
 		mutex_lock(&cma_mutex);
-#endif
 
-#ifdef CONFIG_HISI_CMA_DEBUG
-		cma_init_record_alloc_time(&time_start);
-#endif
 		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA,
 					GFP_KERNEL | (no_warn ? __GFP_NOWARN : 0));
-#ifdef CONFIG_HISI_CMA_DEBUG
-		cma_end_alloc_time_record(time_start, cma_alloc);
-		show_record_alloc_time_info(ktime_get(), time_start);
-#endif
 
 		mutex_unlock(&cma_mutex);
 		if (ret == 0) {
@@ -577,19 +539,6 @@ retry:
 		start = 0;
 		goto retry;
 	}
-
-#ifdef CONFIG_HISI_CMA_DEBUG
-	if (ret) {
-		dump_cma_page(cma, count, mask, offset,
-				bitmap_maxno, bitmap_count);
-		/*if cma_alloc fail, dump the cma mem info*/
-		dump_cma_mem_info();
-		dump_cma_debug_task(cma);
-	} else {
-		/*if cma_alloc success, record it*/
-		record_cma_alloc_info(cma, pfn,count);
-	}
-#endif
 
 	trace_cma_alloc(pfn, page, count, align);
 
@@ -642,9 +591,6 @@ bool cma_release(struct cma *cma, const struct page *pages, unsigned int count)
 	free_contig_range(pfn, count);
 	cma_clear_bitmap(cma, pfn, count);
 	trace_cma_release(pfn, pages, count);
-#ifdef CONFIG_HISI_CMA_DEBUG
-	record_cma_release_info(cma,  pfn, count);
-#endif
 
 	return true;
 }

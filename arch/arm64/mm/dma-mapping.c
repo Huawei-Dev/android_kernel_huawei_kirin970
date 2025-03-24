@@ -29,9 +29,6 @@
 #include <linux/vmalloc.h>
 #include <linux/swiotlb.h>
 #include <linux/pci.h>
-#ifdef CONFIG_HISI_CMA_RECORD_DEBUG
-#include <linux/hisi/hisi_cma_debug.h>
-#endif
 #include <asm/cacheflush.h>
 
 static int swiotlb __ro_after_init;
@@ -157,11 +154,6 @@ static void *__dma_alloc(struct device *dev, size_t size,
 	ptr = __dma_alloc_coherent(dev, size, dma_handle, flags, attrs);
 	if (!ptr)
 		goto no_mem;
-
-#ifdef CONFIG_HISI_CMA_RECORD_DEBUG
-	if (!attrs)
-		record_dma_cma_caller_info(dev, flags);
-#endif
 
 	/* no need for non-cacheable mapping if coherent */
 	if (coherent)

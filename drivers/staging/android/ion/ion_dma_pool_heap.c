@@ -46,9 +46,6 @@
 #include "mm/ion_sec_contig.h"
 #include "mm/ion_tee_op.h"
 #include "ion.h"
-#ifdef CONFIG_HISI_CMA_DEBUG
-#include <linux/hisi/hisi_cma_debug.h>
-#endif
 
 /*
  * Why pre-allocation size is 64MB?
@@ -104,9 +101,6 @@ static int  mm_camera_pool_set_up(struct reserved_mem *rmem)
 		pr_err("Reserved memory: unable to setup CMA region\n");
 		return err;
 	}
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_set_flag(cma, node);
-#endif
 	mm_camera_pool = cma;
 	pr_err("%s done!\n", __func__);
 	return 0;

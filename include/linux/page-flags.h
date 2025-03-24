@@ -116,9 +116,6 @@ enum pageflags {
 #ifdef CONFIG_MEMCG_PROTECT_LRU
 	PG_protect,
 #endif
-#ifdef CONFIG_HISI_CMA_DEBUG
-	PG_cmapin,
-#endif
 #ifdef CONFIG_HISI_PAGE_TRACE
 	PG_lslub,
 	PG_vmalloc,
@@ -484,26 +481,6 @@ static __always_inline int PageKsm(struct page *page)
 }
 #else
 TESTPAGEFLAG_FALSE(Ksm)
-#endif
-
-#ifdef CONFIG_HISI_CMA_DEBUG
-/* can be used only when CONFIG_HISI_CMA_DEBUG is defined */
-static inline void SetPageCmaPin(struct page *page)
-{
-	/* use smp_wmb to make sure all write opt to pg is done */
-	smp_wmb();
-	__set_bit(PG_cmapin, &(page)->flags);
-}
-
-static inline int PageCmaPin(struct page *page)
-{
-	return test_bit(PG_cmapin, &(page)->flags);
-}
-
-static inline void ClearPageCmaPin(struct page *page)
-{
-	clear_bit(PG_cmapin, &(page)->flags);
-}
 #endif
 
 u64 stable_page_flags(struct page *page);

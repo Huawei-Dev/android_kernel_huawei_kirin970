@@ -857,9 +857,6 @@ struct file_ra_state {
 					   there are only # of pages ahead */
 
 	unsigned int ra_pages;		/* Maximum readahead window */
-#ifdef CONFIG_HISI_BUFFERED_READAHEAD
-	unsigned int ra_pages_cr;
-#endif
 	unsigned int mmap_miss;		/* Cache miss stat for mmap accesses */
 	loff_t prev_pos;		/* Cache last read() position */
 };

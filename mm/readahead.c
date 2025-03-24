@@ -416,12 +416,6 @@ ondemand_readahead(struct address_space *mapping,
 	unsigned long max_pages = ra->ra_pages;
 	unsigned long add_pages;
 	pgoff_t prev_offset;
-#ifdef CONFIG_HISI_BUFFERED_READAHEAD
-	unsigned long ra_pages_cr = inode_to_bdi(mapping->host)->ra_pages_cr;
-
-	if ((!task_in_pagefault(current)) && ra_pages_cr)
-		max_pages = ra_pages_cr;
-#endif
 
 	/*
 	 * If the request exceeds the readahead window, allow the read to

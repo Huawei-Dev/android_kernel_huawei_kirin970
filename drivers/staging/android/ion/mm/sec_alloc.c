@@ -22,9 +22,6 @@
 #include <linux/scatterlist.h>
 #include <linux/slab.h>
 #include <linux/sizes.h>
-#ifdef CONFIG_HISI_CMA_DEBUG
-#include <linux/hisi/hisi_cma_debug.h>
-#endif
 
 #include <asm/cacheflush.h>
 #include <asm/tlbflush.h>
@@ -101,9 +98,6 @@ int mm_sec_cma_reserve(struct reserved_mem *rmem)
 		return err;
 	}
 
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_set_flag(cma, node);
-#endif
 	set_svc_cma(svc_id, cma);
 
 #ifdef CONFIG_ZONE_MEDIA

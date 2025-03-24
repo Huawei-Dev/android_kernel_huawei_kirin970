@@ -15,7 +15,6 @@ obj-y						+= hhee/
 obj-$(CONFIG_HIFI_DSP_ONE_TRACK)		+= hifi_dsp/
 obj-$(CONFIG_HIFI_MAILBOX)			+= hifi_mailbox/
 obj-$(CONFIG_HISEE)				+= hisee/
-obj-y                                           += hisi_cma/
 obj-y						+= hisi_lmk/
 obj-y						+= hisi_sim_adapt/
 obj-$(CONFIG_BOOT_DETECTOR)			+= hwbootfail/

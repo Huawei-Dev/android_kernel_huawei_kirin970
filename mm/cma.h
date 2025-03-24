@@ -13,9 +13,6 @@ struct cma {
 	spinlock_t mem_head_lock;
 #endif
 	const char *name;
-#ifdef CONFIG_HISI_CMA_DEBUG
-	unsigned int flag;
-#endif
 };
 
 #define HISI_CMA_ALLOC_RETRY_TIMES_MAX 3
@@ -27,9 +24,4 @@ static inline unsigned long cma_bitmap_maxno(struct cma *cma)
 {
 	return cma->count >> cma->order_per_bit;
 }
-
-#ifdef CONFIG_HISI_CMA_DEBUG
-struct mutex *get_cma_mutex(void);
-#endif
-
 #endif

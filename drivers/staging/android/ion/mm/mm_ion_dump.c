@@ -17,9 +17,6 @@
 #include <linux/hisi/hisi_ion.h>
 #include <linux/hisi/mem_trace.h>
 #include <linux/sched/signal.h>
-#ifdef CONFIG_HISI_CMA_DEBUG
-#include <linux/hisi/hisi_cma_debug.h>
-#endif
 
 #include "mm_ion_priv.h"
 #include "ion.h"
@@ -238,9 +235,6 @@ int mm_ion_memory_info(bool verbose)
 	mm_ion_process_summary_info();
 
 	mm_ion_proecss_info();
-#ifdef CONFIG_HISI_CMA_DEBUG
-	dump_cma_mem_info();
-#endif
 
 	mm_svc_secmem_info();
 

@@ -40,10 +40,6 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/pagemap.h>
 
-#ifdef CONFIG_HISI_CMA_DEBUG
-#include <linux/hisi/hisi_cma_debug.h>
-#endif
-
 /* How many pages do we try to swap or page in/out together? */
 int page_cluster;
 
@@ -670,10 +666,6 @@ void lru_add_drain_cpu(int cpu)
 {
 	struct pagevec *pvec = &per_cpu(lru_add_pvec, cpu);
 
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_work_record_start(cpu);
-#endif
-
 	if (pagevec_count(pvec))
 		__pagevec_lru_add(pvec);
 
@@ -789,9 +781,6 @@ void lru_add_drain_all_cpuslocked(void)
 	for_each_cpu(cpu, &has_work)
 		flush_work(&per_cpu(lru_add_drain_work, cpu));
 
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_work_record_exec_time(&has_work);
-#endif
 	mutex_unlock(&lock);
 }
 

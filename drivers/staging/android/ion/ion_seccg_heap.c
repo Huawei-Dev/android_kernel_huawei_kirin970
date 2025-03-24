@@ -47,9 +47,6 @@
 #include "mm/ion_sec_contig.h"
 #include "mm/ion_tee_op.h"
 #include "ion.h"
-#ifdef CONFIG_HISI_CMA_DEBUG
-#include <linux/hisi/hisi_cma_debug.h>
-#endif
 
 static struct cma *mm_cma;
 static struct ion_sec_cma mm_seccg_cmas[SEC_CG_CMA_NUM];
@@ -112,9 +109,6 @@ int mm_sec_cma_set_up(struct reserved_mem *rmem)
 		pr_err("Reserved memory: unable to setup CMA region\n");
 		return err;
 	}
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_set_flag(cma, node);
-#endif
 	set_svc_cma(svc_id, cma);
 
 	mm_seccg_cmas[seccg_cma_num].cma_region = cma;

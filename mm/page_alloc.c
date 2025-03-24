@@ -92,10 +92,6 @@
 #include <linux/protect_lru.h>
 #endif
 
-#ifdef CONFIG_HISI_CMA_DEBUG
-#include <linux/hisi/hisi_cma_debug.h>
-#endif
-
 /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
 static DEFINE_MUTEX(pcp_batch_high_lock);
 #define MIN_PERCPU_PAGELIST_FRACTION	(8)
@@ -7625,17 +7621,9 @@ static int __alloc_contig_migrate_range(struct compact_control *cc,
 	unsigned long pfn = start;
 	unsigned int tries = 0;
 	int ret = 0;
-#ifdef CONFIG_HISI_CMA_DEBUG
-	ktime_t stime;
-	ktime_t loop_stime;
-#endif
 
 	migrate_prep();
 
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_record_alloc_stime_with_log_loop(&stime,
-					     LOOP_TRACE_MIGRARE_RANGE_NUM);
-#endif
 	while (pfn < end || !list_empty(&cc->migratepages)) {
 		if (fatal_signal_pending(current)) {
 			ret = -EINTR;
@@ -7644,16 +7632,7 @@ static int __alloc_contig_migrate_range(struct compact_control *cc,
 
 		if (list_empty(&cc->migratepages)) {
 			cc->nr_migratepages = 0;
-#ifdef CONFIG_HISI_CMA_DEBUG
-			cma_record_alloc_stime_trace_loop(&loop_stime);
-#endif
 			pfn = isolate_migratepages_range(cc, pfn, end);
-#ifdef CONFIG_HISI_CMA_DEBUG
-			cma_record_alloc_etime_trace_loop(
-				loop_stime,
-				LOOP_TRACE_ISOLATE_MIGRATE_RANGE_POS,
-				ISOLATE_MIGRATE_RANGE_LOOP);
-#endif
 			if (!pfn) {
 				ret = -EINTR;
 				break;
@@ -7663,37 +7642,17 @@ static int __alloc_contig_migrate_range(struct compact_control *cc,
 			ret = ret < 0 ? ret : -EBUSY;
 			break;
 		}
-#ifdef CONFIG_HISI_CMA_DEBUG
-		cma_record_alloc_stime_trace_loop(&loop_stime);
-#endif
 		nr_reclaimed = reclaim_clean_pages_from_list(cc->zone,
 							&cc->migratepages);
-#ifdef CONFIG_HISI_CMA_DEBUG
-		cma_record_alloc_etime_trace_loop(
-			loop_stime, LOOP_TRACE_RECLEAM_CLEAN_PAGES_POS,
-			RECLEAM_CLEAN_PAGES_FROM_LIST_LOOP);
-#endif
-
 #ifdef CONFIG_ISOLATE_COUNT
 		mod_node_page_state(cc->zone->zone_pgdat, NR_ISOLATED_ANON,
 				-nr_reclaimed);
 #endif
 		cc->nr_migratepages -= nr_reclaimed;
 
-#ifdef CONFIG_HISI_CMA_DEBUG
-		cma_record_alloc_stime_trace_loop(&loop_stime);
-#endif
 		ret = migrate_pages(&cc->migratepages, alloc_migrate_target,
 				    NULL, 0, cc->mode, MR_CMA);
-#ifdef CONFIG_HISI_CMA_DEBUG
-		cma_record_alloc_etime_trace_loop(loop_stime,
-						  LOOP_TRACE_MIGRATE_PAGES_POS,
-						  MIGRATE_PAGES_LOOP);
-#endif
 	}
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_record_alloc_etime_with_log_loop(stime, MIGRATE_RANGE_PATH);
-#endif
 
 	if (ret < 0) {
 		putback_movable_pages(&cc->migratepages);
@@ -7729,9 +7688,6 @@ int alloc_contig_range(unsigned long start, unsigned long end,
 	unsigned long outer_start, outer_end;
 	unsigned int order;
 	int ret = 0;
-#ifdef CONFIG_HISI_CMA_DEBUG
-	ktime_t time_start;
-#endif
 
 	struct compact_control cc = {
 		.nr_migratepages = 0,
@@ -7766,15 +7722,9 @@ int alloc_contig_range(unsigned long start, unsigned long end,
 	 * aligned range but not in the unaligned, original range are
 	 * put back to page allocator so that buddy can use them.
 	 */
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_record_alloc_stime(&time_start);
-#endif
 	ret = start_isolate_page_range(pfn_max_align_down(start),
 				       pfn_max_align_up(end), migratetype,
 				       false);
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_record_alloc_etime_with_func(time_start, start_isolate_page_range);
-#endif
 	if (ret)
 		return ret;
 
@@ -7788,14 +7738,7 @@ int alloc_contig_range(unsigned long start, unsigned long end,
 	 * allocated.  So, if we fall through be sure to clear ret so that
 	 * -EBUSY is not accidentally used or returned to caller.
 	 */
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_record_alloc_stime(&time_start);
-#endif
 	ret = __alloc_contig_migrate_range(&cc, start, end);
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_record_alloc_etime_with_func(time_start,
-					 __alloc_contig_migrate_range);
-#endif
 	if (ret && ret != -EBUSY)
 		goto done;
 	ret = 0;
@@ -7816,13 +7759,7 @@ int alloc_contig_range(unsigned long start, unsigned long end,
 	 * We don't have to hold zone->lock here because the pages are
 	 * isolated thus they won't get removed from buddy.
 	 */
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_record_alloc_stime(&time_start);
-#endif
 	lru_add_drain_all();
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_record_alloc_etime_with_func(time_start, lru_add_drain_all);
-#endif
 	drain_all_pages(cc.zone);
 
 	order = 0;
@@ -7849,32 +7786,14 @@ int alloc_contig_range(unsigned long start, unsigned long end,
 	}
 
 	/* Make sure the range is really isolated. */
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_record_alloc_stime(&time_start);
-#endif
 	if (test_pages_isolated(outer_start, end, false)) {
 		pr_info_ratelimited("%s: [%lx, %lx) PFNs busy\n",
 			__func__, outer_start, end);
 		ret = -EBUSY;
-#ifdef CONFIG_HISI_CMA_DEBUG
-		cma_record_alloc_etime_with_func(time_start,
-						 test_pages_isolated);
-		dump_cma_multi_pfn(outer_start, end);
-#endif
 		goto done;
 	}
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_record_alloc_etime_with_func(time_start, test_pages_isolated);
-#endif
-
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_record_alloc_stime(&time_start);
-#endif
 	/* Grab isolated pages from freelists. */
 	outer_end = isolate_freepages_range(&cc, outer_start, end);
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_record_alloc_etime_with_func(time_start, isolate_freepages_range);
-#endif
 	if (!outer_end) {
 		ret = -EBUSY;
 		goto done;
@@ -7887,14 +7806,8 @@ int alloc_contig_range(unsigned long start, unsigned long end,
 		free_contig_range(end, outer_end - end);
 
 done:
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_record_alloc_stime(&time_start);
-#endif
 	undo_isolate_page_range(pfn_max_align_down(start),
 				pfn_max_align_up(end), migratetype);
-#ifdef CONFIG_HISI_CMA_DEBUG
-	cma_record_alloc_etime_with_func(time_start, undo_isolate_page_range);
-#endif
 	return ret;
 }
 

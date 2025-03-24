@@ -532,18 +532,6 @@ config CMA_DEBUGFS
 	help
 	  Turns on the DebugFS interface for CMA.
 
-config HISI_CMA_DEBUG
-	bool "Hisilicon CMA debug log"
-	depends on CMA
-	help
-	  Turns on the debug log for hisilicon cma_alloc fail.
-
-config HISI_CMA_RECORD_DEBUG
-	bool "Hisilicon record CMA alloc/release log (DEVELOPMENT)"
-	depends on HISI_CMA_DEBUG && CMA
-	help
-	  Turns on the debug log for record hisilicon cma_alloc/release details.
-
 config CMA_AREAS
 	int "Maximum count of the CMA areas"
 	depends on CMA
@@ -554,12 +542,6 @@ config CMA_AREAS
 	  number of CMA area in the system.
 
 	  If unsure, leave the default value "7".
-
-config HISI_BUFFERED_READAHEAD
-	bool "enlarge readahead for buffered read"
-	default n
-	help
-	  for buffered readahead.
 
 config MEM_SOFT_DIRTY
 	bool "Track memory changes"

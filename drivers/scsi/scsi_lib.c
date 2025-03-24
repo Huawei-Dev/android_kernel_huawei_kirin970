@@ -2192,13 +2192,6 @@ void __scsi_init_queue(struct Scsi_Host *shost, struct request_queue *q)
 	 * Devices that require a bigger alignment can increase it later.
 	 */
 	blk_queue_dma_alignment(q, max(4, dma_get_cache_alignment()) - 1);
-#ifdef CONFIG_MAS_BLK
-#ifdef CONFIG_HISI_BUFFERED_READAHEAD
-	if (shost->queue_quirk_flag & SHOST_QUIRK(SHOST_QUIRK_HUFS_MQ))
-		q->backing_dev_info->ra_pages_cr =
-			(VM_MAX_READAHEAD_CR * 1024) / PAGE_SIZE;
-#endif
-#endif /* CONFIG_MAS_BLK */
 }
 EXPORT_SYMBOL_GPL(__scsi_init_queue);
 
