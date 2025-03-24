@@ -498,7 +498,7 @@ tsk	.req	x28		// current thread_info
 	.pushsection ".entry.text", "ax"
 
 	.align	11
-ENTRY_NOTAG(vectors)
+ENTRY(vectors)
 	kernel_ventry	1, sync_invalid			// Synchronous EL1t
 	kernel_ventry	1, irq_invalid			// IRQ EL1t
 	kernel_ventry	1, fiq_invalid			// FIQ EL1t
@@ -543,7 +543,7 @@ END(vectors)
 	.pushsection ".entry.text", "ax"
 
 	.align	11
-ENTRY_NOTAG(bigcpus_vectors)
+ENTRY(bigcpus_vectors)
 	kernel_ventry	1, sync_invalid			// Synchronous EL1t
 	kernel_ventry	1, irq_invalid			// IRQ EL1t
 	kernel_ventry	1, fiq_invalid			// FIQ EL1t
@@ -1212,7 +1212,7 @@ alternative_insn isb, nop, ARM64_WORKAROUND_QCOM_FALKOR_E1003
 	.endm
 
 	.align	11
-ENTRY_NOTAG(tramp_vectors)
+ENTRY(tramp_vectors)
 	.space	0x400
 
 	tramp_ventry
