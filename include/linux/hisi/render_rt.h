@@ -59,19 +59,6 @@ struct render_stop {
 	int stopped;
 };
 
-#ifdef CONFIG_RENDER_RT
-void add_render_rthread(struct task_struct *task);
-void remove_render_rthread(struct task_struct *task);
-void add_waker_to_render_rthread(struct task_struct *task);
-bool render_rt_inited(void);
-
-/* perf ctrl call interfaces */
-int init_render_rthread(void __user *uarg);
-int destroy_render_rthread(void __user *uarg);
-int stop_render_rthread(void __user *uarg);
-int get_render_rthread(void __user *uarg);
-int get_render_hrthread(void __user *uarg);
-#else
 static inline void add_waker_to_render_rthread(struct task_struct *task)
 {
 	return;
@@ -110,6 +97,5 @@ static inline int get_render_hrthread(void __user *uarg)
 {
 	return -ENODEV;
 }
-#endif
 
 #endif /* __RENDER_RT_H  */

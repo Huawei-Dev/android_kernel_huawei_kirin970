@@ -143,22 +143,6 @@ config SCHED_STAT_YIELD
 	depends on PERF_CTRL
 	default n
 
-config RENDER_RT
-	bool "render realted thread"
-	depends on SCHED_WALT
-	depends on TASK_RAVG_SUM
-	default n
-	help
-	  Render Related Thread
-
-config RENDER_RT_DEBUG
-	bool "render realted thread test"
-	depends on RENDER_RT
-	depends on HISI_DEBUG_FS
-	default n
-	help
-	  Render Related Thread debug trace
-
 config SCHED_RUNNING_AVG
 	bool "per-rq and per-cluster running average statistics"
 	default n

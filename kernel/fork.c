@@ -119,9 +119,6 @@
 #include <chipset_common/hwqos/hwqos_fork.h>
 #endif
 
-#ifdef CONFIG_RENDER_RT
-#include <linux/hisi/render_rt.h>
-#endif
 /*
  * Minimum number of threads to boot the kernel
  */
@@ -437,9 +434,6 @@ void __put_task_struct(struct task_struct *tsk)
 
 #ifdef CONFIG_HW_QOS_THREAD
 	release_task_qos_info(tsk);
-#endif
-#ifdef CONFIG_RENDER_RT
-	remove_render_rthread(tsk);
 #endif
 	cgroup_free(tsk);
 	task_numa_free(tsk, true);

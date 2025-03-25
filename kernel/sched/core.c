@@ -2570,10 +2570,6 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags,
 
 	trace_sched_waking(p);
 
-#ifdef CONFIG_RENDER_RT
-	add_waker_to_render_rthread(p);
-#endif
-
 	/* We're going to change ->state: */
 	success = 1;
 	cpu = task_cpu(p);
@@ -2735,10 +2731,6 @@ static void try_to_wake_up_local(struct task_struct *p, struct rq_flags *rf)
 		goto out;
 
 	trace_sched_waking(p);
-
-#ifdef CONFIG_RENDER_RT
-	add_waker_to_render_rthread(p);
-#endif
 
 	if (!task_on_rq_queued(p)) {
 		u64 wallclock = walt_ktime_clock();
@@ -3134,17 +3126,9 @@ void wake_up_new_task(struct task_struct *p)
 	struct rq_flags rf;
 	struct rq *rq;
 
-#ifdef CONFIG_RENDER_RT
-	add_render_rthread(p);
-#endif
-
 	raw_spin_lock_irqsave(&p->pi_lock, rf.flags);
 
 	p->state = TASK_RUNNING;
-
-#ifdef CONFIG_RENDER_RT
-	add_waker_to_render_rthread(p);
-#endif
 
 #ifdef CONFIG_HISI_EAS_SCHED
 	/* Initialize new task's runnable average */
