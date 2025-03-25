@@ -83,21 +83,6 @@ config SCHED_PRED_LOAD
 
 endif # SCHED_WALT
 
-config SCHED_RUNNING_TASK_ROTATION
-	bool "Rotate running tasks between clusters"
-	default y
-	depends on HISI_EAS_SCHED
-	depends on ED_TASK && !ED_TASK_RESET_AT_UPMIGRATION
-	select SCHED_RUNNING_AVG
-	help
-	  When there are 8 big tasks running parallelly, e.g. geekbench
-	  multicore, tasks which were initially run on big cores will
-	  finish its job very soon and then there will be 6 or less tasks
-	  left.
-	  Rotate the tasks, or in other words exchange them between
-	  little cores and big cores randomly, will improve fairness and
-	  parallelism.
-
 config SCHED_DEBUG_TRACE
 	bool "Detailed trace for EAS debug"
 	default n
@@ -141,8 +126,4 @@ config SCHED_DEPRECATED
 config SCHED_STAT_YIELD
 	bool "Report task's cumulative_yield_time"
 	depends on PERF_CTRL
-	default n
-
-config SCHED_RUNNING_AVG
-	bool "per-rq and per-cluster running average statistics"
 	default n

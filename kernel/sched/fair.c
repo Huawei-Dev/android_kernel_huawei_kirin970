@@ -379,13 +379,6 @@ static inline void update_load_set(struct load_weight *lw, unsigned long w)
 	lw->inv_weight = 0;
 }
 
-#ifdef CONFIG_SCHED_RUNNING_AVG
-static void inc_cfs_nr_heavy_running(struct rq *update_rq,
-				     struct task_struct *p);
-static void dec_cfs_nr_heavy_running(struct rq *update_rq,
-				     struct task_struct *p);
-#endif
-
 /*
  * Increase the granularity value when there are more CPUs,
  * because with more CPUs the 'effective latency' as visible
@@ -5792,9 +5785,6 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 		add_nr_running(rq, 1);
 		if (!task_new)
 			update_overutilized_status(rq);
-#ifdef CONFIG_SCHED_RUNNING_AVG
-		inc_cfs_nr_heavy_running(rq, p);
-#endif
 		walt_inc_cumulative_runnable_avg(rq, p);
 	}
 
@@ -5874,9 +5864,6 @@ static void dequeue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 	if (!se) {
 		sub_nr_running(rq, 1);
 		walt_dec_cumulative_runnable_avg(rq, p);
-#ifdef CONFIG_SCHED_RUNNING_AVG
-		dec_cfs_nr_heavy_running(rq, p);
-#endif
 	}
 
 	util_est_dequeue(&rq->cfs, p, task_sleep);
@@ -8519,15 +8506,6 @@ static inline int find_best_target(struct task_struct *p, int *backup_cpu,
 				    !list_empty(&cpu_rq(i)->hisi_vip_thread_list))
 					continue;
 #endif
-#ifdef CONFIG_SCHED_RUNNING_TASK_ROTATION
-				/*
-				 * When rotation enabled, avoid migrating
-				 * running tasks to active cpus.
-				 */
-				if (p->state == TASK_RUNNING &&
-				    rotation_enabled)
-					continue;
-#endif
 			}
 #endif /* CONFIG_HISI_EAS_SCHED */
 
@@ -9554,50 +9532,6 @@ static void task_dead_fair(struct task_struct *p)
 	remove_entity_load_avg(&p->se);
 }
 #endif /* CONFIG_SMP */
-
-#ifdef CONFIG_SCHED_RUNNING_AVG
-static void inc_cfs_nr_heavy_running(struct rq *update_rq,
-				     struct task_struct *p)
-{
-	if (p->heavy_task)
-		return;
-
-	if (!task_fits_max(p, cpu_of(update_rq))) {
-		update_rq->nr_heavy_running++;
-		p->heavy_task = true;
-	}
-}
-
-static void dec_cfs_nr_heavy_running(struct rq *update_rq,
-				     struct task_struct *p)
-{
-	if (p->heavy_task) {
-		update_rq->nr_heavy_running--;
-		p->heavy_task = false;
-	}
-
-	WARN_ON(update_rq->nr_heavy_running < 0);
-}
-
-static void update_cfs_nr_heavy_running(struct rq *update_rq,
-					struct task_struct *p)
-{
-	bool is_heavy = update_rq->misfit_task_load > 0;
-
-	if (is_heavy != p->heavy_task) {
-		sched_update_nr_prod(update_rq);
-
-		p->heavy_task = is_heavy;
-
-		if (is_heavy) {
-			update_rq->nr_heavy_running++;
-		} else {
-			update_rq->nr_heavy_running--;
-			WARN_ON(update_rq->nr_heavy_running < 0);
-		}
-	}
-}
-#endif
 
 static unsigned long
 wakeup_gran(struct sched_entity *curr, struct sched_entity *se)
@@ -13643,10 +13577,6 @@ void check_for_migration(struct rq *rq, struct task_struct *p)
 		    capacity_orig_of(new_cpu) > capacity_orig_of(cpu))
 			goto do_active_balance;
 
-#ifdef CONFIG_SCHED_RUNNING_TASK_ROTATION
-		/* No upmigration possible. Check for rotation */
-		check_for_rotation(rq);
-#endif
 		goto out_unlock;
 
 do_active_balance:
@@ -13695,10 +13625,6 @@ static void task_tick_fair(struct rq *rq, struct task_struct *curr, int queued)
 	 * unisolate big core and try to upmigrate the task for us later.
 	 */
 	check_force_upmigrate(curr, rq);
-#endif
-
-#ifdef CONFIG_SCHED_RUNNING_AVG
-	update_cfs_nr_heavy_running(rq, curr);
 #endif
 
 	update_overutilized_status(rq);

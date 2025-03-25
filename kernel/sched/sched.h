@@ -41,12 +41,6 @@
 #include "cpupri.h"
 #include "cpudeadline.h"
 #include "cpuacct.h"
-#ifdef CONFIG_SCHED_RUNNING_TASK_ROTATION
-#include "rotation.h"
-#endif
-#ifdef CONFIG_SCHED_RUNNING_AVG
-#include "sched_avg.h"
-#endif
 
 #if defined(CONFIG_SCHED_DEBUG) && defined(CONFIG_SCHED_DEBUG_TRACE)
 # define SCHED_WARN_ON(x)	WARN_ONCE(x, #x)
@@ -951,10 +945,6 @@ struct rq {
 #endif
 #ifdef CONFIG_CPU_FREQ_GOV_SCHEDUTIL_OPT
 	bool skip_overload_detect;
-#endif
-
-#ifdef CONFIG_SCHED_RUNNING_AVG
-	int nr_heavy_running;
 #endif
 
 #ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
@@ -1942,10 +1932,6 @@ static inline void add_nr_running(struct rq *rq, unsigned count)
 
 	rq->nr_running = prev_nr + count;
 
-#ifdef CONFIG_SCHED_RUNNING_AVG
-	sched_update_nr_prod(rq);
-#endif
-
 	if (prev_nr < 2 && rq->nr_running >= 2) {
 #ifdef CONFIG_SMP
 		if (!READ_ONCE(rq->rd->overload))
@@ -1960,9 +1946,6 @@ static inline void sub_nr_running(struct rq *rq, unsigned count)
 {
 	rq->nr_running -= count;
 
-#ifdef CONFIG_SCHED_RUNNING_AVG
-	sched_update_nr_prod(rq);
-#endif
 	/* Check if we still need preemption */
 	sched_update_tick_dependency(rq);
 }

@@ -47,10 +47,6 @@
 #include "walt.h"
 #include "tune.h"
 
-#ifdef CONFIG_SCHED_RUNNING_AVG
-#include "../time/tick-internal.h"
-#endif
-
 #ifdef CONFIG_HW_VIP_THREAD
 #include <chipset_common/hwcfs/hwcfs_common.h>
 #endif
@@ -65,9 +61,6 @@
 DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
 
 #ifdef CONFIG_ED_TASK
-#ifdef CONFIG_SCHED_RUNNING_TASK_ROTATION
-#define ED_TASK_SHORT_DURATION 8000000 /* 8ms */
-#endif
 static inline bool is_ed_task(struct rq *rq, struct task_struct *p, u64 wall)
 {
 #ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
@@ -99,13 +92,6 @@ static inline bool is_ed_task(struct rq *rq, struct task_struct *p, u64 wall)
 					rq->ed_new_task_running_duration)
 			return true;
 	}
-
-#ifdef CONFIG_SCHED_RUNNING_TASK_ROTATION
-	if (rotation_enabled) {
-		if (wall - p->last_wake_ts >= ED_TASK_SHORT_DURATION)
-			return true;
-	}
-#endif
 
 	return false;
 }
@@ -2727,10 +2713,6 @@ static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
 	p->last_sleep_ts		= 0;
 #endif
 
-#ifdef CONFIG_SCHED_RUNNING_AVG
-	p->heavy_task			= 0;
-#endif
-
 #ifdef CONFIG_HUAWEI_SCHED_VIP
 	INIT_LIST_HEAD(&p->hisi_vip_entry);
 	p->vip_prio = 0;
@@ -3720,16 +3702,6 @@ void scheduler_tick(void)
 
 #ifdef CONFIG_HISI_EAS_SCHED
 	sugov_check_freq_update(cpu);
-#endif
-
-#ifdef CONFIG_SCHED_RUNNING_AVG
-	if (cpu == tick_do_timer_cpu) {
-		bool sched_avg_updated = sched_update_running_avg();
-
-#ifdef CONFIG_SCHED_RUNNING_TASK_ROTATION
-		rotation_checkpoint(sched_avg_updated);
-#endif
-	}
 #endif
 }
 
@@ -6833,10 +6805,6 @@ void __init sched_init(void)
 
 #ifdef CONFIG_HISI_CPUFREQ
 		rwlock_init(&per_cpu(update_util_data_lock, i));
-#endif
-
-#ifdef CONFIG_SCHED_RUNNING_TASK_ROTATION
-		rotate_work_init(i);
 #endif
 
 #ifdef CONFIG_MIGRATION_NOTIFY

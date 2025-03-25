@@ -2037,28 +2037,6 @@ TRACE_EVENT(walt_update_top_task,
 );
 #endif /* CONFIG_SCHED_TOP_TASK */
 
-#ifdef CONFIG_SCHED_RUNNING_TASK_ROTATION
-TRACE_EVENT(rotation_checkpoint,
-
-	TP_PROTO(unsigned int nr_big, unsigned int enabled),
-
-	TP_ARGS(nr_big, enabled),
-
-	TP_STRUCT__entry(
-		__field(unsigned int,	nr_big)
-		__field(unsigned int,	enabled)
-	),
-
-	TP_fast_assign(
-		__entry->nr_big		= nr_big;
-		__entry->enabled	= enabled;
-	),
-
-	TP_printk("nr_big=%u enabled=%u",
-		__entry->nr_big, __entry->enabled)
-);
-#endif /* CONFIG_SCHED_RUNNING_TASK_ROTATION */
-
 #ifdef CONFIG_SCHED_PRED_LOAD
 TRACE_EVENT(predl_adjust_runtime,
 

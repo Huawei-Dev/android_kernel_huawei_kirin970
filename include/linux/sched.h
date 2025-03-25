@@ -960,10 +960,6 @@ struct task_struct {
 	u64 last_yield_ts;
 #endif
 
-#ifdef CONFIG_SCHED_RUNNING_AVG
-	bool heavy_task;
-#endif
-
 #ifdef CONFIG_ED_TASK
 	/* cumulative waiting time since last wake */
 	u64 last_wake_wait_sum;
