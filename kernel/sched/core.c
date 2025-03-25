@@ -47,9 +47,6 @@
 #include "walt.h"
 #include "tune.h"
 
-#ifdef CONFIG_CORE_CTRL
-#include <linux/hisi/core_ctl.h>
-#endif
 #ifdef CONFIG_SCHED_RUNNING_AVG
 #include "../time/tick-internal.h"
 #endif
@@ -3841,9 +3838,6 @@ void scheduler_tick(void)
 #ifdef CONFIG_SCHED_RUNNING_TASK_ROTATION
 		rotation_checkpoint(sched_avg_updated);
 #endif
-#ifdef CONFIG_CORE_CTRL
-		core_ctl_check(sched_avg_updated);
-#endif
 	}
 #endif
 }
@@ -5640,9 +5634,6 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
 again:
 #ifdef CONFIG_CPU_ISOLATION_OPT
 	cpumask_copy(&set_mask, new_mask);
-#ifdef CONFIG_CORE_CTRL
-	core_ctl_spread_affinity(&set_mask);
-#endif
 #ifdef CONFIG_CPU_ISOLATION_STRICT
 	cpumask_andnot(&allowed_mask, &set_mask, cpu_isolated_mask);
 	if (!cpumask_intersects(cpu_active_mask, &allowed_mask)) {

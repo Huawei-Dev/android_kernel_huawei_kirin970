@@ -8,18 +8,7 @@
 #include <linux/pm_qos.h>
 #if defined(_PRE_FEATURE_PLAT_LOCK_CPUFREQ) && !defined(CONFIG_HI110X_KERNEL_MODULES_BUILD_SUPPORT)
 #include <linux/cpufreq.h>
-#ifdef CONFIG_ARCH_PLATFORM
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
-#include <linux/platform_drivers/lpcpu_cpufreq_req.h>
-#include <linux/platform_drivers/hisi_core_ctl.h>
-#else
-#include <linux/hisi/lpcpu_cpufreq_req.h>
-#include <linux/hisi/core_ctl.h>
-#endif
-#else
 #include <linux/hisi/hisi_cpufreq_req.h>
-#include <linux/hisi/hisi_core_ctl.h>
-#endif /* end for CONFIG_ARCH_PLATFORM */
 #endif
 #endif
 
@@ -37,9 +26,9 @@
 #define DDR_MAX_FREQ "/sys/class/devfreq/ddrfreq/max_freq"
 #define DDR_MIN_FREQ "/sys/class/devfreq/ddrfreq/min_freq"
 
-#define MAX_DEGRADE_FREQ_COUNT_THRESHOLD_SUCCESSIVE_3  (3)   /* 连续3个周期都需要降频才降频 */
-#define MAX_DEGRADE_FREQ_COUNT_THRESHOLD_SUCCESSIVE_10 (100) /* 有包时连续100个周期都需要降频才降频 */
-/* WIFI测吞吐量较大时将收发中断绑定在大核 */
+#define MAX_DEGRADE_FREQ_COUNT_THRESHOLD_SUCCESSIVE_3  (3)
+#define MAX_DEGRADE_FREQ_COUNT_THRESHOLD_SUCCESSIVE_10 (100)
+
 #define WLAN_IRQ_AFFINITY_IDLE_CPU 0
 #define WLAN_IRQ_AFFINITY_BUSY_CPU 4
 

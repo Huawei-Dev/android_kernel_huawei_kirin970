@@ -381,9 +381,6 @@ OAL_STATIC OAL_INLINE void hmac_lock_cpu_freq_high_throughput_proc(void)
 #if defined(_PRE_FEATURE_PLAT_LOCK_CPUFREQ) && !defined(CONFIG_HI110X_KERNEL_MODULES_BUILD_SUPPORT)
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
     if (g_freq_lock_control.uc_lock_max_cpu_freq == OAL_TRUE) {
-        /* 当前还存在锁频后频率会掉下来，并且后面也无法锁到最高频率，需要继续定位。后续需要调整锁频时间。
-         * 以及确认是否每次需要重新req。 */
-        core_ctl_set_boost(20 * WLAN_FREQ_TIMER_PERIOD * WLAN_THROUGHPUT_STA_PERIOD); // 20是锁频时间为单位时间的20倍
         hmac_lock_max_cpu_freq();
     }
 #endif

@@ -1120,16 +1120,6 @@ config CPU_ISOLATION_STRICT
 	  be migrated to other unisolated cpu, otherwise they can still running
 	  on isolated cpu.
 
-config CORE_CTRL
-	bool "core control"
-	depends on CPU_ISOLATION_OPT
-	select SCHED_RUNNING_AVG
-	default n
-	help
-	  This option enables the core control functionality in
-	  the scheduler. Core control automatically isolate and
-	  unisolate cores based on cpu load and utilization.
-
 config ED_TASK
 	bool "early detection tasks for freq guidance"
 	depends on HISI_EAS_SCHED
