@@ -278,12 +278,7 @@ static void pull_rt_task(struct rq *this_rq);
 static inline bool need_pull_rt_task(struct rq *rq, struct task_struct *prev)
 {
 	/* Try to pull RT tasks here if we lower this rq's prio */
-#ifdef CONFIG_CPU_ISOLATION_OPT
-	return rq->rt.highest_prio.curr > prev->prio &&
-	       !cpu_isolated(cpu_of(rq));
-#else
 	return rq->rt.highest_prio.curr > prev->prio;
-#endif
 }
 
 static inline int rt_overloaded(struct rq *rq)
@@ -1446,18 +1441,10 @@ select_task_rq_rt(struct task_struct *p, int cpu, int sd_flag, int flags,
 	 * This test is optimistic, if we get it wrong the load-balancer
 	 * will have to sort it out.
 	 */
-#ifdef CONFIG_CPU_ISOLATION_OPT
-	if (sysctl_sched_enable_rt_cas ||
-		cpu_isolated(cpu) ||
-		(curr && unlikely(rt_task(curr)) &&
-		(curr->nr_cpus_allowed < 2 ||
-		curr->prio <= p->prio))) {
-#else
 	if (sysctl_sched_enable_rt_cas ||
 		(curr && unlikely(rt_task(curr)) &&
 		(curr->nr_cpus_allowed < 2 ||
 		curr->prio <= p->prio))) {
-#endif
 		int target = find_lowest_rq(p);
 
 		/*
@@ -1768,11 +1755,6 @@ static int find_lowest_rq(struct task_struct *task)
 retry:
 		cpu = cpumask_first(&search_cpu);
 		do {
-#ifdef CONFIG_CPU_ISOLATION_OPT
-			if (cpu_isolated(cpu))
-				continue;
-#endif
-
 			if (walt_cpu_high_irqload(cpu))
 				continue;
 
@@ -2383,11 +2365,6 @@ static void switched_from_rt(struct rq *rq, struct task_struct *p)
 	 */
 	if (!task_on_rq_queued(p) || rq->rt.rt_nr_running)
 		return;
-
-#ifdef CONFIG_CPU_ISOLATION_OPT
-	if (cpu_isolated(cpu_of(rq)))
-		return;
-#endif
 
 	queue_pull_task(rq);
 }
