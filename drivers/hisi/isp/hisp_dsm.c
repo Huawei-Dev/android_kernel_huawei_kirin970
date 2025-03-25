@@ -14,7 +14,7 @@
 #include <linux/platform_device.h>
 #include <linux/of.h>
 #include <linux/platform_data/remoteproc_hisp.h>
-#include <linux/rproc_share.h>
+#include <linux/hisi/rproc_share.h>
 #ifdef CONFIG_HUAWEI_DSM
 #include <dsm/dsm_pub.h>
 #endif

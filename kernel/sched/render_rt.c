@@ -18,7 +18,7 @@
 #include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/sort.h>
-#include <linux/render_rt.h>
+#include <linux/hisi/render_rt.h>
 #include "sched.h"
 #include "walt.h"
 #include <securec.h>

@@ -43,8 +43,8 @@
 #include <asm/byteorder.h>
 #ifdef CONFIG_HISP_REMOTEPROC
 #include <asm/cacheflush.h>
-#include <linux/hisi-iommu.h>
-#include <linux/rproc_share.h>
+#include <linux/hisi/hisi-iommu.h>
+#include <linux/hisi/rproc_share.h>
 #include <linux/platform_data/remoteproc_hisp.h>
 #include <linux/platform_data/hisp.h>
 #endif

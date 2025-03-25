@@ -39,7 +39,7 @@
 #include <linux/slab.h>
 #include <linux/bitops.h>
 #include <linux/iomap.h>
-#include <linux/file_map.h>
+#include <linux/hisi/file_map.h>
 
 
 #include "ext4_jbd2.h"

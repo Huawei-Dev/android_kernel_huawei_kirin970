@@ -24,9 +24,6 @@
 #include <linux/semaphore.h>
 #include <linux/sched/rt.h>
 #include <linux/version.h>
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,19,0))
-#include <linux/ion.h>
-#endif
 #include <linux/dma-buf.h>
 #include <linux/hisi/hisi_ion.h>
 #include <linux/types.h>

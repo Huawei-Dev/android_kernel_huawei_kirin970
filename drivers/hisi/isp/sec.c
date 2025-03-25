@@ -24,12 +24,11 @@
 #include <linux/printk.h>
 #include <linux/file.h>
 #include <linux/kthread.h>
-#include <linux/rproc_share.h>
+#include <linux/hisi/rproc_share.h>
 #include <linux/remoteproc.h>
-#include <linux/ion.h>
 #include <linux/hisi/hisi_ion.h>
 #include <linux/genalloc.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/mutex.h>
 #include <linux/iommu.h>
 #include <linux/compiler.h>

@@ -29,7 +29,7 @@
 #endif
 
 #ifdef CONFIG_MEMCG_PROTECT_LRU
-#include <linux/protect_lru.h>
+#include <linux/hisi/protect_lru.h>
 #endif
 
 void __attribute__((weak)) arch_report_meminfo(struct seq_file *m)

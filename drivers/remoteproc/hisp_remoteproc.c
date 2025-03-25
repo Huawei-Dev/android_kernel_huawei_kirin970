@@ -30,7 +30,7 @@
 #include <linux/regulator/consumer.h>
 #include <linux/scatterlist.h>
 #include <linux/clk.h>
-#include <linux/rproc_share.h>
+#include <linux/hisi/rproc_share.h>
 #include <linux/sched/rt.h>
 #include <linux/kthread.h>
 #include <global_ddr_map.h>
@@ -38,9 +38,8 @@
 #include <asm/cacheflush.h>
 #include <linux/firmware.h>
 #include <linux/iommu.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/crc32.h>
-#include <linux/ion.h>
 #include <linux/hisi/hisi_ion.h>
 #include <linux/hisi/hisi_cmdline_parse.h>
 #include <linux/spinlock.h>

@@ -82,7 +82,7 @@
 #include "internal.h"
 
 #ifdef CONFIG_HW_CGROUP_WORKINGSET
-#include <linux/workingset_cgroup.h>
+#include <linux/hisi/workingset_cgroup.h>
 #endif
 #ifdef CONFIG_SPECULATIVE_PAGE_FAULT
 int sysctl_speculative_page_fault;

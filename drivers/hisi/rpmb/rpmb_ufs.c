@@ -7,7 +7,6 @@
 
 #include <linux/delay.h>
 #include <linux/syscalls.h>
-#include <linux/bootdevice.h>
 #include <linux/slab.h>
 #include <linux/hisi/rpmb.h>
 #include <linux/version.h>

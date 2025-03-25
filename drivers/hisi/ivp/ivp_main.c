@@ -28,9 +28,8 @@
 #include <linux/delay.h>
 #include <linux/version.h>
 #include <linux/pm_wakeup.h>
-#include <linux/ion.h>
 #include <linux/hisi/hisi_ion.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/syscalls.h>
 #include <linux/clk-provider.h>
 #include <linux/bitops.h>

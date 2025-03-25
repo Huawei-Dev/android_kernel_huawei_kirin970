@@ -19,7 +19,7 @@
 #define pr_fmt(fmt) "ufshcd :" fmt
 
 #include "ufs-kirin.h"
-#include <linux/bootdevice.h>
+#include <linux/hisi/bootdevice.h>
 #include <linux/dma-mapping.h>
 #include <linux/gpio.h>
 #include <linux/hisi/lpcpu_idle_sleep.h>

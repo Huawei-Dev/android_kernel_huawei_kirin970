@@ -17,7 +17,7 @@
  */
 
 #ifdef CONFIG_PERF_CTRL
-#include <linux/thermal_perf_ctrl.h>
+#include <linux/hisi/thermal_perf_ctrl.h>
 #endif
 #ifdef CONFIG_ITS
 #include <soc_its_para.h>

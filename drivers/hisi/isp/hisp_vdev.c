@@ -14,7 +14,7 @@
 #include <linux/platform_device.h>
 #include <linux/platform_data/remoteproc_hisp.h>
 #include <linux/scatterlist.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 
 /*
  * hisp viring alloc struct

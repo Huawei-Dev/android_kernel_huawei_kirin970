@@ -40,7 +40,7 @@
 #include <linux/of.h>
 #include <linux/blkdev.h>
 #include <linux/blk-mq.h>
-#include <linux/bootdevice.h>
+#include <linux/hisi/bootdevice.h>
 #include <linux/hisi/rdr_hisi_platform.h>
 
 #include "ufshcd.h"

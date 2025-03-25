@@ -21,7 +21,7 @@
 #include <linux/module.h>
 #include <linux/of_address.h>
 #include <linux/of_platform.h>
-#include <linux/bits.h>
+#include <linux/hisi/bits.h>
 
 #include "audio_log.h"
 

@@ -24,7 +24,7 @@
 #include <linux/mutex.h>
 #include <linux/uaccess.h>
 #include <linux/cdev.h>
-#include <linux/switch.h>
+#include <linux/hisi/switch.h>
 #include <linux/hrtimer.h>
 #include <linux/mfd/hisi_pmic.h>
 #include <linux/of_device.h>

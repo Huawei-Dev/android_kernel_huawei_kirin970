@@ -15,7 +15,7 @@
 #include <linux/firmware.h>
 #include <linux/remoteproc.h>
 #include <linux/iommu.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/gpio.h>
 #include <asm/page.h>
 #include <linux/version.h>

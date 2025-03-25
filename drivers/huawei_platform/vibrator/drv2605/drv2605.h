@@ -24,7 +24,7 @@
 #include <linux/types.h>
 #include <linux/cdev.h>
 #include <linux/leds.h>
-#include <linux/switch.h>
+#include <linux/hisi/switch.h>
 
 #define DEVICE_NAME                 "drv2605"
 #define DRIVER_VERSION              "130"

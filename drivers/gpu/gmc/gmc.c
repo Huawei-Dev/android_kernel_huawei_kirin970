@@ -27,8 +27,8 @@
 #include <linux/fs.h>
 #include <linux/seq_file.h>
 #include <linux/threads.h>
-#include <linux/gmc_storage.h>
-#include <linux/gmc.h>
+#include <linux/hisi/gmc_storage.h>
+#include <linux/hisi/gmc.h>
 #include <asm/uaccess.h>
 #include <linux/proc_fs.h>
 

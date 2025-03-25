@@ -20,8 +20,8 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 
-#include <linux/sched_perf_ctrl.h>
-#include <linux/render_rt.h>
+#include <linux/hisi/sched_perf_ctrl.h>
+#include <linux/hisi/render_rt.h>
 
 static struct task_struct *find_process_by_pid(pid_t pid)
 {

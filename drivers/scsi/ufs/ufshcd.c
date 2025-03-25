@@ -44,7 +44,7 @@
 #include <linux/nls.h>
 #include <linux/of.h>
 #include <linux/blkdev.h>
-#include <linux/bootdevice.h>
+#include <linux/hisi/bootdevice.h>
 #include <scsi/ufs/ufs.h>
 #include <scsi/scsi_device.h>
 #include <scsi/scsi_host.h>
@@ -56,7 +56,7 @@
 #include <linux/thermal.h>
 #include <linux/sched.h>
 #include <linux/hisi/rpmb.h>
-#include <linux/bits.h>
+#include <linux/hisi/bits.h>
 #include <linux/workqueue.h>
 
 #include <linux/cpu.h>

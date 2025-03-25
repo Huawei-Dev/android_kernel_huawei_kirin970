@@ -43,7 +43,7 @@
 #include <linux/platform_device.h>
 #include <linux/sched/task.h>
 #include <linux/time.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #ifdef CONFIG_SCHED_INFO
 #include <linux/sched/cputime.h>
 #endif

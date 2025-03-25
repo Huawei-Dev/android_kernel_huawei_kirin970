@@ -9,7 +9,6 @@
 #include <linux/slab.h>
 #include <linux/delay.h>
 #include <linux/syscalls.h>
-#include <linux/bootdevice.h>
 #include <linux/mmc/core.h>
 #include <linux/mmc/ioctl.h>
 #include <linux/mmc/card.h>

@@ -14,7 +14,7 @@
  * Protect lru of task support. It's between normal lru and mlock,
  * that means we will reclaim protect lru pages as late as possible.
  */
-#include <linux/protect_lru.h>
+#include <linux/hisi/protect_lru.h>
 
 #ifdef CONFIG_MEMCG_PROTECT_LRU
 #include <linux/fs.h>

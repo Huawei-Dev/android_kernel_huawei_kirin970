@@ -37,13 +37,13 @@
 #include <linux/cleancache.h>
 #include <linux/rmap.h>
 #include <linux/hisi/pagecache_manage.h>
-#include <linux/file_map.h>
+#include <linux/hisi/file_map.h>
 #include <linux/delayacct.h>
 #include <linux/psi.h>
 #include "internal.h"
-#include <linux/iolimit_cgroup.h>
+#include <linux/hisi/iolimit_cgroup.h>
 #ifdef CONFIG_MEMCG_PROTECT_LRU
-#include <linux/protect_lru.h>
+#include <linux/hisi/protect_lru.h>
 #endif
 
 #define CREATE_TRACE_POINTS
@@ -56,7 +56,7 @@
 #include <asm/mman.h>
 
 #ifdef CONFIG_HW_CGROUP_WORKINGSET
-#include <linux/workingset_cgroup.h>
+#include <linux/hisi/workingset_cgroup.h>
 #endif
 
 #ifdef CONFIG_HUAWEI_IO_TRACING

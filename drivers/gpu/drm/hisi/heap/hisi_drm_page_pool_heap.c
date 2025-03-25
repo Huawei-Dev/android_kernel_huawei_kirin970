@@ -19,7 +19,7 @@
 #include "hisi_drm_page_pool_heap.h"
 
 #include <linux/mm.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 
 #include "hisi_drm_heaps_manager.h"
 #include "hisi_drm_heap_ops_helper.h"

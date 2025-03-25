@@ -14,8 +14,7 @@
  */
 
 #include <securec.h>
-#include <linux/hisi-spmi.h>
-#include <linux/of_hisi_spmi.h>
+#include <linux/hisi/of_hisi_spmi.h>
 #ifdef CONFIG_COUL_POLAR
 #include "../coul_update_polar_info.h"
 #endif

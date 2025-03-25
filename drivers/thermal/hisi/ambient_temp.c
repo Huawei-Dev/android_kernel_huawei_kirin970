@@ -27,7 +27,7 @@
 #include <linux/rtc.h>
 #include "peripheral_tm.h"
 #include <linux/power/hisi/coul/coul_drv.h>
-#include <linux/lpm_thermal.h>
+#include <linux/hisi/lpm_thermal.h>
 
 #define DEFAULT_AMBIENT_TEMP	0
 #define AMBIENT_MAX_TIME_SEC	(15 * 60)

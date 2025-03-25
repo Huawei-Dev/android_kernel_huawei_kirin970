@@ -18,7 +18,7 @@
 
 #include "hisi-ufs-bkops.h"
 
-#include <linux/mas_bkops_core.h>
+#include <linux/hisi/mas_bkops_core.h>
 #include <linux/version.h>
 
 #include "hisi_ufs_bkops_interface.h"

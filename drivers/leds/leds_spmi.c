@@ -29,8 +29,7 @@
 #include <linux/notifier.h>
 #include <linux/of_gpio.h>
 #include <linux/slab.h>
-#include <linux/hisi-spmi.h>
-#include <linux/of_hisi_spmi.h>
+#include <linux/hisi/of_hisi_spmi.h>
 #include <pr_log.h>
 #include <linux/of_device.h>
 #include <securec.h>

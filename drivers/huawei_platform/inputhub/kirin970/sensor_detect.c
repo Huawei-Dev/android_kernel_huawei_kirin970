@@ -27,7 +27,7 @@
 #include <sensor_detect.h>
 #include "contexthub_debug.h"
 #include <linux/mtd/hisi_nve_interface.h>
-#include <linux/switch.h>
+#include <linux/hisi/switch.h>
 #include <linux/hisi/hw_cmdline_parse.h>
 #include <huawei_platform/inputhub/sensorhub.h>
 
@@ -695,12 +695,6 @@ static void read_acc_data_from_dts(struct device_node *dn)
 		gsensor_data.z_calibrate_thredhold = (uint16_t) temp;
 
 
-/* i2c_address should be set when detect success! not here
-	if (of_property_read_u32(dn, "reg", &temp))
-		hwlog_warn("%s:read acc reg fail\n", __func__);
-	else
-		gsensor_data.cfg.i2c_address = (uint8_t) temp;
-*/
 	if (of_property_read_u32(dn, "file_id", &temp))
 		hwlog_err("%s:read acc file_id fail\n", __func__);
 	else
@@ -804,13 +798,6 @@ static void read_mag_data_from_dts(struct device_node *dn)
 		}
 		hwlog_info("%s: mag akm_cal_algo=%d.\n", __func__, akm_cal_algo);
 	}
-
-/* i2c_address should be set when detect success! not here
-	if (of_property_read_u32(dn, "reg", &temp))
-		hwlog_err("%s:read mag reg fail\n", __func__);
-	else
-		mag_data.cfg.i2c_address = (uint8_t) temp;
-*/
 
 	if (of_property_read_u32(dn, "file_id", &temp))
 		hwlog_err("%s:read mag file_id fail\n", __func__);
@@ -3371,15 +3358,6 @@ static void register_priv_notifier(SENSOR_DETECT_LIST s_id)
 	return;
 }
 
-/*******************************************************************************************
-Function:	sensor_set_cfg_data
-Description: 将配置参数发至mcu 侧
-Data Accessed:  无
-Data Updated:   无
-Input:        无
-Output:         无
-Return:         成功或者失败信息: 0->成功, -1->失败
-*******************************************************************************************/
 int sensor_set_cfg_data(void)
 {
 	int ret = 0;

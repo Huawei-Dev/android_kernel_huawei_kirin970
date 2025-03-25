@@ -17,7 +17,7 @@
  *
  */
 
-#include <linux/dpm_hwmon_modem.h>
+#include <linux/hisi/dpm_hwmon_modem.h>
 #include <linux/kernel.h>
 #include <linux/errno.h>
 

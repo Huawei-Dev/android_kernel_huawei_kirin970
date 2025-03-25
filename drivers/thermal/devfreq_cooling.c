@@ -29,7 +29,7 @@
 #include <trace/events/thermal.h>
 
 #ifdef CONFIG_ITS_IPA
-#include <linux/lpm_thermal.h>
+#include <linux/hisi/lpm_thermal.h>
 #include <linux/hisi/dpm_hwmon_user.h>
 #endif
 #ifdef CONFIG_IPA_THERMAL

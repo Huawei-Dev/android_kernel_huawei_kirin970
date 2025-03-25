@@ -9,7 +9,7 @@
  *
  * Copyright (C) 2001-2003 Andreas Gruenbacher, <agruen@suse.de>
  */
-#include <linux/hmfs_fs.h>
+#include "hmfs_fs.h"
 #include "hmfs.h"
 #include "xattr.h"
 #include "acl.h"

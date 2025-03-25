@@ -26,7 +26,7 @@
 
 #include "mali_kbase_hisi_callback.h"
 #include "hisi_ipa/mali_kbase_ipa_ctx.h"
-#include "linux/gmc.h"
+#include "linux/hisi/gmc.h"
 
 /**
  * struct kbase_hisi_device_data - all hisi platform data in device level.

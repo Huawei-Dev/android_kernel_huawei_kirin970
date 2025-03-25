@@ -14,7 +14,7 @@
 #include <linux/libnvdimm.h>
 #include <linux/module.h>
 #include <linux/mutex.h>
-#include <linux/ndctl.h>
+#include <linux/hisi/ndctl.h>
 #include <linux/sysfs.h>
 #include <linux/delay.h>
 #include <linux/list.h>

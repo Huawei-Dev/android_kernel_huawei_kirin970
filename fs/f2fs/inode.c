@@ -16,7 +16,7 @@
 #include "segment.h"
 
 #include <trace/events/f2fs.h>
-#include <linux/file_map.h>
+#include <linux/hisi/file_map.h>
 
 void f2fs_mark_inode_dirty_sync(struct inode *inode, bool sync)
 {

@@ -52,7 +52,6 @@
 
 #include <linux/spi/spi.h>
 
-#include <linux/ion.h>
 #include <linux/gpio.h>
 
 #include <linux/of.h>

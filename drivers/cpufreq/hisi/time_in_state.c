@@ -25,7 +25,7 @@
 #include <linux/cpufreq.h>
 #include <linux/cpumask.h>
 #include <linux/cpuidle.h>
-#include <linux/cpufreq_perf_ctrl.h>
+#include <linux/hisi/cpufreq_perf_ctrl.h>
 
 #define KHZ_PER_MHZ 1000
 

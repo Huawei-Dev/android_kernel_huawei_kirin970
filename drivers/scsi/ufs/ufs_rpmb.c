@@ -7,7 +7,7 @@
 #include "ufs_rpmb.h"
 #include "ufs-kirin.h"
 #ifdef CONFIG_HISI_BOOTDEVICE
-#include <linux/bootdevice.h>
+#include <linux/hisi/bootdevice.h>
 #endif
 
 #ifdef CONFIG_PM

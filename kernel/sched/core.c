@@ -48,7 +48,7 @@
 #include "tune.h"
 
 #ifdef CONFIG_CORE_CTRL
-#include <linux/core_ctl.h>
+#include <linux/hisi/core_ctl.h>
 #endif
 #ifdef CONFIG_SCHED_RUNNING_AVG
 #include "../time/tick-internal.h"

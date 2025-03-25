@@ -32,7 +32,6 @@
 #include <linux/device.h>
 #include <linux/efi.h>
 #include <linux/platform_device.h>
-#include <linux/ion.h>
 #include <linux/pm_wakeup.h>
 #include <asm/fb.h>
 #include "hisi_aod_device.h"

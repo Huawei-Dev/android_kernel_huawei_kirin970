@@ -17,7 +17,7 @@
  */
 #include <linux/module.h>
 #ifdef CONFIG_HUAWEI_HEADSET_DEBUG_SWITCH
-#include <linux/switch.h>
+#include <linux/hisi/switch.h>
 #endif
 #include <linux/input.h>
 #include <linux/delay.h>

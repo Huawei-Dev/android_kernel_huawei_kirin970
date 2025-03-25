@@ -20,13 +20,13 @@
 #include <linux/exportfs.h>
 #include <linux/blkdev.h>
 #include <linux/quotaops.h>
-#include <linux/hmfs_fs.h>
+#include "hmfs_fs.h"
 #include <linux/sysfs.h>
 #include <linux/quota.h>
-#include <linux/file_map.h>
+#include <linux/hisi/file_map.h>
 
 #ifdef CONFIG_FSCK_BOOST
-#include <linux/fsck_boost.h>
+#include <linux/hisi/fsck_boost.h>
 #endif
 
 #include "hmfs.h"

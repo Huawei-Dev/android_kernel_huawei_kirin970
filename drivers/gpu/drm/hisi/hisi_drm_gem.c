@@ -19,7 +19,7 @@
 #include "hisi_defs.h"
 #include "hisi_drm_gem.h"
 
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <drm/drmP.h>
 #include <drm/drm_prime.h>
 #include <hisi_drm_drv.h>

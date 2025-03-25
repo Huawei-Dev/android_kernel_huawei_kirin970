@@ -21,7 +21,6 @@
 #include <linux/err.h>
 #include <linux/interrupt.h>
 #include <linux/io.h>
-#include <linux/hisi-spmi.h>
 #include <pr_log.h>
 #include <linux/mfd/hisi_pmic.h>
 #include <linux/module.h>
@@ -30,7 +29,7 @@
 #include <linux/of_device.h>
 #include <linux/of_gpio.h>
 #include <linux/of_irq.h>
-#include <linux/of_hisi_spmi.h>
+#include <linux/hisi/of_hisi_spmi.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 #include <linux/bitops.h>

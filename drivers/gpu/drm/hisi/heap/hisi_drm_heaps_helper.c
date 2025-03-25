@@ -20,7 +20,7 @@
 
 #include <linux/err.h>
 #include <linux/printk.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <drm/drm_device.h>
 
 #include "hisi_drm.h"

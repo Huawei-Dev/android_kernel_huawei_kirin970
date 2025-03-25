@@ -17,7 +17,7 @@
 
 #ifndef __RDR_LPM3_H__
 #define __RDR_LPM3_H__
-#include <linux/tele_mntn.h>
+#include <linux/hisi/tele_mntn.h>
 /* lpm3 log cleartext -- head info */
 #define PC_LO_PWR_DOWN	0x5CC55CC5
 #define PC_HI_PWR_DOWN	0xC55CC55C

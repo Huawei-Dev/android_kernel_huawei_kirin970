@@ -32,7 +32,7 @@
 #include <linux/irq_work.h>
 #include <linux/tick.h>
 #include <linux/slab.h>
-#include <linux/render_rt.h>
+#include <linux/hisi/render_rt.h>
 
 #ifdef CONFIG_PARAVIRT
 #include <asm/paravirt.h>

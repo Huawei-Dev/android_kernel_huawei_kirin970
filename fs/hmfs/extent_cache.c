@@ -9,7 +9,7 @@
  */
 
 #include <linux/fs.h>
-#include <linux/hmfs_fs.h>
+#include "hmfs_fs.h"
 
 #include "hmfs.h"
 #include "node.h"

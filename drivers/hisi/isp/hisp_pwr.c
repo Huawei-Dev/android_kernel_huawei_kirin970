@@ -19,7 +19,7 @@
 #include <linux/hisi/partition_ap_kernel.h>
 #include <teek_client_id.h>
 #include <partition_macro.h>
-#include <linux/rproc_share.h>
+#include <linux/hisi/rproc_share.h>
 #include <global_ddr_map.h>
 #include "hisp_internel.h"
 #include <isp_ddr_map.h>

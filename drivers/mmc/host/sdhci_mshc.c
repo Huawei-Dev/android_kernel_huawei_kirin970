@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  */
 
-#include <linux/bootdevice.h>
+#include <linux/hisi/bootdevice.h>
 #include <linux/module.h>
 #include <linux/dma-mapping.h>
 #include <linux/delay.h>

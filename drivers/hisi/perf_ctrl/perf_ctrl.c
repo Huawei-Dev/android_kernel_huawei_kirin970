@@ -24,7 +24,7 @@
 #include <linux/platform_device.h>
 #include <linux/uaccess.h>
 #include <linux/of.h>
-#include <linux/perf_ctrl.h>
+#include <linux/hisi/perf_ctrl.h>
 
 static unsigned long get_dev_cap(void)
 {

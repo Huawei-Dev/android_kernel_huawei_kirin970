@@ -36,8 +36,7 @@
 #include <linux/device.h>
 #include <linux/pm_wakeup.h>
 
-#include <linux/hisi-spmi.h>
-#include <linux/of_hisi_spmi.h>
+#include <linux/hisi/of_hisi_spmi.h>
 
 #ifdef CONFIG_HISI_HI6XXX_PMIC
 #include <soc_smart_interface.h>

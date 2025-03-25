@@ -16,7 +16,7 @@
 #define __NFIT_H__
 #include <linux/workqueue.h>
 #include <linux/libnvdimm.h>
-#include <linux/ndctl.h>
+#include <linux/hisi/ndctl.h>
 #include <linux/types.h>
 #include <linux/acpi.h>
 #include <acpi/acuuid.h>

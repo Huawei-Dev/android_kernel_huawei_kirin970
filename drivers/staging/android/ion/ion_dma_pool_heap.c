@@ -24,7 +24,6 @@
 #include <linux/genalloc.h>
 #include <linux/hisi/hisi_ion.h>
 #include <linux/io.h>
-#include <linux/ion.h>
 #include <linux/mm.h>
 #include <linux/of.h>
 #include <linux/of_fdt.h>

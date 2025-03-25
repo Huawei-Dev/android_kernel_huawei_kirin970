@@ -13,7 +13,6 @@
 #include <linux/device.h>
 #include <linux/dma-buf.h>
 #include <linux/err.h>
-#include <linux/ion.h>
 #include <linux/hisi/hisi_ion.h>
 #include <linux/platform_data/remoteproc_hisp.h>
 #include <teek_client_api.h>

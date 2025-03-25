@@ -89,7 +89,7 @@
 #endif
 
 #ifdef CONFIG_MEMCG_PROTECT_LRU
-#include <linux/protect_lru.h>
+#include <linux/hisi/protect_lru.h>
 #endif
 
 /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */

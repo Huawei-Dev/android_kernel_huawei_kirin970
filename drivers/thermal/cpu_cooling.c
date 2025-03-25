@@ -35,7 +35,7 @@
 #include <trace/events/thermal.h>
 
 #ifdef CONFIG_IPA_THERMAL
-#include <linux/lpm_thermal.h>
+#include <linux/hisi/lpm_thermal.h>
 #include <trace/events/thermal_power_allocator.h>
 #ifdef CONFIG_THERMAL_SPM
 extern unsigned int get_powerhal_profile(int actor);

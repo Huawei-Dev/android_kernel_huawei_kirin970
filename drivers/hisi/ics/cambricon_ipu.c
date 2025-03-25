@@ -44,7 +44,6 @@
 #include <linux/kfifo.h>
 #include <linux/irq.h>
 #include <asm/io.h>
-#include <linux/ion.h>
 #include <linux/mfd/hisi_pmic.h>
 #include <linux/timex.h>
 #include <linux/rtc.h>

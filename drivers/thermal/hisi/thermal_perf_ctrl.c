@@ -20,8 +20,8 @@
 #include <linux/thermal.h>
 #include <asm/io.h>
 #include <securec.h>
-#include <linux/thermal_perf_ctrl.h>
-#include <linux/lpm_thermal.h>
+#include <linux/hisi/thermal_perf_ctrl.h>
+#include <linux/hisi/lpm_thermal.h>
 
 const char thermal_cdev_type_name[THERMAL_CDEV_MAX][THERMAL_NAME_LENGTH] = {
 	CDEV_GPU_NAME,

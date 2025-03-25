@@ -15,7 +15,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-#include <linux/iolimit_cgroup.h>
+#include <linux/hisi/iolimit_cgroup.h>
 
 #include <linux/kernel.h>
 #include <linux/slab.h>

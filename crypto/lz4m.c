@@ -28,7 +28,7 @@
 #include <linux/module.h>
 #include <linux/crypto.h>
 #include <linux/vmalloc.h>
-#include <linux/lz4m.h>
+#include <linux/hisi/lz4m.h>
 
 struct lz4m_ctx {
 	void *lz4m_comp_mem;

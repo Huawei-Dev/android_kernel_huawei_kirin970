@@ -8,7 +8,7 @@
  */
 #include <linux/compiler.h>
 #include <linux/proc_fs.h>
-#include <linux/hmfs_fs.h>
+#include "hmfs_fs.h"
 #include <linux/seq_file.h>
 
 #include "hmfs.h"

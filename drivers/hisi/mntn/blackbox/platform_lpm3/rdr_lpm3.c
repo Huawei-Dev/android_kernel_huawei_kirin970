@@ -16,7 +16,7 @@
  *
  */
 
-#include <linux/rdr_lpm3.h>
+#include <linux/hisi/rdr_lpm3.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/printk.h>

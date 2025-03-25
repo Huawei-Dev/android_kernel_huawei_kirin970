@@ -9,14 +9,14 @@
 #include <linux/module.h>
 #include <linux/backing-dev.h>
 #include <linux/init.h>
-#include <linux/hmfs_fs.h>
+#include "hmfs_fs.h"
 #include <linux/kthread.h>
 #include <linux/delay.h>
 #include <linux/freezer.h>
 #include <linux/timer.h>
 #include <linux/blkdev.h>
 #include <linux/sched/signal.h>
-#include <linux/mas_bkops_core.h>
+#include <linux/hisi/mas_bkops_core.h>
 #include <linux/radix-tree.h>
 
 #include "hmfs.h"

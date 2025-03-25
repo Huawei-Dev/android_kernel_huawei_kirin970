@@ -17,8 +17,7 @@
  */
 
 #include "hisi_spmi_dbgfs.h"
-#include <linux/hisi-spmi.h>
-#include <linux/of_hisi_spmi.h>
+#include <linux/hisi/of_hisi_spmi.h>
 #include <linux/delay.h>
 #include <linux/err.h>
 #include <linux/io.h>

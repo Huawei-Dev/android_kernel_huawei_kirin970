@@ -16,7 +16,7 @@
  *  Red Hat Inc.
  */
 #include <linux/rwsem.h>
-#include <linux/hmfs_fs.h>
+#include "hmfs_fs.h"
 #include <linux/security.h>
 #include <linux/posix_acl_xattr.h>
 #include "hmfs.h"

@@ -15,7 +15,7 @@
 
 #include "dw_mmc_hi3xxx.h"
 
-#include <linux/bootdevice.h>
+#include <linux/hisi/bootdevice.h>
 #include <linux/module.h>
 #include <linux/platform_device.h>
 #include <linux/clk.h>

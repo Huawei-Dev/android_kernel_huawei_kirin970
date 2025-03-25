@@ -38,7 +38,7 @@
 #include <asm/compiler.h>
 #include <linux/proc_fs.h>
 #include <bl31_smc.h>
-#include <linux/rdr_lpm3.h>
+#include <linux/hisi/rdr_lpm3.h>
 #include <securec.h>
 
 #define AVS_VOLT_MAX_BYTE				192U

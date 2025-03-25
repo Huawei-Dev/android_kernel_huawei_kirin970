@@ -25,7 +25,7 @@
 #include <linux/fs.h>
 #include <linux/buffer_head.h>
 #include <linux/slab.h>
-#include <linux/unicode.h>
+#include <linux/hisi/unicode.h>
 #include "ext4.h"
 #include "xattr.h"
 

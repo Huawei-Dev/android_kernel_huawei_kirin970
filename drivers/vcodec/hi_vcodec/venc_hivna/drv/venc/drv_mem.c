@@ -23,7 +23,7 @@
 #include <linux/dma-iommu.h>
 #include <linux/dma-buf.h>
 #include <linux/iommu.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include "drv_common.h"
 
 #define  MAX_BUFFER_SIZE (10*1024)

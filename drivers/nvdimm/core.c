@@ -17,7 +17,7 @@
 #include <linux/blkdev.h>
 #include <linux/device.h>
 #include <linux/ctype.h>
-#include <linux/ndctl.h>
+#include <linux/hisi/ndctl.h>
 #include <linux/mutex.h>
 #include <linux/slab.h>
 #include <linux/io.h>

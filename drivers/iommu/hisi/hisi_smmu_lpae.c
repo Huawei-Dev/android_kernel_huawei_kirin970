@@ -18,7 +18,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/dma-iommu.h>
 #include <linux/err.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/hisi/rdr_hisi_ap_hook.h>
 #include <linux/interrupt.h>
 #include <linux/io.h>

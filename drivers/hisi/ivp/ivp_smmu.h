@@ -22,7 +22,7 @@
 #include <linux/clk.h>
 #include <linux/mm.h>
 #include <linux/iommu.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <dsm/dsm_pub.h>
 #include "securec.h"
 

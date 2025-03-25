@@ -19,7 +19,7 @@
 #ifndef _SPMI_DBGFS_H
 #define _SPMI_DBGFS_H
 
-#include <linux/hisi-spmi.h>
+#include <linux/hisi/hisi-spmi.h>
 
 #ifdef CONFIG_HISI_SPMI_DEBUG_FS
 int spmi_dfs_add_controller(struct spmi_controller *ctrl);

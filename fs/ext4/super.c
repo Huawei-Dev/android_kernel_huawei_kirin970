@@ -40,11 +40,11 @@
 #include <linux/dax.h>
 #include <linux/cleancache.h>
 #include <linux/uaccess.h>
-#include <linux/unicode.h>
+#include <linux/hisi/unicode.h>
 
 #include <linux/kthread.h>
 #include <linux/freezer.h>
-#include <linux/file_map.h>
+#include <linux/hisi/file_map.h>
 
 #include "ext4.h"
 #include "ext4_extents.h"	/* Needed for trace points definition */

@@ -26,8 +26,7 @@
 #include <linux/irqnr.h>
 #include <linux/of.h>
 #include <linux/err.h>
-#include <linux/hisi-spmi.h>
-#include <linux/of_hisi_spmi.h>
+#include <linux/hisi/of_hisi_spmi.h>
 #include <linux/mfd/hisi_pmic_mntn.h>
 #include <linux/mfd/hisi_pmic.h>
 

@@ -92,7 +92,7 @@
 #include <linux/livepatch.h>
 #include <linux/thread_info.h>
 #include <linux/cpufreq_times.h>
-#include <linux/xreclaimer.h>
+#include <linux/hisi/xreclaimer.h>
 
 #include <linux/blk-cgroup.h>
 
@@ -120,7 +120,7 @@
 #endif
 
 #ifdef CONFIG_RENDER_RT
-#include <linux/render_rt.h>
+#include <linux/hisi/render_rt.h>
 #endif
 /*
  * Minimum number of threads to boot the kernel

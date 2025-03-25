@@ -10,12 +10,11 @@
  */
 #include <huawei_platform/log/log_jank.h>
 #include <linux/hisi/usb/hisi_usb.h>
-#include <linux/hisi-spmi.h>
 #include <linux/interrupt.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/mfd/hisi_pmic.h>
-#include <linux/of_hisi_spmi.h>
+#include <linux/hisi/of_hisi_spmi.h>
 
 static irqreturn_t charger_connect_interrupt(int irq, void *p)
 {

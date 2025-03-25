@@ -23,8 +23,7 @@
 #include <linux/version.h>
 #include <linux/seq_file.h>
 #include <linux/uaccess.h>
-#include <linux/hisi-spmi.h>
-#include <linux/of_hisi_spmi.h>
+#include <linux/hisi/of_hisi_spmi.h>
 #include <pr_log.h>
 
 #define PR_LOG_TAG PMIC_REGULATOR_TAG

@@ -14,7 +14,7 @@
 #include <linux/random.h>
 #include <linux/exportfs.h>
 #include <linux/blkdev.h>
-#include <linux/hmfs_fs.h>
+#include "hmfs_fs.h"
 #include <linux/sysfs.h>
 
 #ifdef CONFIG_MAS_BLK

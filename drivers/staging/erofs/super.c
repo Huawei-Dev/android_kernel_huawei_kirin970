@@ -17,7 +17,7 @@
 #include <linux/seq_file.h>
 
 #ifdef CONFIG_FILE_MAP
-#include <linux/file_map.h>
+#include <linux/hisi/file_map.h>
 #endif
 
 #include "internal.h"

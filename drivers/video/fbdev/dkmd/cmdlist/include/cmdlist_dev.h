@@ -17,7 +17,7 @@
 #ifndef __CMDLIST_DEV_H__
 #define __CMDLIST_DEV_H__
 
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/slab.h>
 #include <linux/genalloc.h>
 

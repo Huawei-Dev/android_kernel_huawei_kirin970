@@ -6,7 +6,7 @@
  * Create: 2020-06-29
  */
 #include <linux/mm.h>
-#include <linux/xreclaimer.h>
+#include <linux/hisi/xreclaimer.h>
 #include <linux/mmu_notifier.h>
 #include <linux/sched/mm.h>
 #include <linux/freezer.h>

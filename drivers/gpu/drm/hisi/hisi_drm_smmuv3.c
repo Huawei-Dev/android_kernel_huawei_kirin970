@@ -15,7 +15,7 @@
 #include <soc_pmctrl_interface.h>
 #include <soc_smmuv3_tbu_interface.h>
 #include <linux/hisi/hisi_drmdriver.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 
 #include "hisi_drm_dpe_utils.h"
 #include "hisi_drm_smmuv3.h"

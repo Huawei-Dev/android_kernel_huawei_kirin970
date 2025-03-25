@@ -19,7 +19,7 @@
 #include <linux/fcntl.h>
 #include <linux/async.h>
 #include <linux/genhd.h>
-#include <linux/ndctl.h>
+#include <linux/hisi/ndctl.h>
 #include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/fs.h>

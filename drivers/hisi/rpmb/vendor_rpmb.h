@@ -7,7 +7,7 @@
 #ifndef __VENDOR_RPMB_H__
 #define __VENDOR_RPMB_H__
 
-#include <linux/bootdevice.h>
+#include <linux/hisi/bootdevice.h>
 #include <linux/hisi/rpmb.h>
 #include "rpmb_fs.h"
 

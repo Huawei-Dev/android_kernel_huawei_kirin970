@@ -10,7 +10,7 @@
 
 #include <linux/scatterlist.h>
 #include <linux/printk.h>
-#include <linux/rproc_share.h>
+#include <linux/hisi/rproc_share.h>
 #include <linux/genalloc.h>
 #include <linux/list.h>
 #include <linux/mutex.h>

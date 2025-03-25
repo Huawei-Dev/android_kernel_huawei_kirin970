@@ -26,7 +26,7 @@
 #include <linux/device.h>
 #include <asm/page.h>
 #include "peripheral_tm.h"
-#include <linux/lpm_thermal.h>
+#include <linux/hisi/lpm_thermal.h>
 #include <linux/power/hisi/coul/coul_drv.h>
 
 #define CREATE_TRACE_POINTS

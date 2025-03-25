@@ -15,7 +15,7 @@
 #ifndef _HISI_SMMU_H
 #define _HISI_SMMU_H
 #include <linux/genalloc.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/iommu.h>
 #include <linux/rbtree.h>
 

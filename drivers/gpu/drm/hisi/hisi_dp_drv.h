@@ -23,7 +23,7 @@
 #include <linux/regulator/consumer.h>
 #include <linux/version.h>
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0))
-#include <linux/switch.h>
+#include <linux/hisi/switch.h>
 #endif
 
 #include <drm/drm_encoder.h>

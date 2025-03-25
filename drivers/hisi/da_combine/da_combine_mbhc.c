@@ -29,7 +29,7 @@
 #include <linux/miscdevice.h>
 #include <linux/input.h>
 #ifdef CONFIG_SWITCH
-#include <linux/switch.h>
+#include <linux/hisi/switch.h>
 #endif
 #include <linux/version.h>
 #include <linux/types.h>

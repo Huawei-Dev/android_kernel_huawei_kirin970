@@ -20,7 +20,7 @@
 #include <linux/hdreg.h>
 #include <linux/genhd.h>
 #include <linux/sizes.h>
-#include <linux/ndctl.h>
+#include <linux/hisi/ndctl.h>
 #include <linux/fs.h>
 #include <linux/nd.h>
 #include "btt.h"

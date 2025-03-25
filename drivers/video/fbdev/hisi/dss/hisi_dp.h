@@ -23,7 +23,7 @@
 #include "hisi_fb_config.h"
 
 #if CONFIG_DP_ENABLE
-#include <linux/switch.h>
+#include <linux/hisi/switch.h>
 #endif
 #include <drm/drm_dp_helper.h>
 #include "dp/link/drm_dp_helper_additions.h"

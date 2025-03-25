@@ -1,5 +1,5 @@
 #include <linux/errno.h>
-#include <linux/hisi-iommu.h> //for struct iommu_domain_data
+#include <linux/hisi/hisi-iommu.h> //for struct iommu_domain_data
 #include <linux/iommu.h> //for struct iommu_domain
 #include <linux/mutex.h>
 #include <linux/list.h>

@@ -17,7 +17,7 @@
 
 #include "hisi_pmic_mntn_inner.h"
 #include <linux/mfd/hisi_pmic_mntn.h>
-#include <linux/hisi-spmi.h>
+#include <linux/hisi/hisi-spmi.h>
 #include <linux/version.h>
 #include <pr_log.h>
 #define PR_LOG_TAG PMIC_MNTN_TAG

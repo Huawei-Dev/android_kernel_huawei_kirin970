@@ -118,7 +118,7 @@
 	.file	116 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/linux/mm_types_task.h"
 	.file	117 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/arch/arm64/include/asm/mmu.h"
 	.file	118 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/linux/uprobes.h"
-	.file	119 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/linux/xreclaimer_types.h"
+	.file	119 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/linux/hisi/xreclaimer_types.h"
 	.file	120 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/arch/arm64/include/asm/compat.h"
 	.file	121 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/uapi/asm-generic/signal.h"
 	.file	122 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/linux/signal_types.h"

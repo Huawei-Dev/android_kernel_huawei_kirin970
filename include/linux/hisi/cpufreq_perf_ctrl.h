@@ -1,4 +1,7 @@
-/* Copyright (c) 2018-2019, Hisilicon Tech. Co., Ltd. All rights reserved.
+/*
+ * cpufreq_perf_ctrl.h
+ *
+ * Copyright (c) 2020, Huawei Technologies Co., Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -8,21 +11,22 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
  */
-#ifndef HISI_DSS_ION_H
-#define HISI_DSS_ION_H
+#ifndef __CPUFREQ_PERF_CTRL_H
+#define __CPUFREQ_PERF_CTRL_H
 
-#include <linux/dma-mapping.h>
-#include <linux/device.h>
-#include <linux/of_reserved_mem.h>
-#include <linux/version.h>
-#include <linux/fb.h>
-#include <linux/version.h>
-#include <linux/hisi/hisi-iommu.h>
+struct cpu_busy_time {
+	int cpu_count;
+	u64 time_adj_freq[NR_CPUS];
+};
 
-void *hisifb_iommu_map_kernel(
-	struct sg_table *sg_table,
-	size_t size);
+#if defined(CONFIG_PERF_CTRL) && defined(CONFIG_HISI_FREQ_STATS_COUNTING_IDLE)
+int perf_ctrl_get_cpu_busy_time(void __user *uarg);
+#else
+static inline int perf_ctrl_get_cpu_busy_time(void __user *uarg)
+{
+	return -ENODEV;
+}
+#endif
 
-#endif /* HISI_DSS_ION_H */
+#endif

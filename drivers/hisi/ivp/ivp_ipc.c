@@ -21,9 +21,8 @@
 #include <linux/mm.h>
 #include <linux/slab.h>
 #include <linux/of.h>
-#include <linux/ion.h>
 #include <linux/hisi/hisi_ion.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include "securec.h"
 #include "ivp_sec.h"
 #include "ivp.h"

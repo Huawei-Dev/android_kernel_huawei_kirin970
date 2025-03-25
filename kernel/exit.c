@@ -62,7 +62,7 @@
 #include <linux/random.h>
 #include <linux/rcuwait.h>
 #include <linux/compat.h>
-#include <linux/xreclaimer.h>
+#include <linux/hisi/xreclaimer.h>
 
 #include <linux/uaccess.h>
 #include <asm/unistd.h>

@@ -21,7 +21,7 @@
 #include <trace/events/writeback.h>
 #include "internal.h"
 #ifdef CONFIG_MEMCG_PROTECT_LRU
-#include <linux/protect_lru.h>
+#include <linux/hisi/protect_lru.h>
 #endif
 
 /*

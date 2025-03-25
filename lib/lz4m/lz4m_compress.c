@@ -36,7 +36,7 @@
  *	Sven Schmidt <4sschmid@informatik.uni-hamburg.de>
  */
 
-#include <linux/lz4m.h>
+#include <linux/hisi/lz4m.h>
 #include <linux/types.h>
 #include <linux/module.h>
 #include <linux/kernel.h>

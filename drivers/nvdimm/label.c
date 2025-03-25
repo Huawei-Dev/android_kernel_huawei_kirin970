@@ -11,7 +11,7 @@
  * General Public License for more details.
  */
 #include <linux/device.h>
-#include <linux/ndctl.h>
+#include <linux/hisi/ndctl.h>
 #include <linux/uuid.h>
 #include <linux/slab.h>
 #include <linux/io.h>

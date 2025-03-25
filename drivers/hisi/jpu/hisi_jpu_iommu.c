@@ -22,7 +22,7 @@
 #include <linux/scatterlist.h>
 #include <linux/dma-mapping.h>
 #include <linux/dma-buf.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include "hisi_jpu_def.h"
 
 #define MAX_INPUT_DATA_LEN (8192 * 8192 * 4)

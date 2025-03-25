@@ -31,7 +31,7 @@
 #include "sd_ops.h"
 #include "pwrseq.h"
 #ifdef CONFIG_HISI_BOOTDEVICE
-#include <linux/bootdevice.h>
+#include <linux/hisi/bootdevice.h>
 #include "emmc-rpmb.h"
 #endif
 #ifdef CONFIG_HUAWEI_STORAGE_ROFA

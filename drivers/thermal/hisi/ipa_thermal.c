@@ -39,7 +39,7 @@
 #ifdef CONFIG_THERMAL_SPM
 #include <linux/string.h>
 #endif
-#include <linux/lpm_thermal.h>
+#include <linux/hisi/lpm_thermal.h>
 
 struct capacitances g_caps;
 struct thermal g_ipa_thermal_info;

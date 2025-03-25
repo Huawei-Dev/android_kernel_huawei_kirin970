@@ -3,7 +3,7 @@
 #include <linux/printk.h>
 #include <linux/mount.h>
 #include <linux/fs.h>
-#include <linux/hmfs_fs.h>
+#include "hmfs_fs.h"
 #include <linux/fscrypt_common.h>
 #include "hmfs.h"
 #include "xattr.h"

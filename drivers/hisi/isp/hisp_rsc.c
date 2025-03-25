@@ -17,7 +17,7 @@
 #include <linux/platform_data/hisp_mempool.h>
 #include <linux/hisi/hisi_rproc.h>
 #include <linux/scatterlist.h>
-#include <linux/rproc_share.h>
+#include <linux/hisi/rproc_share.h>
 #include <securec.h>
 
 #define ISP_RSC_TABLE_SIZE (0x1000)

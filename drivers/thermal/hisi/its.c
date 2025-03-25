@@ -29,7 +29,7 @@
 #include <linux/ktime.h>
 #include <linux/thermal.h>
 #endif
-#include <linux/lpm_thermal.h>
+#include <linux/hisi/lpm_thermal.h>
 #ifdef CONFIG_DPM_HWMON
 #include <linux/hisi/dpm_hwmon_user.h>
 #endif

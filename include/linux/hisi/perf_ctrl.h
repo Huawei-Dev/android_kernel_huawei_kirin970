@@ -19,11 +19,11 @@
 #define __PERF_CTRL_H__
 
 #include <linux/hisi/gpu_hook.h>
-#include <linux/thermal_perf_ctrl.h>
+#include <linux/hisi/thermal_perf_ctrl.h>
 #include <linux/hisi/ddr_perf_ctrl.h>
-#include <linux/render_rt.h>
-#include <linux/sched_perf_ctrl.h>
-#include <linux/cpufreq_perf_ctrl.h>
+#include <linux/hisi/render_rt.h>
+#include <linux/hisi/sched_perf_ctrl.h>
+#include <linux/hisi/cpufreq_perf_ctrl.h>
 
 #define PERF_CTRL_MAGIC 'x'
 

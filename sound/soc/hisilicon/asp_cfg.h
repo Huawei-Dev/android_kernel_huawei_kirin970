@@ -18,7 +18,7 @@
 #ifndef __ASP_CFG_H__
 #define __ASP_CFG_H__
 
-#include <linux/bits.h>
+#include <linux/hisi/bits.h>
 
 #define ASP_CFG_R_RST_CTRLEN_REG                 0x0
 #define ASP_CFG_R_RST_CTRLDIS_REG                0x4

@@ -10,12 +10,12 @@
 #include <linux/mpage.h>
 #include <linux/writeback.h>
 #include <linux/blkdev.h>
-#include <linux/hmfs_fs.h>
+#include "hmfs_fs.h"
 #include <linux/pagevec.h>
 #include <linux/swap.h>
 
 #ifdef CONFIG_FSCK_BOOST
-#include <linux/fsck_boost.h>
+#include <linux/hisi/fsck_boost.h>
 #endif
 
 #include "hmfs.h"

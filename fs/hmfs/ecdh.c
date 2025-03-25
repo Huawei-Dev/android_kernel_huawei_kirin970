@@ -5,7 +5,7 @@
 #include <linux/string.h>
 #include <linux/completion.h>
 #include <linux/printk.h>
-#include <linux/hmfs_fs.h>
+#include "hmfs_fs.h"
 #include "hmfs.h"
 #include "sdp_internal.h"
 

@@ -14,7 +14,7 @@
 #include <linux/platform_drivers/hisi_core_ctl.h>
 #else
 #include <linux/hisi/lpcpu_cpufreq_req.h>
-#include <linux/core_ctl.h>
+#include <linux/hisi/core_ctl.h>
 #endif
 #else
 #include <linux/hisi/hisi_cpufreq_req.h>

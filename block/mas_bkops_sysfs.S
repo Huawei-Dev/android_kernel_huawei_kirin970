@@ -1,6 +1,6 @@
 	.text
 	.file	"mas_bkops_sysfs.c"
-	.file	1 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/linux/mas_bkops_core.h"
+	.file	1 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/linux/hisi/mas_bkops_core.h"
 	.file	2 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/linux/kobject_ns.h"
 	.file	3 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/linux/hrtimer.h"
 	.file	4 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/linux/quota.h"
@@ -109,7 +109,7 @@ mas_bkops_add_debugfs:                  // @mas_bkops_add_debugfs
 	.file	86 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/arch/arm64/include/asm/mmu.h"
 	.file	87 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/linux/completion.h"
 	.file	88 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/linux/uprobes.h"
-	.file	89 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/linux/xreclaimer_types.h"
+	.file	89 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/linux/hisi/xreclaimer_types.h"
 	.file	90 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/arch/arm64/include/asm/compat.h"
 	.file	91 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/uapi/asm-generic/signal.h"
 	.file	92 "/mnt/disk/jenkins/ci/workspace/chipset_pipeline_release/opensource/component_code/vendor/huawei/extra/build/build_script/kirin_kernel_release/kernel/include/linux/signal_types.h"

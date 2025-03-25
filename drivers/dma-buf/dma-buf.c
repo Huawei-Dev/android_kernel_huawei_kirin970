@@ -34,7 +34,7 @@
 #include <linux/poll.h>
 #include <linux/reservation.h>
 #include <linux/mm.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 
 #include <uapi/linux/dma-buf.h>
 #include <linux/mount.h>

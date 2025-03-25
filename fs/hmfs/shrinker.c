@@ -7,7 +7,7 @@
  * Copyright (c) 2015 Jaegeuk Kim <jaegeuk@kernel.org>
  */
 #include <linux/fs.h>
-#include <linux/hmfs_fs.h>
+#include "hmfs_fs.h"
 
 #include "hmfs.h"
 #include "node.h"

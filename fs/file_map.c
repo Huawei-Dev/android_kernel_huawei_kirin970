@@ -20,7 +20,7 @@
 #include <linux/proc_fs.h>
 #include <linux/time.h>
 #include <linux/blk-cgroup.h>
-#include <linux/file_map.h>
+#include <linux/hisi/file_map.h>
 #include <linux/dcache.h>
 #include <linux/fs_struct.h>
 #include <asm/current.h>

@@ -15,7 +15,7 @@
 #ifndef __MAS_BKOPS_CORE_INTERFACE_H__
 #define __MAS_BKOPS_CORE_INTERFACE_H__
 #include <linux/blkdev.h>
-#include <linux/mas_bkops_core.h>
+#include <linux/hisi/mas_bkops_core.h>
 #include <linux/kernel.h>
 #include <linux/proc_fs.h>
 #include <linux/suspend.h>

@@ -40,7 +40,7 @@
 #include <linux/cn_proc.h>
 #include <linux/compiler.h>
 #include <linux/posix-timers.h>
-#include <linux/xreclaimer.h>
+#include <linux/hisi/xreclaimer.h>
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/signal.h>

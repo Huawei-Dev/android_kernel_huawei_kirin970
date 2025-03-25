@@ -19,7 +19,7 @@
 
 #define pr_fmt(fmt)	"core_ctl: " fmt
 
-#include <linux/core_ctl.h>
+#include <linux/hisi/core_ctl.h>
 #include <linux/init.h>
 #include <linux/notifier.h>
 #include <linux/cpu.h>

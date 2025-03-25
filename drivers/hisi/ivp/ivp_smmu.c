@@ -24,12 +24,9 @@
 #include <linux/scatterlist.h>
 #include <linux/platform_device.h>
 #include <linux/delay.h>
-#include <linux/hisi-iommu.h>
 #include <linux/hisi/rdr_hisi_platform.h>
 #include "ivp_log.h"
-//lint -save -e750 -e753 -e750 -e528 -e144 -e82 -e64 -e785 -e715 -e712 -e40
-//lint -save -e63 -e732 -e42 -e550 -e438 -e834 -e648 -e747 -e778 -e50 -e838
-//lint -save -e571
+
 /* Address Space 0: Non-security, page_size=0x1000, pagenum=2 */
 #define     SMMU_NS_CR0             0x0000
 

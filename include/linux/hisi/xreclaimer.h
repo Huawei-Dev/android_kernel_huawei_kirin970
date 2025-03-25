@@ -12,7 +12,7 @@
 #include <linux/mm.h>
 #include <linux/signal.h>
 #include <linux/sched/signal.h>
-#include <linux/xreclaimer_types.h>
+#include <linux/hisi/xreclaimer_types.h>
 
 #ifdef CONFIG_HW_XRECLAIMER
 extern unsigned int sysctl_xreclaimer_enable;

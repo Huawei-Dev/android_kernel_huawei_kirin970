@@ -14,7 +14,7 @@
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/sizes.h>
-#include <linux/ndctl.h>
+#include <linux/hisi/ndctl.h>
 #include <linux/slab.h>
 #include <linux/mm.h>
 #include <linux/nd.h>

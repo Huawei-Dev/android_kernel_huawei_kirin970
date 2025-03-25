@@ -14,7 +14,7 @@
 
 #define pr_fmt(fmt) "partition: " fmt
 
-#include <linux/bootdevice.h>
+#include <linux/hisi/bootdevice.h>
 #include <linux/delay.h>
 #include <linux/err.h>
 #include <linux/hisi/partition_macro.h>

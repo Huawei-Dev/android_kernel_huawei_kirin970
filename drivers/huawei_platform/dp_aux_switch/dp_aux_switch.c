@@ -26,9 +26,6 @@
 #include <linux/delay.h>
 #include <linux/platform_device.h>
 #include <linux/pm_wakeup.h>
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0))
-#include <linux/ion.h>
-#endif
 #include <linux/gpio.h>
 #include <linux/of.h>
 #include <linux/of_gpio.h>

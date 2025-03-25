@@ -22,12 +22,12 @@
 #include <linux/mutex.h>
 #include <linux/regulator/consumer.h>
 #include <linux/clk.h>
-#include <linux/rproc_share.h>
+#include <linux/hisi/rproc_share.h>
 #include <linux/sched/rt.h>
 #include <linux/kthread.h>
 #include <global_ddr_map.h>
 #include <linux/iommu.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/miscdevice.h>
 #include "hisp_internel.h"
 #include "isp_ddr_map.h"

@@ -46,7 +46,7 @@
 #include <linux/pkeys.h>
 #include <linux/oom.h>
 #include <linux/sched/mm.h>
-#include <linux/xreclaimer.h>
+#include <linux/hisi/xreclaimer.h>
 
 #include <linux/uaccess.h>
 #include <asm/cacheflush.h>

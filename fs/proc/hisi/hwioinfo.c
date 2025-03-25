@@ -21,7 +21,7 @@
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
 #include <linux/vmstat.h>
-#include <linux/bootdevice.h>
+#include <linux/hisi/bootdevice.h>
 #include <linux/version.h>
 
 void __attribute__((weak)) arch_report_meminfo(struct seq_file *m)

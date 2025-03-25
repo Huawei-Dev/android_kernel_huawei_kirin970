@@ -20,7 +20,7 @@
 #include <linux/file.h>
 #include <linux/mm_inline.h>
 #include <linux/hisi/pagecache_manage.h>
-#include <linux/file_map.h>
+#include <linux/hisi/file_map.h>
 
 #include "internal.h"
 

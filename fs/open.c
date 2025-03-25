@@ -31,7 +31,7 @@
 #include <linux/ima.h>
 #include <linux/dnotify.h>
 #include <linux/compat.h>
-#include <linux/file_map.h>
+#include <linux/hisi/file_map.h>
 
 #include "internal.h"
 

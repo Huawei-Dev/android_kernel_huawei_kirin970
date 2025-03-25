@@ -18,7 +18,7 @@
 #include <linux/sched.h>
 #include <linux/kthread.h>
 #include <linux/err.h>
-#include <linux/bootdevice.h>
+#include <linux/hisi/bootdevice.h>
 #include <linux/namei.h>
 #include <linux/f2fs_fs.h>
 #include <scsi/ufs/ufs.h>

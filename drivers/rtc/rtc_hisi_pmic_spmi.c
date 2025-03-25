@@ -38,8 +38,7 @@
 #include <pmic_interface.h>
 #include <linux/version.h>
 #include <linux/of_irq.h>
-#include <linux/hisi-spmi.h>
-#include <linux/of_hisi_spmi.h>
+#include <linux/hisi/of_hisi_spmi.h>
 #include <securec.h>
 
 #ifdef HISI_RTC_SYNC_TIMER

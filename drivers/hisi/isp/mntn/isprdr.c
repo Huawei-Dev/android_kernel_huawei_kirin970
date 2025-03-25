@@ -21,7 +21,7 @@
 #include <linux/of.h>
 #include <linux/delay.h>
 #include <linux/miscdevice.h>
-#include <linux/rproc_share.h>
+#include <linux/hisi/rproc_share.h>
 #include <linux/version.h>
 #include <linux/of_irq.h>
 #include <linux/platform_data/remoteproc_hisp.h>

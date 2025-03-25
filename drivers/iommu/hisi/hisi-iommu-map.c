@@ -20,7 +20,7 @@
 #include <linux/debugfs.h>
 #include <linux/dma-buf.h>
 #include <linux/genalloc.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/hisi/hisi_ion.h>
 #include <linux/iommu.h>
 #include <linux/kernel.h>
@@ -34,7 +34,7 @@
 #include <linux/slab.h>
 #include <linux/types.h>
 #include "hisi_smmu.h"
-#include "ion.h"
+#include "../../staging/android/ion/ion.h"
 
 struct mm_dss_size {
 	size_t all_size;
@@ -1102,17 +1102,6 @@ static bool is_size_valid(size_t allsize, size_t l3size, size_t lbsize)
 	return ret;
 }
 
-static inline int mm_idle_display_lb_attach(struct ion_buffer *buffer,
-		u32 plc_id)
-{
-	return 0;
-}
-
-static void mm_idle_display_lb_detach(struct ion_buffer *buffer, u32 plc_id)
-{
-	return;
-}
-
 int hisi_iommu_idle_display_unmap(struct device *dev, unsigned long iova,
 		size_t size, u32 policy_id, struct dma_buf *dmabuf)
 {
@@ -1127,7 +1116,6 @@ int hisi_iommu_idle_display_unmap(struct device *dev, unsigned long iova,
 	}
 
 	buffer = dmabuf->priv;
-	mm_idle_display_lb_detach(buffer, policy_id);
 
 	return ret;
 }
@@ -1182,9 +1170,6 @@ unsigned long hisi_iommu_idle_display_map(struct device *dev, u32 policy_id,
 	}
 
 	buffer = dmabuf->priv;
-	if (mm_idle_display_lb_attach(buffer, policy_id))
-		return 0;
-
 	mm_iommu_init_dss_size(l3size, lbsize, allsize, &dss_size);
 	if (mm_iommu_sg_node_map(domain, iova, policy_id,
 			buffer->sg_table->sgl, &dss_size))
@@ -1195,7 +1180,6 @@ unsigned long hisi_iommu_idle_display_map(struct device *dev, u32 policy_id,
 err:
 	iommu_unmap(domain, iova, dss_size.map_size);
 	mm_iommu_free_iova(cookie->iova_pool, iova, allsize);
-	mm_idle_display_lb_detach(buffer, policy_id);
 
 	return 0;
 }

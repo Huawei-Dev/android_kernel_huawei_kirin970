@@ -17,9 +17,8 @@
 #include <linux/err.h>
 #include <linux/errno.h>
 #include <linux/slab.h>
-#include <linux/ion.h>
 #include <linux/dma-buf.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/hisi/hisi_ion.h>
 #include "ivp_log.h"
 

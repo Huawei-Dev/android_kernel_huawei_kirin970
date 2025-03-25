@@ -17,7 +17,7 @@
  */
 
 #include "hal_venc.h"
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/iommu.h>
 #include "venc_regulator.h"
 #include "drv_common.h"

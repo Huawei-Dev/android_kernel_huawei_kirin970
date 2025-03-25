@@ -76,7 +76,7 @@
 #include <linux/tracefs.h>
 #endif
 #ifdef CONFIG_HW_CGROUP_WORKINGSET
-#include <linux/workingset_cgroup.h>
+#include <linux/hisi/workingset_cgroup.h>
 #endif
 #ifdef CONFIG_BINDER_TRANSACTION_PROC_BRIEF
 #include <linux/trace_clock.h>

@@ -16,10 +16,9 @@
 #include <linux/dma-buf.h>
 #include <linux/device.h>
 #include <linux/of_reserved_mem.h>
-#include <linux/ion.h>
 #include <linux/fb.h>
 #include <linux/version.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 
 #if !defined(CONFIG_SWITCH) || !defined(CONFIG_DP_AUX_SWITCH) || !defined(CONFIG_HW_DP_SOURCE)
 #define CONFIG_DP_ENABLE 0

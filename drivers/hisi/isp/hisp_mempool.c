@@ -9,7 +9,7 @@
 #include <linux/platform_data/hisp_mempool.h>
 #include "hisp_internel.h"
 #include <securec.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 
 
 static struct isp_mem_pool_s g_hisp_mem_pool_info;

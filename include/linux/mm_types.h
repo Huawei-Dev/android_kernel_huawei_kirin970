@@ -14,7 +14,7 @@
 #include <linux/uprobes.h>
 #include <linux/page-flags-layout.h>
 #include <linux/workqueue.h>
-#include <linux/xreclaimer_types.h>
+#include <linux/hisi/xreclaimer_types.h>
 
 #include <asm/mmu.h>
 

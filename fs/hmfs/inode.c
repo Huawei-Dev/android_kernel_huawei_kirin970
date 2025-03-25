@@ -6,7 +6,7 @@
  *             http://www.samsung.com/
  */
 #include <linux/fs.h>
-#include <linux/hmfs_fs.h>
+#include "hmfs_fs.h"
 #include <linux/buffer_head.h>
 #include <linux/backing-dev.h>
 #include <linux/writeback.h>
@@ -16,7 +16,7 @@
 #include "segment.h"
 
 #include <trace/events/hmfs.h>
-#include <linux/file_map.h>
+#include <linux/hisi/file_map.h>
 
 void hmfs_mark_inode_dirty_sync(struct inode *inode, bool sync)
 {

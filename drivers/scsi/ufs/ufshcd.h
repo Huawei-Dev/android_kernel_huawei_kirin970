@@ -58,7 +58,7 @@
 #include <linux/regulator/consumer.h>
 #include "unipro.h"
 #ifdef CONFIG_HISI_UFS_MANUAL_BKOPS
-#include <linux/mas_bkops_core.h>
+#include <linux/hisi/mas_bkops_core.h>
 #endif
 
 #include <asm/irq.h>

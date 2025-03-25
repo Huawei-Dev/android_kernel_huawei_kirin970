@@ -9,7 +9,7 @@
 #include <linux/module.h>
 #include <linux/err.h>
 #include <linux/iommu.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/dma-mapping.h>
 #include "isp_ddr_map.h"
 #include "hisp_internel.h"

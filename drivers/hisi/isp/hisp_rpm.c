@@ -21,10 +21,9 @@
 #include <linux/sched.h>
 #include <linux/rpmsg.h>
 #include <linux/completion.h>
-#include <linux/ion.h>
 #include <linux/dma-buf.h>
 #include <linux/hisi/hisi_ion.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/iommu.h>
 #include <linux/version.h>
 #include <linux/miscdevice.h>

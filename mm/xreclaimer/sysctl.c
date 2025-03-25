@@ -6,7 +6,7 @@
  * Create: 2020-06-29
  */
 #include <linux/sysctl.h>
-#include <linux/xreclaimer.h>
+#include <linux/hisi/xreclaimer.h>
 #include <linux/init.h>
 
 static struct ctl_table_header *xreclaimer_sysctl_header;

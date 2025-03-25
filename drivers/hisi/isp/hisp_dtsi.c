@@ -13,7 +13,7 @@
 #include <linux/mutex.h>
 #include <linux/regulator/consumer.h>
 #include <linux/clk.h>
-#include <linux/rproc_share.h>
+#include <linux/hisi/rproc_share.h>
 #include <isp_ddr_map.h>
 #include "hisp_internel.h"
 

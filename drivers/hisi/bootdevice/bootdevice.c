@@ -16,7 +16,7 @@
  *
  */
 
-#include <linux/bootdevice.h>
+#include <linux/hisi/bootdevice.h>
 #include <linux/device.h>
 #include <linux/fs.h>
 #include <linux/init.h>

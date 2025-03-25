@@ -22,9 +22,6 @@
 
 #include <linux/spi/spi.h>
 #include <linux/version.h>
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0))
-#include <linux/ion.h>
-#endif
 #include <linux/hisi/hisi_ion.h>
 #include <linux/gpio.h>
 
@@ -40,7 +37,7 @@
 #include <linux/file.h>
 #include <linux/dma-buf.h>
 #include <linux/genalloc.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/clk.h>
 #include <linux/atomic.h>
 

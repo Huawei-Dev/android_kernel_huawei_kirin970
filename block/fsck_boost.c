@@ -5,7 +5,7 @@
  * Author: Gong Chen <gongchen4@huawei.com>
  * Create: 2019-10-11
  */
-#include <linux/fsck_boost.h>
+#include <linux/hisi/fsck_boost.h>
 
 #include <linux/mm.h>
 #include <linux/magic.h>

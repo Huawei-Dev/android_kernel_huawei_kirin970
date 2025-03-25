@@ -22,7 +22,7 @@
 #include <linux/slab.h>
 #include <linux/thermal.h>
 #include <securec.h>
-#include <linux/lpm_thermal.h>
+#include <linux/hisi/lpm_thermal.h>
 
 #define NPU_DEFAULT_LOW_TEMP	0
 

@@ -45,10 +45,9 @@
 #include <asm/uaccess.h>
 #include <linux/syscalls.h>
 #include <linux/delay.h>
-#include <linux/bootdevice.h>
 #include <linux/kthread.h>
 #include <linux/freezer.h>
-#include <linux/tele_mntn.h>
+#include <linux/hisi/tele_mntn.h>
 
 
 static u64 g_mspc_start_time = 0;

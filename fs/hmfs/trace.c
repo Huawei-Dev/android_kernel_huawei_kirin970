@@ -6,7 +6,7 @@
  * Copyright (c) 2014 Jaegeuk Kim <jaegeuk@kernel.org>
  */
 #include <linux/fs.h>
-#include <linux/hmfs_fs.h>
+#include "hmfs_fs.h"
 #include <linux/sched.h>
 #include <linux/radix-tree.h>
 

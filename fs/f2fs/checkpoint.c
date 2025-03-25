@@ -15,7 +15,7 @@
 #include <linux/swap.h>
 
 #ifdef CONFIG_FSCK_BOOST
-#include <linux/fsck_boost.h>
+#include <linux/hisi/fsck_boost.h>
 #endif
 
 #include "f2fs.h"

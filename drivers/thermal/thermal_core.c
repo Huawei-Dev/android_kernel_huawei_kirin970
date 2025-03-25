@@ -34,7 +34,7 @@
 #include "thermal_hwmon.h"
 
 #ifdef CONFIG_PERF_CTRL
-#include <linux/thermal_perf_ctrl.h>
+#include <linux/hisi/thermal_perf_ctrl.h>
 #endif
 
 MODULE_AUTHOR("Zhang Rui");

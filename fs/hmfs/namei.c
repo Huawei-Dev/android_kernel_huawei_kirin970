@@ -6,7 +6,7 @@
  *             http://www.samsung.com/
  */
 #include <linux/fs.h>
-#include <linux/hmfs_fs.h>
+#include "hmfs_fs.h"
 #include <linux/pagemap.h>
 #include <linux/sched.h>
 #include <linux/ctype.h>
@@ -22,7 +22,7 @@
 #include <trace/events/hmfs.h>
 
 #ifdef CONFIG_ACM
-#include <linux/acm_hmfs.h>
+#include <linux/hisi/acm_hmfs.h>
 #include <log/log_usertype.h>
 #define ACM_PHOTO	1
 #define ACM_VIDEO	2

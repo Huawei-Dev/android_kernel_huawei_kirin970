@@ -42,7 +42,7 @@
 #include "hisp_intf.h"
 #include "platform/sensor_commom.h"
 #include <linux/pm_wakeup.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/platform_data/remoteproc_hisp.h>
 #include <linux/platform_data/hisp_mempool.h>
 #include <linux/iommu.h>

@@ -70,7 +70,7 @@
 #include <linux/suspend.h>
 #endif
 #ifdef CONFIG_MEMCG_PROTECT_LRU
-#include <linux/protect_lru.h>
+#include <linux/hisi/protect_lru.h>
 #endif
 
 #ifdef CONFIG_HISI_SWAP_ZDATA

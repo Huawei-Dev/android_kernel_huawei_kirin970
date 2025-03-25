@@ -20,8 +20,7 @@
 #include <linux/hisi/usb/hisi_usb.h>
 #include <linux/of_address.h>
 #include <linux/version.h>
-#include <linux/hisi-spmi.h>
-#include <linux/of_hisi_spmi.h>
+#include <linux/hisi/of_hisi_spmi.h>
 #include <linux/notifier.h>
 #include <linux/export.h>
 #include <linux/regmap.h>

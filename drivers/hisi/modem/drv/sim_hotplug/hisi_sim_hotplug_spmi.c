@@ -17,11 +17,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/*lint -e752 -esym(502,*)*/
-/*lint -e753 -esym(753,*)*/
-/*lint -e528 -esym(528,*)*/
-/*lint -save -e713 -e734 -e502 -e774 -e838 -e438 -e701 -e64 -e826 -e838 -e715 -e613 -e747 -e838 -e732 -e785 -e647 -e528 -e753 -e752 */
-
 #include <linux/module.h>
 #include <linux/string.h>
 #include <linux/kernel.h>
@@ -35,8 +30,7 @@
 #include <linux/of_address.h>
 #include <linux/of_device.h>
 #include <linux/interrupt.h>
-#include <linux/hisi-spmi.h>
-#include <linux/of_hisi_spmi.h>
+#include <linux/hisi/of_hisi_spmi.h>
 #include <linux/mfd/hisi_pmic.h>
 #include <linux/device.h>
 #include <linux/pm_wakeup.h>

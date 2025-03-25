@@ -20,7 +20,7 @@
 
 #include <linux/of.h>
 #include <scsi/ufs/ioctl.h>
-#include <linux/bootdevice.h>
+#include <linux/hisi/bootdevice.h>
 #ifdef CONFIG_HUAWEI_STORAGE_ROFA
 #include <chipset_common/storage_rofa/storage_rofa.h>
 #endif

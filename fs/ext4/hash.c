@@ -10,7 +10,7 @@
  */
 
 #include <linux/fs.h>
-#include <linux/unicode.h>
+#include <linux/hisi/unicode.h>
 #include <linux/compiler.h>
 #include <linux/bitops.h>
 #include "ext4.h"

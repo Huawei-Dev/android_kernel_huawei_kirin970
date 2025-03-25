@@ -15,7 +15,7 @@
 #include <trace/events/erofs.h>
 
 #ifdef CONFIG_FILE_MAP
-#include <linux/file_map.h>
+#include <linux/hisi/file_map.h>
 #endif
 
 /* no locking */

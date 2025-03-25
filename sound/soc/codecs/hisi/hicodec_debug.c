@@ -10,7 +10,7 @@
 
 #include <linux/kernel.h>
 #ifdef CONFIG_SWITCH
-#include <linux/switch.h>
+#include <linux/hisi/switch.h>
 #endif
 #include <linux/delay.h>
 #include <linux/vmalloc.h>

@@ -20,7 +20,7 @@
 #include <linux/module.h>
 #include <linux/types.h>
 #include <linux/cdev.h>
-#include <linux/hisi-iommu.h>
+#include <linux/hisi/hisi-iommu.h>
 #include <linux/dma-mapping.h>
 #include <linux/dma-iommu.h>
 #include <linux/dma-buf.h>

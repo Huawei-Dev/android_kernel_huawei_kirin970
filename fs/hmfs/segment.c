@@ -6,7 +6,7 @@
  *             http://www.samsung.com/
  */
 #include <linux/fs.h>
-#include <linux/hmfs_fs.h>
+#include "hmfs_fs.h"
 #include <linux/bio.h>
 #include <linux/blkdev.h>
 #include <linux/prefetch.h>

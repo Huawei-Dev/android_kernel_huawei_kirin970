@@ -40,7 +40,7 @@
 #define __LZ4M_DECOMPRESS_H
 
 //#include <string.h>	 /* memset, memcpy */
-#include <linux/lz4m.h>
+#include <linux/hisi/lz4m.h>
 #define FORCE_INLINE __always_inline
 
 

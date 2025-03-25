@@ -33,7 +33,7 @@
 #define _KBASE_BITS_H_
 
 #if (KERNEL_VERSION(4, 19, 0) <= LINUX_VERSION_CODE)
-#include <linux/bits.h>
+#include <linux/hisi/bits.h>
 #else
 #include <linux/bitops.h>
 #endif
