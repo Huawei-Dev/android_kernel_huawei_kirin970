@@ -385,16 +385,9 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 HOST_LFS_CFLAGS := $(shell getconf LFS_CFLAGS 2>/dev/null)
 HOST_LFS_LDFLAGS := $(shell getconf LFS_LDFLAGS 2>/dev/null)
 HOST_LFS_LIBS := $(shell getconf LFS_LIBS 2>/dev/null)
-ifeq ($(strip $(cfi_check)),true)
-CLANG_PREBUILTS_PATH ?= $(srctree)/../../prebuilts/cfi_clang/linux-x86/cfi_clang/
-else
-CLANG_PREBUILTS_PATH ?= $(srctree)/../../prebuilts/clang/host/linux-x86/clang-r353983c/
-endif
-CLANG_PREBUILT_BIN := $(CLANG_PREBUILTS_PATH)bin/
-export CLANG_PREBUILTS_PATH
 
-HOSTCC       = $(CLANG_PREBUILT_BIN)clang
-HOSTCXX      = $(CLANG_PREBUILT_BIN)clang++
+HOSTCC       = gcc
+HOSTCXX      = g++
 HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 \
 		-fomit-frame-pointer -std=gnu89 $(HOST_LFS_CFLAGS)
 HOSTCXXFLAGS := -O2 $(HOST_LFS_CFLAGS)
@@ -405,10 +398,7 @@ HOST_LOADLIBES := $(HOST_LFS_LIBS)
 AS		= $(CROSS_COMPILE)as
 LD		= $(CROSS_COMPILE)ld
 LDGOLD		= $(CROSS_COMPILE)ld.gold
-ifeq (,$(strip $(KP_PATCH)))
-CCACHE		?= $(srctree)/../../prebuilts/misc/linux-x86/ccache/ccache
-endif
-CC		= $(SOURCEANALYZER) $(wildcard $(CCACHE)) $(CLANG_PREBUILT_BIN)clang
+CC		= $(CROSS_COMPILE)gcc
 CPP		= $(CC) -E
 AR		= $(CROSS_COMPILE)ar
 NM		= $(CROSS_COMPILE)nm
@@ -459,21 +449,8 @@ LINUXINCLUDE += -I$(srctree)/mm \
 			   -I$(srctree)/fs/proc \
 			   -I$(srctree)/lib/libc_sec/securec_v2/include
 
-ifeq ($(CFG_LCD_KIT),true)
-LINUXINCLUDE += -I$(objtree)/drivers/devkit/lcdkit/lcdkit3.0
-else
 LINUXINCLUDE += -I$(objtree)/drivers/devkit/lcdkit/lcdkit1.0
-endif
-
-ifeq ($(chip_type),es)
-LINUXINCLUDE += -I$(srctree)/drivers/hisi/ap/platform/$(TARGET_BOARD_PLATFORM)_es
-else
-ifeq ($(chip_type),cs2)
-LINUXINCLUDE += -I$(srctree)/drivers/hisi/ap/platform/$(TARGET_BOARD_PLATFORM)_cs2
-else
 LINUXINCLUDE += -I$(srctree)/drivers/hisi/ap/platform/$(TARGET_BOARD_PLATFORM)
-endif
-endif
 
 KBUILD_AFLAGS   := -D__ASSEMBLY__
 KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
@@ -711,16 +688,14 @@ export CFLAGS_GCOV CFLAGS_KCOV
 # Make toolchain changes before including arch/$(SRCARCH)/Makefile to ensure
 # ar/cc/ld-* macros return correct values.
 ifdef CONFIG_LTO_CLANG
-LD_LIBRARY_PATH := $(CLANG_PREBUILTS_PATH)lib64/
-
 # use GNU gold with LLVMgold for LTO linking, and LD for vmlinux_link
 LDFINAL_vmlinux := $(LD)
 LD		:= $(LDGOLD)
-LDFLAGS		+= -plugin $(LD_LIBRARY_PATH)LLVMgold.so
+LDFLAGS		+= -plugin LLVMgold.so
 # use llvm-ar for building symbol tables from IR files, and llvm-dis instead
 # of objdump for processing symbol versions and exports
-LLVM_AR		:= $(CLANG_PREBUILT_BIN)llvm-ar
-LLVM_DIS	:= $(CLANG_PREBUILT_BIN)llvm-dis
+LLVM_AR		:= llvm-ar
+LLVM_DIS	:= llvm-dis
 export LLVM_AR LLVM_DIS
 endif
 
@@ -1186,15 +1161,7 @@ cmd_link-vmlinux =                                                 \
 	$(if $(ARCH_POSTLINK), $(MAKE) -f $(ARCH_POSTLINK) $@, true)
 
 vmlinux: scripts/link-vmlinux.sh vmlinux_prereq $(vmlinux-deps) FORCE
-ifeq ($(OBB_PRINT_CMD), true)
-	$(call if_changed,link-vmlinux)
-else
-ifeq ($(link_kernel),false)
-	$(Q)$(CONFIG_SHELL) $(srctree)/scripts/gen-link-vmlinux.sh $(vmlinux-deps)
-else
 	+$(call if_changed,link-vmlinux)
-endif
-endif
 
 # Build samples along the rest of the kernel
 ifdef CONFIG_SAMPLES
