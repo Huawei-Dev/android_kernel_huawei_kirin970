@@ -416,7 +416,7 @@ config SCHED_WALT
 	used to guide task placement as well as task frequency requirements
 	for cpufreq governors.
 
-source "kernel/sched/Kconfig"
+source "kernel/sched/hisi/Kconfig"
 
 config BSD_PROCESS_ACCT
 	bool "BSD Process Accounting"

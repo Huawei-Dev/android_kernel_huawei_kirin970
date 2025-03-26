@@ -26,7 +26,7 @@
 #include <chipset_common/hwqos/hwqos_common.h>
 #endif
 
-#include "sched.h"
+#include "../sched.h"
 #include "securec.h"
 
 #define FGTASK_MAX 4
