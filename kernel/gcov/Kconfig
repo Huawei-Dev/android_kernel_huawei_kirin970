@@ -74,6 +74,4 @@ config GCOV_FORMAT_4_7
 
 endchoice
 
-source "kernel/gcov/hisi_gcov/Kconfig"
-
 endmenu

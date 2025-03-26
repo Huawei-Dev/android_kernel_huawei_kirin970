@@ -36,10 +36,6 @@ DEFINE_MUTEX(gcov_lock);
 void gcov_enable_events(void)
 {
 	struct gcov_info *info = NULL;
-#ifdef CONFIG_HISI_KERNEL_GCOV
-	extern void hisi_kernel_gcov_init(void);
-	hisi_kernel_gcov_init();
-#endif
 
 	mutex_lock(&gcov_lock);
 	gcov_events_enabled = 1;
