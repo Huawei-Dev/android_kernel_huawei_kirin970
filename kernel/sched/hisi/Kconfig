@@ -4,15 +4,6 @@
 
 if SCHED_WALT
 
-config SCHED_DOWNMIGRATE_LOWER_LOAD
-	bool "Schedutil governor use lower load when task downmigrate"
-	depends on CPU_FREQ_GOV_SCHEDUTIL
-	default n
-	help
-	  Schedutil governor migrate cpu busy time when task migrate. This
-	  option will recaculate a lower load for task downmigrate to
-	  prevent little core's frequency increase too much.
-
 config SCHED_CALC_CUM_WINDOW_DEMAND
 	bool "WALT calculate cum window demand"
 	depends on SCHED_USE_WALT
