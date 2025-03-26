@@ -101,11 +101,7 @@ static inline void walt_dec_cfs_cumulative_runnable_avg(struct cfs_rq *rq,
 		struct task_struct *p) { }
 #endif
 
-#ifdef CONFIG_SCHED_WALT_WINDOW_SIZE_TUNABLE
-extern bool walt_disabled;
-#else
 extern const bool walt_disabled;
-#endif
 
 #ifdef CONFIG_SCHED_PRED_LOAD
 bool use_pred_load(int cpu);

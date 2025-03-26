@@ -4,12 +4,6 @@
 
 if SCHED_WALT
 
-config SCHED_WALT_WINDOW_SIZE_TUNABLE
-	bool "Make WALT window size tunable"
-	default n
-	help
-	  Make walt_ravg_window tunable in early param.
-
 config SCHED_DOWNMIGRATE_LOWER_LOAD
 	bool "Schedutil governor use lower load when task downmigrate"
 	depends on CPU_FREQ_GOV_SCHEDUTIL
