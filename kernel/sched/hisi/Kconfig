@@ -4,16 +4,6 @@
 
 if SCHED_WALT
 
-config SCHED_MIGRATE_SPREAD_LOAD
-	bool "Spread task's load when inter-cluster migration"
-	default y
-	help
-	  In inter-cluster migration, this option will spread task's
-	  prev_window/curr_window to all cpus that the task has been
-	  running on before in a window. If disabled, task's whole load
-	  will move to dest cpu and that will make dest cpu's cpu load
-	  very high in same cases.
-
 config SCHED_PRED_LOAD
 	bool "Calculate predicted load for each task"
 	default y

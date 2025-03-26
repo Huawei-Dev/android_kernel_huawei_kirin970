@@ -301,29 +301,6 @@ int walt_cpu_overload_irqload(int cpu)
 }
 #endif
 
-#ifdef CONFIG_SCHED_MIGRATE_SPREAD_LOAD
-static void record_task_contribution(struct task_struct *p,
-					int cpu, int new_window)
-{
-	if (!cpumask_test_cpu(cpu, &p->ravg.curr_cpus))
-		cpumask_set_cpu(cpu, &p->ravg.curr_cpus);
-
-	if (new_window)
-		cpumask_set_cpu(cpu, &p->ravg.prev_cpus);
-}
-
-static void rollover_task_contribution(struct task_struct *p,
-					int nr_full_windows)
-{
-	if (!nr_full_windows)
-		cpumask_copy(&p->ravg.prev_cpus, &p->ravg.curr_cpus);
-	else
-		cpumask_clear(&p->ravg.prev_cpus);
-
-	cpumask_clear(&p->ravg.curr_cpus);
-}
-#endif
-
 static int account_busy_for_cpu_time(struct rq *rq, struct task_struct *p,
 				     u64 irqtime, int event)
 {
@@ -464,10 +441,6 @@ static void update_cpu_busy_time(struct task_struct *p, struct rq *rq,
 		p->ravg.prev_window = curr_window;
 		p->ravg.curr_window = 0;
 
-#ifdef CONFIG_SCHED_MIGRATE_SPREAD_LOAD
-		rollover_task_contribution(p, nr_full_windows);
-#endif
-
 		/* Roll over individual CPU contributions */
 		for (i = 0; i < nr_cpu_ids; i++) {
 			p->ravg.prev_window_cpu[i] = curr_cpu_windows[i];
@@ -491,10 +464,6 @@ static void update_cpu_busy_time(struct task_struct *p, struct rq *rq,
 
 		return;
 	}
-
-#ifdef CONFIG_SCHED_MIGRATE_SPREAD_LOAD
-	record_task_contribution(p, cpu, new_window);
-#endif
 
 	if (!new_window) {
 		/* account_busy_for_cpu_time() = 1 so busy time needs
@@ -1445,43 +1414,9 @@ migrate_cpu_busy_time(struct task_struct *p,
 		      struct rq *src_rq, struct rq *dest_rq)
 {
 	int new_cpu = cpu_of(dest_rq);
-#ifdef CONFIG_SCHED_MIGRATE_SPREAD_LOAD
-	cpumask_t prev_cpus, curr_cpus;
-	u32 each_load;
-#endif
 	unsigned long flags;
 	int i;
 
-	/* Add task's prev/curr window to dest */
-#ifdef CONFIG_SCHED_MIGRATE_SPREAD_LOAD
-	/* If p has run on dest cluster in prev/curr window, share
-	 * p's load in these cpus. */
-	cpumask_and(&prev_cpus, &p->ravg.prev_cpus, &dest_rq->cluster->cpus);
-	cpumask_set_cpu(new_cpu, &prev_cpus);
-	each_load = p->ravg.prev_window / cpumask_weight(&prev_cpus);
-
-	for_each_cpu(i, &prev_cpus) {
-		struct rq *rq = cpu_rq(i);
-		raw_spin_lock_irqsave(&rq->walt_update_lock, flags);
-		rq->prev_runnable_sum += each_load;
-		raw_spin_unlock_irqrestore(&rq->walt_update_lock, flags);
-
-		p->ravg.prev_window_cpu[i] = each_load;
-	}
-
-	cpumask_and(&curr_cpus, &p->ravg.curr_cpus, &dest_rq->cluster->cpus);
-	cpumask_set_cpu(new_cpu, &curr_cpus);
-	each_load = p->ravg.curr_window / cpumask_weight(&curr_cpus);
-
-	for_each_cpu(i, &curr_cpus) {
-		struct rq *rq = cpu_rq(i);
-		raw_spin_lock_irqsave(&rq->walt_update_lock, flags);
-		rq->curr_runnable_sum += each_load;
-		raw_spin_unlock_irqrestore(&rq->walt_update_lock, flags);
-
-		p->ravg.curr_window_cpu[i] = each_load;
-	}
-#else
 	/* All load move to dest_rq */
 	raw_spin_lock_irqsave(&dest_rq->walt_update_lock, flags);
 	dest_rq->curr_runnable_sum += p->ravg.curr_window;
@@ -1490,7 +1425,6 @@ migrate_cpu_busy_time(struct task_struct *p,
 	p->ravg.curr_window_cpu[new_cpu] = p->ravg.curr_window;
 	p->ravg.prev_window_cpu[new_cpu] = p->ravg.prev_window;
 	raw_spin_unlock_irqrestore(&dest_rq->walt_update_lock, flags);
-#endif
 
 	/* Delete task's prev/curr window from src */
 	for_each_cpu(i, &src_rq->cluster->cpus) {

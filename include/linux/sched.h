@@ -656,9 +656,6 @@ struct ravg {
 	u32 predl_prev_window_cpu[NR_CPUS];
 	u32 predl_curr_window_cpu[NR_CPUS];
 #endif
-#ifdef CONFIG_SCHED_MIGRATE_SPREAD_LOAD
-	cpumask_t prev_cpus, curr_cpus;
-#endif
 };
 #endif
 
