@@ -2155,7 +2155,4 @@ config ASN1
 	  functions to call on what tags.
 
 source "kernel/Kconfig.locks"
-source "kernel/hwcfs/Kconfig"
-source "kernel/cpu_netlink/Kconfig"
-source "kernel/hwqos/Kconfig"
-source "kernel/cgroup_huawei/Kconfig"
+source "kernel/hisi/Kconfig"

@@ -88,6 +88,7 @@ obj-$(CONFIG_HARDLOCKUP_DETECTOR_PERF) += watchdog_hld.o
 obj-$(CONFIG_SECCOMP) += seccomp.o
 obj-$(CONFIG_RELAY) += relay.o
 obj-$(CONFIG_SYSCTL) += utsname_sysctl.o
+obj-$(CONFIG_TASK_DELAY_ACCT) += delayacct.o
 obj-$(CONFIG_TASKSTATS) += taskstats.o tsacct.o
 obj-$(CONFIG_TRACEPOINTS) += tracepoint.o
 obj-$(CONFIG_LATENCYTOP) += latencytop.o
@@ -113,10 +114,7 @@ obj-$(CONFIG_TORTURE_TEST) += torture.o
 
 obj-$(CONFIG_HAS_IOMEM) += memremap.o
 
-obj-$(CONFIG_HW_CGROUP_PIDS) += cgroup_huawei/
-obj-$(CONFIG_HW_VIP_THREAD) += cpu_netlink/
-obj-$(CONFIG_HW_VIP_THREAD) += hwcfs/
-obj-$(CONFIG_HW_QOS_THREAD) += hwqos/
+obj-y += hisi/
 
 $(obj)/configs.o: $(obj)/config_data.h
 

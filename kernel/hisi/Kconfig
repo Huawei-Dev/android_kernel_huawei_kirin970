@@ -1,7 +1,3 @@
-#
-# add cgroup pids limit
-#
-
 config HW_CGROUP_PIDS
 	bool "PIDs cgroup subsystem"
 	help
@@ -31,3 +27,21 @@ config HW_CGROUP_WORKINGSET
           Provides a cgroup implementing filepage collector and prereader of workingset.
           This cgroup workingset for application, collect it touched filepages and
           preread those filepages.
+
+config HW_IAWARE_THREAD_BOOST
+    bool "iaware 2.0 binder thread boost"
+    default n
+    help
+      if set, binder thread will be set to new group. if thread is in background group, set it to foreground group, else set it to boost group.
+
+config HW_QOS_THREAD
+    bool "iaware 5.0 qos thread"
+    default n
+    help
+      if set, qos thread is propagated by lock&binder, and picked first in lock's waitlist
+
+config HW_VIP_THREAD
+	bool "iaware 2.0 vip thread"
+	default n
+	help
+	  if set, vip thread is pick first in cfs sched policy
