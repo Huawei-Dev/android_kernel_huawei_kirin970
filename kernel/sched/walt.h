@@ -97,22 +97,10 @@ static inline void walt_dec_cfs_cumulative_runnable_avg(struct cfs_rq *rq,
 
 extern const bool walt_disabled;
 
-#ifdef CONFIG_SCHED_PRED_LOAD
-bool use_pred_load(int cpu);
-unsigned long predict_util(struct rq *rq);
-unsigned long task_pred_util(struct task_struct *p);
-unsigned long max_pred_ls(struct rq *rq);
-unsigned long cpu_util_pred_min(struct rq *rq);
-extern unsigned int predl_jump_load;
-extern unsigned int predl_do_predict;
-extern unsigned int predl_window_size;
-extern unsigned int predl_enable;
-#else
 static inline bool use_pred_load(int cpu) { return false; }
 static inline unsigned long predict_util(struct rq *rq) { return 0; }
 static inline unsigned long task_pred_util(struct task_struct *p) { return 0; }
 static inline unsigned long max_pred_ls(struct rq *rq) { return 0; }
 static inline unsigned long cpu_util_pred_min(struct rq *rq) { return 0; }
-#endif
 
 #endif

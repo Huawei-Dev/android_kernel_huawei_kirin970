@@ -254,12 +254,6 @@ static inline unsigned int get_freq_reporting_policy(int cpu)
 
 	policy = sg_policy->tunables->freq_reporting_policy;
 
-#ifdef CONFIG_SCHED_PRED_LOAD
-	if (!predl_enable &&
-	    (policy & FREQ_STAT_USE_PRED_WINDOW))
-		return DEFAULT_FREQ_REPORTING_POLICY;
-#endif
-
 	return policy;
 }
 
@@ -271,16 +265,6 @@ int sugov_register_notifier(struct notifier_block *nb)
 int sugov_unregister_notifier(struct notifier_block *nb)
 {
 	return blocking_notifier_chain_unregister(&sugov_status_notifier_list, nb);
-}
-#endif
-
-#ifdef CONFIG_SCHED_PRED_LOAD
-bool use_pred_load(int cpu)
-{
-	if (!predl_enable)
-		return false;
-
-	return !!(get_freq_reporting_policy(cpu) & FREQ_STAT_USE_PRED_WINDOW);
 }
 #endif
 

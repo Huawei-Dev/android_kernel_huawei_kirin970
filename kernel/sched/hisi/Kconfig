@@ -4,16 +4,6 @@
 
 if SCHED_WALT
 
-config SCHED_PRED_LOAD
-	bool "Calculate predicted load for each task"
-	default y
-	depends on CPU_FREQ_GOV_SCHEDUTIL_OPT
-	help
-	  Another signal to improve schedutil. This will help to ramp up
-	  cpufreq quickly.
-	  To enable this signal, say yes here and set predl_enable to 1
-	  in init rc.
-
 endif # SCHED_WALT
 
 config SCHED_DEBUG_TRACE

@@ -8856,11 +8856,6 @@ static inline bool task_fits(struct task_struct *p, int cpu)
 	if (capacity >= p->uclamp.max_util)
 		return true;
 #endif
-#ifdef CONFIG_SCHED_PRED_LOAD
-	if (use_pred_load(cpu))
-		boosted_util = max(boosted_util, task_pred_util(p));
-#endif
-
 	if (p->sched_class == &rt_sched_class)
 		return ((capacity << SCHED_CAPACITY_SHIFT) >=
 			(task_util(p) * margin)) &&
@@ -14358,33 +14353,6 @@ static ssize_t sd_capacity_margin_store(struct kobject *kobj, struct kobj_attrib
 }
 #endif /* CONFIG_MULTI_MARGIN */
 
-#ifdef CONFIG_SCHED_PRED_LOAD
-static ssize_t predl_window_size_show(struct kobject *kobj,
-			struct kobj_attribute *kattr, char *buf)
-{
-	return scnprintf(buf, PAGE_SIZE, "%u\n", predl_window_size);
-}
-
-#define MIN_PREDL_WINDOW_SIZE 4000000 /* 4ms */
-#define MAX_PREDL_WINDOW_SIZE 64000000 /* 64ms */
-static ssize_t predl_window_size_store(struct kobject *kobj,
-		struct kobj_attribute *kattr, const char *buf, size_t count)
-{
-	unsigned int val;
-
-	if (kstrtouint(buf, 10, &val))
-		return -EINVAL;
-
-	if (val < MIN_PREDL_WINDOW_SIZE ||
-	    val > MAX_PREDL_WINDOW_SIZE)
-		return -EINVAL;
-
-	predl_window_size = val;
-
-	return count;
-}
-#endif
-
 static void eas_attr_add(
 	const char *name,
 	int *value,
@@ -14484,31 +14452,6 @@ static int eas_attr_init(void)
 		NULL,
 		0640);
 
-#ifdef CONFIG_SCHED_PRED_LOAD
-	eas_attr_add("predl_enable",
-		&predl_enable,
-		NULL,
-		NULL,
-		0640);
-
-	eas_attr_add("predl_jump_load",
-		&predl_jump_load,
-		NULL,
-		NULL,
-		0640);
-
-	eas_attr_add("predl_do_predict",
-		&predl_do_predict,
-		NULL,
-		NULL,
-		0640);
-
-	eas_attr_add("predl_window_size",
-		NULL,
-		predl_window_size_show,
-		predl_window_size_store,
-		0640);
-#endif
 #ifdef CONFIG_SCHED_WALT
 	eas_attr_add("walt_init_task_load_pct",
 		&sysctl_sched_walt_init_task_load_pct,

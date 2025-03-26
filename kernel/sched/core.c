@@ -6809,11 +6809,6 @@ void __init sched_init(void)
 		rq->avg_irqload = 0;
 		rq->irqload_ts = 0;
 #endif
-#ifdef CONFIG_SCHED_PRED_LOAD
-		rq->sum_pred_load = 0;
-		rq->curr_max_predls = 0;
-		rq->prev_max_predls = 0;
-#endif
 #ifdef CONFIG_ED_TASK
 		rq->ed_task_running_duration = EARLY_DETECTION_TASK_RUNNING_DURATION;
 		rq->ed_task_waiting_duration = EARLY_DETECTION_TASK_WAITING_DURATION;

@@ -903,14 +903,6 @@ struct rq {
 	u64 avg_irqload;
 	u64 irqload_ts;
 	u64 cum_window_demand;
-#ifdef CONFIG_SCHED_PRED_LOAD
-	u64 sum_pred_load;
-	u64 predl_window_start;
-	u32 curr_max_predls;
-	u32 prev_max_predls;
-	u64 predl_curr_busy_time;
-	u64 predl_prev_busy_time;
-#endif
 	raw_spinlock_t walt_update_lock;
 #endif /* CONFIG_SCHED_WALT */
 

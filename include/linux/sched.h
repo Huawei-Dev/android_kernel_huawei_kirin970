@@ -608,10 +608,6 @@ struct sched_entity {
 
 #define RAVG_HIST_SIZE_MAX	(5U)
 
-#ifdef CONFIG_SCHED_PRED_LOAD
-#define NUM_BUSY_BUCKETS	(10)
-#endif
-
 /* ravg represents frequency scaled cpu-demand of tasks */
 struct ravg {
 	/*
@@ -649,13 +645,6 @@ struct ravg {
 	u32 prev_window_cpu[NR_CPUS];
 	u32 curr_window, prev_window;
 	u16 active_windows;
-#ifdef CONFIG_SCHED_PRED_LOAD
-	u32 predl_sum, predl;
-	u32 predl_sum_history[RAVG_HIST_SIZE_MAX];
-	u8 predl_busy_buckets[NUM_BUSY_BUCKETS];
-	u32 predl_prev_window_cpu[NR_CPUS];
-	u32 predl_curr_window_cpu[NR_CPUS];
-#endif
 };
 #endif
 
