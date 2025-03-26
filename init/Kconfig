@@ -739,8 +739,6 @@ menuconfig CGROUPS
 
 if CGROUPS
 
-source "kernel/cgroup_workingset/Kconfig"
-
 config PAGE_COUNTER
        bool
 
@@ -880,6 +878,7 @@ config CGROUP_FREEZER
 	  controller includes important in-kernel memory consumers per default.
 
 	  If you're using cgroup2, say N.
+
 source "kernel/cgroup_huawei/Kconfig"
 
 config MEMCG_PROTECT_LRU
@@ -931,12 +930,6 @@ config CPUSET_TASKS_CROWDED_WORKAROUND
 	  This option will enable hisilicon workaround.
 
 	  Say N if unsure.
-
-config CGROUP_IOLIMIT
-	bool "IO bandwidth limit cgroup subsystem"
-	help
-	  Provides a cgroup implementing for io bandwidth while a process
-	  in the cgroup read or write.
 
 config CGROUP_DEVICE
 	bool "Device controller"
