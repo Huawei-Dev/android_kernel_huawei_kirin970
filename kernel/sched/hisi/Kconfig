@@ -2,18 +2,6 @@
 # Enhanced options for sched walt
 #
 
-if SCHED_WALT
-
-endif # SCHED_WALT
-
-config SCHED_DEBUG_TRACE
-	bool "Detailed trace for EAS debug"
-	default n
-	help
-	  This option enable detailed tracepoint for EAS debug, there
-	  will be more tracepoint in find best target, load balance and
-	  energy diff.
-
 config HUAWEI_SCHED_VIP
 	bool "Support a high prio sched policy in fair sched class"
 	default y

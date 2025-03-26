@@ -42,11 +42,7 @@
 #include "cpudeadline.h"
 #include "cpuacct.h"
 
-#if defined(CONFIG_SCHED_DEBUG) && defined(CONFIG_SCHED_DEBUG_TRACE)
-# define SCHED_WARN_ON(x)	WARN_ONCE(x, #x)
-#else
 # define SCHED_WARN_ON(x)	({ (void)(x), 0; })
-#endif
 
 struct rq;
 struct cpuidle_state;
@@ -1085,54 +1081,21 @@ static inline void rq_clock_skip_update(struct rq *rq, bool skip)
 struct rq_flags {
 	unsigned long flags;
 	struct pin_cookie cookie;
-#ifdef CONFIG_SCHED_DEBUG
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-	/*
-	 * A copy of (rq::clock_update_flags & RQCF_UPDATED) for the
-	 * current pin context is stashed here in case it needs to be
-	 * restored in rq_repin_lock().
-	 */
-	unsigned int clock_update_flags;
-#endif
-#endif
 };
 
 static inline void rq_pin_lock(struct rq *rq, struct rq_flags *rf)
 {
 	rf->cookie = lockdep_pin_lock(&rq->lock);
-
-#ifdef CONFIG_SCHED_DEBUG
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-	rq->clock_update_flags &= (RQCF_REQ_SKIP|RQCF_ACT_SKIP);
-	rf->clock_update_flags = 0;
-#endif
-#endif
 }
 
 static inline void rq_unpin_lock(struct rq *rq, struct rq_flags *rf)
 {
-#ifdef CONFIG_SCHED_DEBUG
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-	if (rq->clock_update_flags > RQCF_ACT_SKIP)
-		rf->clock_update_flags = RQCF_UPDATED;
-#endif
-#endif
-
 	lockdep_unpin_lock(&rq->lock, rf->cookie);
 }
 
 static inline void rq_repin_lock(struct rq *rq, struct rq_flags *rf)
 {
 	lockdep_repin_lock(&rq->lock, rf->cookie);
-
-#ifdef CONFIG_SCHED_DEBUG
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-	/*
-	 * Restore the value we stashed in @rf for this pin context.
-	 */
-	rq->clock_update_flags |= rf->clock_update_flags;
-#endif
-#endif
 }
 
 struct rq *__task_rq_lock(struct task_struct *p, struct rq_flags *rf)

@@ -7066,14 +7066,6 @@ static inline int select_energy_cpu_idx(struct energy_env *eenv)
 
 	dump_eenv_debug(eenv);
 
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-	trace_sched_energy_diff(eenv->p, eenv->cpu[EAS_CPU_PRV].cpu_id,
-				eenv->cpu[EAS_CPU_PRV].energy,
-				eenv->cpu[EAS_CPU_NXT].cpu_id,
-				eenv->cpu[EAS_CPU_NXT].energy,
-				eenv->cpu[EAS_CPU_BKP].cpu_id,
-				eenv->cpu[EAS_CPU_BKP].energy);
-#endif
 	/*
 	 * Compare the other CPU candidates to find a CPU which can be
 	 * more energy efficient then EAS_CPU_PRV
@@ -8389,16 +8381,6 @@ static inline int find_best_target(struct task_struct *p, int *backup_cpu,
 			unsigned long wake_util, new_util, min_capped_util;
 			long spare_cap;
 			int idle_idx = INT_MAX;
-
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-			trace_sched_cpu_util(i, cpu_util_without(i, p) + task_util_est(p),
-					     walt_irqload(i),
-					     walt_cpu_high_irqload(i),
-					     capacity_curr_of(i),
-					     capacity_of(i),
-					     capacity_orig_of(i),
-					     capacity_min_of(i));
-#endif
 
 #ifdef CONFIG_HISI_EAS_SCHED
 			if (skip_cpu(i))
@@ -10350,11 +10332,7 @@ static int detach_tasks(struct lb_env *env, struct rq_flags *rf)
 {
 	struct list_head *tasks = &env->src_rq->cfs_tasks;
 	struct task_struct *p;
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-	unsigned long load = 0;
-#else
 	unsigned long load;
-#endif
 	int detached = 0;
 
 	lockdep_assert_held(&env->src_rq->lock);
@@ -10462,12 +10440,6 @@ static int detach_tasks(struct lb_env *env, struct rq_flags *rf)
 
 		continue;
 next:
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-		trace_sched_load_balance_skip_tasks(env->src_cpu, env->dst_cpu,
-				env->src_grp_type, p->pid, load,
-				task_util(p),
-				cpumask_bits(&p->cpus_allowed)[0]);
-#endif
 		list_move_tail(&p->se.group_node, tasks);
 	}
 
@@ -11392,16 +11364,6 @@ next_group:
 		sds->total_load += sgs->group_load;
 		sds->total_capacity += sgs->group_capacity;
 		sds->total_util += sgs->group_util;
-
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-		trace_sched_load_balance_sg_stats(sg->cpumask[0], sgs->group_type,
-					sgs->idle_cpus, sgs->sum_nr_running,
-					sgs->group_load, sgs->group_capacity,
-					sgs->group_util, sgs->group_no_capacity,
-					sgs->load_per_task,
-					sgs->group_misfit_task_load,
-					sds->busiest ? sds->busiest->cpumask[0] : 0);
-#endif
 		sg = sg->next;
 	} while (sg != env->sd->groups);
 
@@ -11850,23 +11812,10 @@ force_balance:
 	/* Looks like there is an imbalance. Compute it */
 	env->src_grp_type = busiest->group_type;
 	calculate_imbalance(env, &sds);
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-	trace_sched_find_busiest_group(env->idle, busiest->group_type,
-				       sched_group_cpus(sds.busiest), hisi_fbg_flag);
-
-	trace_sched_load_balance_stats(sds.busiest->cpumask[0], busiest->group_type,
-				busiest->avg_load, busiest->load_per_task,
-				sds.local->cpumask[0], local->group_type,
-				local->avg_load, local->load_per_task,
-				sds.avg_load, env->imbalance);
-#endif
 	return sds.busiest;
 
 out_balanced:
 	env->imbalance = 0;
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-	trace_sched_find_busiest_group(env->idle, -1, cpu_none_mask, hisi_fbg_flag);
-#endif
 	return NULL;
 }
 
@@ -12086,13 +12035,8 @@ static int load_balance(int this_cpu, struct rq *this_rq,
 {
 	int ld_moved, cur_ld_moved, active_balance = 0;
 	struct sched_domain *sd_parent = lb_sd_parent(sd) ? sd->parent : NULL;
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-	struct sched_group *group = NULL;
-	struct rq *busiest = NULL;
-#else
 	struct sched_group *group;
 	struct rq *busiest;
-#endif
 	struct rq_flags rf;
 	struct cpumask *cpus = this_cpu_cpumask_var_ptr(load_balance_mask);
 
@@ -12377,13 +12321,6 @@ out_one_pinned:
 			(sd->balance_interval < sd->max_interval))
 		sd->balance_interval *= 2;
 out:
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-	trace_sched_load_balance(this_cpu, idle, *continue_balancing,
-				 group ? group->cpumask[0] : 0,
-				 busiest ? busiest->nr_running : 0,
-				 env.imbalance, env.flags, ld_moved,
-				 sd->balance_interval, active_balance);
-#endif
 	return ld_moved;
 }
 
@@ -12844,9 +12781,6 @@ static inline int hisi_find_new_ilb(void)
 
 	rcu_read_unlock();
 
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-	trace_sched_hisi_find_new_ilb(type, ilb);
-#endif
 	reset_balance_interval(ilb);
 	vip_balance_set_overutilized(call_cpu);
 
@@ -12876,9 +12810,6 @@ static inline int find_new_ilb(void)
 static void nohz_balancer_kick(bool only_update)
 {
 	int ilb_cpu;
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-	int cpu;
-#endif
 
 	nohz.next_balance++;
 
@@ -12899,10 +12830,6 @@ static void nohz_balancer_kick(bool only_update)
 	 * is idle. And the softirq performing nohz idle load balance
 	 * will be run before returning from the IPI.
 	 */
-#ifdef CONFIG_SCHED_DEBUG_TRACE
-	cpu = smp_processor_id();
-	trace_sched_load_balance_nohz_kick(cpu, ilb_cpu, cpu_overutilized(cpu));
-#endif
 	smp_send_reschedule(ilb_cpu);
 	return;
 }
