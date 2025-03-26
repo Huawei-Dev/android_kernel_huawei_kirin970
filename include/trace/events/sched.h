@@ -1996,42 +1996,6 @@ TRACE_EVENT(walt_window_rollover,
 	TP_printk("cpu=%d", __entry->cpu)
 );
 
-#ifdef CONFIG_SCHED_TOP_TASK
-TRACE_EVENT(walt_update_top_task,
-
-	TP_PROTO(struct rq *rq, struct task_struct *p),
-
-	TP_ARGS(rq, p),
-
-	TP_STRUCT__entry(
-		__array(	char,	comm,   TASK_COMM_LEN	)
-		__field(	pid_t,	pid			)
-		__field(	 int,	curr_load		)
-		__field(	 int,	prev_load		)
-		__field(	 int,	curr_top		)
-		__field(	 int,	prev_top		)
-		__field(	 int,	cpu			)
-	),
-
-	TP_fast_assign(
-		memcpy(__entry->comm, p->comm, TASK_COMM_LEN);
-		__entry->pid            = p->pid;
-		__entry->curr_load      = p->ravg.curr_load;
-		__entry->prev_load      = p->ravg.prev_load;
-		__entry->curr_top       = rq->top_task_index[rq->curr_table];
-		__entry->prev_top       = rq->top_task_index[1 - rq->curr_table];
-		__entry->cpu            = rq->cpu;
-	),
-
-	TP_printk("cpu=%d pid=%d comm=%s curr_load=%d prev_load=%d curr_top=%d prev_top=%d",
-		__entry->cpu, __entry->pid, __entry->comm,
-		__entry->curr_load,
-		__entry->prev_load,
-		__entry->curr_top,
-		__entry->prev_top)
-);
-#endif /* CONFIG_SCHED_TOP_TASK */
-
 #ifdef CONFIG_SCHED_PRED_LOAD
 TRACE_EVENT(predl_adjust_runtime,
 

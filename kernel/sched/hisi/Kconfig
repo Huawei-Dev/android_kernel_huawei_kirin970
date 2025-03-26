@@ -4,13 +4,6 @@
 
 if SCHED_WALT
 
-config SCHED_TOP_TASK
-	bool "Maintain the top task load of each cpu"
-	default y
-	help
-	  Schedutil governor may use the top task load as a guide to
-	  frequency evaluation.
-
 config SCHED_USE_WALT
 	bool "Scheduler use WALT for cpu util and task util"
 	default y
@@ -30,14 +23,6 @@ config SCHED_MIGRATE_SPREAD_LOAD
 	  running on before in a window. If disabled, task's whole load
 	  will move to dest cpu and that will make dest cpu's cpu load
 	  very high in same cases.
-
-config SCHED_TOP_TASK_SKIP_HISPEED_LOGIC
-	bool "Let top task ignore above_hipeed_delay"
-	depends on SCHED_TOP_TASK
-	default y
-	help
-	  For schedutil governor, this option skips hispeed logic when
-	  ADD_TOP_TASK event triggers freq update.
 
 config SCHED_PRED_LOAD
 	bool "Calculate predicted load for each task"

@@ -136,12 +136,6 @@ struct sugov_tunables {
 	unsigned int iowait_boost_step;
 #endif
 
-#ifdef CONFIG_SCHED_TOP_TASK
-	unsigned int top_task_hist_size;
-	unsigned int top_task_stats_policy;
-	bool top_task_stats_empty_window;
-#endif
-
 #ifdef CONFIG_ED_TASK
 	unsigned int ed_task_running_duration;
 	unsigned int ed_task_waiting_duration;
@@ -1158,11 +1152,6 @@ void sugov_mark_util_change(int cpu, unsigned int flags)
 		skip_hispeed_logic = true;
 #endif
 
-#ifdef CONFIG_SCHED_TOP_TASK_SKIP_HISPEED_LOGIC
-	if (flags & ADD_TOP_TASK)
-		skip_hispeed_logic = true;
-#endif
-
 	if (flags & FORCE_UPDATE) {
 		skip_min_sample_time = true;
 		skip_hispeed_logic = true;
@@ -1649,99 +1638,6 @@ static ssize_t freq_dec_notify_store(struct gov_attr_set *attr_set,
 }
 #endif /* CONFIG_MIGRATION_NOTIFY */
 
-#ifdef CONFIG_SCHED_TOP_TASK
-static ssize_t top_task_hist_size_show(struct gov_attr_set *attr_set, char *buf)
-{
-	struct sugov_tunables *tunables = to_sugov_tunables(attr_set);
-
-	return scnprintf(buf, PAGE_SIZE, "%u\n", tunables->top_task_hist_size);
-}
-
-static ssize_t top_task_hist_size_store(struct gov_attr_set *attr_set,
-				      const char *buf, size_t count)
-{
-	struct sugov_tunables *tunables = to_sugov_tunables(attr_set);
-	struct sugov_policy *sg_policy = NULL;
-	unsigned int val;
-	int cpu;
-
-	if (kstrtouint(buf, 10, &val))
-		return -EINVAL;
-
-	/* Allowed range: [1, RAVG_HIST_SIZE_MAX] */
-	if (val < 1 || val > RAVG_HIST_SIZE_MAX)
-		return -EINVAL;
-
-	tunables->top_task_hist_size = val;
-
-	list_for_each_entry(sg_policy, &attr_set->policy_list, tunables_hook) {
-		for_each_cpu(cpu, sg_policy->policy->cpus) {
-			cpu_rq(cpu)->top_task_hist_size = val;
-		}
-	}
-
-	return count;
-}
-
-static ssize_t top_task_stats_policy_show(struct gov_attr_set *attr_set, char *buf)
-{
-	struct sugov_tunables *tunables = to_sugov_tunables(attr_set);
-
-	return scnprintf(buf, PAGE_SIZE, "%u\n", tunables->top_task_stats_policy);
-}
-
-static ssize_t top_task_stats_policy_store(struct gov_attr_set *attr_set,
-				      const char *buf, size_t count)
-{
-	struct sugov_tunables *tunables = to_sugov_tunables(attr_set);
-	struct sugov_policy *sg_policy = NULL;
-	unsigned int val;
-	int cpu;
-
-	if (kstrtouint(buf, 10, &val))
-		return -EINVAL;
-
-	tunables->top_task_stats_policy = val;
-
-	list_for_each_entry(sg_policy, &attr_set->policy_list, tunables_hook) {
-		for_each_cpu(cpu, sg_policy->policy->cpus) {
-			cpu_rq(cpu)->top_task_stats_policy = val;
-		}
-	}
-
-	return count;
-}
-
-static ssize_t top_task_stats_empty_window_show(struct gov_attr_set *attr_set, char *buf)
-{
-	struct sugov_tunables *tunables = to_sugov_tunables(attr_set);
-
-	return scnprintf(buf, PAGE_SIZE, "%u\n", tunables->top_task_stats_empty_window);
-}
-
-static ssize_t top_task_stats_empty_window_store(struct gov_attr_set *attr_set,
-				      const char *buf, size_t count)
-{
-	struct sugov_tunables *tunables = to_sugov_tunables(attr_set);
-	struct sugov_policy *sg_policy = NULL;
-	unsigned int val;
-	int cpu;
-
-	if (kstrtouint(buf, 10, &val))
-		return -EINVAL;
-
-	tunables->top_task_stats_empty_window = val;
-
-	list_for_each_entry(sg_policy, &attr_set->policy_list, tunables_hook) {
-		for_each_cpu(cpu, sg_policy->policy->cpus) {
-			cpu_rq(cpu)->top_task_stats_empty_window = val;
-		}
-	}
-
-	return count;
-}
-#endif /* CONFIG_SCHED_TOP_TASK */
-
 #ifdef CONFIG_ED_TASK
 static ssize_t ed_task_running_duration_show(struct gov_attr_set *attr_set, char *buf)
 {
@@ -2166,11 +2062,6 @@ static struct governor_attr fast_ramp_up = __ATTR_RW(fast_ramp_up);
 static struct governor_attr freq_reporting_policy = __ATTR_RW(freq_reporting_policy);
 static struct governor_attr iowait_boost_step = __ATTR_RW(iowait_boost_step);
 #endif
-#ifdef CONFIG_SCHED_TOP_TASK
-static struct governor_attr top_task_hist_size = __ATTR_RW(top_task_hist_size);
-static struct governor_attr top_task_stats_policy = __ATTR_RW(top_task_stats_policy);
-static struct governor_attr top_task_stats_empty_window = __ATTR_RW(top_task_stats_empty_window);
-#endif
 #ifdef CONFIG_ED_TASK
 static struct governor_attr ed_task_running_duration = __ATTR_RW(ed_task_running_duration);
 static struct governor_attr ed_task_waiting_duration = __ATTR_RW(ed_task_waiting_duration);
@@ -2204,11 +2095,6 @@ static struct attribute *sugov_attributes[] = {
 	&freq_reporting_policy.attr,
 	&iowait_boost_step.attr,
 #endif
-#ifdef CONFIG_SCHED_TOP_TASK
-	&top_task_hist_size.attr,
-	&top_task_stats_policy.attr,
-	&top_task_stats_empty_window.attr,
-#endif
 #ifdef CONFIG_ED_TASK
 	&ed_task_running_duration.attr,
 	&ed_task_waiting_duration.attr,
@@ -2238,11 +2124,6 @@ static struct governor_user_attr schedutil_user_attrs[] = {
 	{.name = "fast_ramp_down", .uid = SYSTEM_UID, .gid = SYSTEM_GID, .mode = 0660},
 	{.name = "fast_ramp_up", .uid = SYSTEM_UID, .gid = SYSTEM_GID, .mode = 0660},
 	{.name = "freq_reporting_policy", .uid = SYSTEM_UID, .gid = SYSTEM_GID, .mode = 0660},
-#endif
-#ifdef CONFIG_SCHED_TOP_TASK
-	{.name = "top_task_hist_size", .uid = SYSTEM_UID, .gid = SYSTEM_GID, .mode = 0660},
-	{.name = "top_task_stats_policy", .uid = SYSTEM_UID, .gid = SYSTEM_GID, .mode = 0660},
-	{.name = "top_task_stats_empty_window", .uid = SYSTEM_UID, .gid = SYSTEM_GID, .mode = 0660},
 #endif
 #ifdef CONFIG_ED_TASK
 	{.name = "ed_task_running_duration", .uid = SYSTEM_UID, .gid = SYSTEM_GID, .mode = 0660},

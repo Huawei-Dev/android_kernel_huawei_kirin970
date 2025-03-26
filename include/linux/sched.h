@@ -659,11 +659,6 @@ struct ravg {
 #ifdef CONFIG_SCHED_MIGRATE_SPREAD_LOAD
 	cpumask_t prev_cpus, curr_cpus;
 #endif
-#ifdef CONFIG_SCHED_TOP_TASK
-	u32 load_sum, load_avg;
-	u32 load_sum_history[RAVG_HIST_SIZE_MAX];
-	u32 prev_load, curr_load;
-#endif
 };
 #endif
 

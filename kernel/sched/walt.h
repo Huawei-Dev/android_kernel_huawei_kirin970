@@ -22,12 +22,6 @@
 #define WINDOW_STATS_AVG		3
 #define WINDOW_STATS_INVALID_POLICY	4
 
-#ifdef CONFIG_SCHED_TOP_TASK
-#define DEFAULT_TOP_TASK_HIST_SIZE		RAVG_HIST_SIZE_MAX
-#define DEFAULT_TOP_TASK_STATS_POLICY		WINDOW_STATS_RECENT
-#define DEFAULT_TOP_TASK_STATS_EMPTY_WINDOW	false
-#endif
-
 void walt_update_task_ravg(struct task_struct *p, struct rq *rq, int event,
 		u64 wallclock, u64 irqtime);
 void walt_inc_cumulative_runnable_avg(struct rq *rq, struct task_struct *p);

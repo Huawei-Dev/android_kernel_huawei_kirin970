@@ -444,22 +444,8 @@ struct cfs_bandwidth { };
 #define EARLY_DETECTION_NEW_TASK_RUNNING_DURATION 100000000
 #endif
 
-#ifdef CONFIG_SCHED_TOP_TASK
-#define NUM_TRACKED_WINDOWS	2
-#define NUM_LOAD_INDICES	64
-#define SCHED_LOAD_GRANULE (walt_ravg_window / NUM_LOAD_INDICES)
-#define ZERO_LOAD_INDEX (NUM_LOAD_INDICES - 1)
-
-unsigned long top_task_util(struct rq *rq);
-void top_task_exit(struct task_struct *p, struct rq *rq);
-
-struct top_task_entry {
-	u8 count, preferidle_count;
-};
-#else /* !CONFIG_SCHED_TOP_TASK */
 static inline unsigned long top_task_util(struct rq *rq) { return 0; }
 static inline void top_task_exit(struct task_struct *p, struct rq *rq) {}
-#endif /* CONFIG_SCHED_TOP_TASK */
 
 /* CFS-related fields in a runqueue */
 struct cfs_rq {
@@ -925,18 +911,6 @@ struct rq {
 	u64 predl_curr_busy_time;
 	u64 predl_prev_busy_time;
 #endif
-
-#ifdef CONFIG_SCHED_TOP_TASK
-	DECLARE_BITMAP_ARRAY(top_tasks_bitmap,
-			NUM_TRACKED_WINDOWS, NUM_LOAD_INDICES);
-	struct top_task_entry *top_tasks[NUM_TRACKED_WINDOWS];
-	u8 curr_table;
-	int top_task_index[NUM_TRACKED_WINDOWS];
-
-	unsigned int top_task_hist_size;
-	unsigned int top_task_stats_policy;
-	bool top_task_stats_empty_window;
-#endif /* CONFIG_SCHED_TOP_TASK */
 	raw_spinlock_t walt_update_lock;
 #endif /* CONFIG_SCHED_WALT */
 
