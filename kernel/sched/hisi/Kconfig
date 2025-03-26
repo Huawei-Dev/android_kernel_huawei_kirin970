@@ -4,14 +4,6 @@
 
 if SCHED_WALT
 
-config SCHED_CALC_CUM_WINDOW_DEMAND
-	bool "WALT calculate cum window demand"
-	depends on SCHED_USE_WALT
-	default n
-	help
-	  This option caculates WALT's cum_window_demand, which is not used
-	  currently.
-
 config SCHED_CHECK_IRQLOAD
 	bool "Scheduler check irqload when select task's cpu"
 	default y

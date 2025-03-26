@@ -341,11 +341,6 @@ static void rollover_top_task_load(struct task_struct *p, int nr_full_windows)
 
 static inline void fixup_cum_window_demand(struct rq *rq, s64 delta)
 {
-#ifdef CONFIG_SCHED_CALC_CUM_WINDOW_DEMAND
-	rq->cum_window_demand += delta;
-	if (unlikely((s64)rq->cum_window_demand < 0))
-		rq->cum_window_demand = 0;
-#endif
 }
 
 #ifdef CONFIG_SCHED_PRED_LOAD
@@ -482,10 +477,6 @@ update_window_start(struct rq *rq, u64 wallclock)
 
 	nr_windows = div64_u64(delta, walt_ravg_window);
 	rq->window_start += (u64)nr_windows * (u64)walt_ravg_window;
-
-#ifdef CONFIG_SCHED_CALC_CUM_WINDOW_DEMAND
-	rq->cum_window_demand = rq->cumulative_runnable_avg;
-#endif
 }
 
 #ifdef CONFIG_SCHED_PRED_LOAD
