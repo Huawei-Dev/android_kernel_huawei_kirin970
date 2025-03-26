@@ -202,44 +202,7 @@ static int sched_set_task_vip_prio(unsigned long arg)
 
 static int sched_set_task_min_util(unsigned long arg)
 {
-#ifdef CONFIG_SCHED_HISI_TASK_MIN_UTIL
-	struct task_struct *tsk = NULL;
-	struct task_config config;
-	void __user *uarg = (void __user *)arg;
-	int ret = 0;
-
-	if (unlikely(!MIN_UTIL_SET_ENABLE))
-		return ret;
-
-	if (!uarg)
-		return -EINVAL;
-
-	if (copy_from_user(&config, uarg, sizeof(config))) {
-		pr_warn("sched_set_task_min_util: failed to copy from user\n");
-		return -EFAULT;
-	}
-
-	if (config.pid <= 0 || config.value < 0) {
-		pr_warn("sched_set_task_min_util: bad parameter\n");
-		return -EINVAL;
-	}
-
-	rcu_read_lock();
-	tsk = find_task_by_vpid(config.pid);
-	if (!tsk) {
-		rcu_read_unlock();
-		return -ESRCH;
-	}
-	get_task_struct(tsk);
-	rcu_read_unlock();
-
-	ret = set_task_min_util(tsk, (unsigned int)config.value);
-	put_task_struct(tsk);
-
-	return ret;
-#else
 	return 0;
-#endif
 }
 
 static long qos_ctrl_ioctl(struct file *file,

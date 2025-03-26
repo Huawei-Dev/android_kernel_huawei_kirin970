@@ -220,68 +220,6 @@ int perf_ctrl_set_favor_small_cap(void __user *uarg)
 }
 #endif
 
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-int perf_ctrl_set_task_min_util(void __user *uarg)
-{
-	struct task_config cfg;
-	struct task_struct *p = NULL;
-	int ret;
-
-	if (uarg == NULL)
-		return -EINVAL;
-
-	if (copy_from_user(&cfg, uarg, sizeof(struct task_config)))
-		return -EFAULT;
-
-	rcu_read_lock();
-
-	p = find_process_by_pid(cfg.pid);
-	if (p == NULL) {
-		rcu_read_unlock();
-		return -ESRCH;
-	}
-
-	get_task_struct(p);
-	rcu_read_unlock();
-
-	ret = set_task_min_util(p, cfg.value);
-
-	put_task_struct(p);
-
-	return ret;
-}
-
-int perf_ctrl_set_task_max_util(void __user *uarg)
-{
-	struct task_config cfg;
-	struct task_struct *p = NULL;
-	int ret;
-
-	if (uarg == NULL)
-		return -EINVAL;
-
-	if (copy_from_user(&cfg, uarg, sizeof(struct task_config)))
-		return -EFAULT;
-
-	rcu_read_lock();
-
-	p = find_process_by_pid(cfg.pid);
-	if (p == NULL) {
-		rcu_read_unlock();
-		return -ESRCH;
-	}
-
-	get_task_struct(p);
-	rcu_read_unlock();
-
-	ret = set_task_max_util(p, cfg.value);
-
-	put_task_struct(p);
-
-	return ret;
-}
-#endif
-
 #ifdef CONFIG_SCHED_STAT_YIELD
 int perf_ctrl_get_task_yield_time(void __user *uarg)
 {

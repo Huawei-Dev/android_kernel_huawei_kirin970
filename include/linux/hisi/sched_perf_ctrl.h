@@ -134,10 +134,6 @@ static inline int perf_ctrl_set_favor_small_cap(void __user *uarg)
 }
 #endif
 
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-int perf_ctrl_set_task_min_util(void __user *uarg);
-int perf_ctrl_set_task_max_util(void __user *uarg);
-#else
 static inline int perf_ctrl_set_task_min_util(void __user *uarg)
 {
 	return -EFAULT;
@@ -147,7 +143,6 @@ static inline int perf_ctrl_set_task_max_util(void __user *uarg)
 {
 	return -EFAULT;
 }
-#endif
 
 #ifdef CONFIG_SCHED_STAT_YIELD
 int perf_ctrl_get_task_yield_time(void __user *uarg);

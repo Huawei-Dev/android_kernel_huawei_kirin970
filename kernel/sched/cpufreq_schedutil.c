@@ -186,9 +186,6 @@ struct sugov_policy {
 	unsigned int max_cpu;
 	unsigned int iowait_boost;
 	u64 last_iowait;
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-	unsigned int min_util;
-#endif
 	atomic_t skip_min_sample_time;
 	atomic_t skip_hispeed_logic;
 	bool util_changed;
@@ -428,10 +425,6 @@ static unsigned int eval_target_freq(struct sugov_policy *sg_policy,
 	}
 
 	new_freq = max(sg_policy->iowait_boost, new_freq);
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-	new_freq = max(util_to_freq(sg_policy->max_cpu, sg_policy->min_util),
-			new_freq);
-#endif
 	trace_cpufreq_schedutil_eval_target(sg_policy->max_cpu,
 					    util, max, cpu_load,
 					    policy->cur, new_freq);
@@ -1141,11 +1134,6 @@ void sugov_mark_util_change(int cpu, unsigned int flags)
 		skip_hispeed_logic = true;
 	}
 
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-	if (flags & (SET_MIN_UTIL | ENQUEUE_MIN_UTIL))
-		skip_hispeed_logic = true;
-#endif
-
 	if (skip_min_sample_time)
 		atomic_set(&sg_policy->skip_min_sample_time, 1);
 	if (skip_hispeed_logic)
@@ -1191,10 +1179,6 @@ static void sugov_work(struct kthread_work *work)
 
 	mutex_lock(&sg_policy->work_lock);
 
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-	sg_policy->min_util = 0;
-#endif
-
 	for_each_cpu(cpu, policy->cpus) {
 		struct sugov_cpu *j_sg_cpu = &per_cpu(sugov_cpu, cpu);
 
@@ -1214,10 +1198,6 @@ static void sugov_work(struct kthread_work *work)
 		early_detection[i] = 0;
 		walt_update_task_ravg(rq->curr, rq, TASK_UPDATE, walt_ktime_clock(), 0);
 #endif
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-		sg_policy->min_util = max(sg_policy->min_util, get_min_util(rq));
-#endif
-
 		raw_spin_unlock_irq(&rq->lock);
 		i++;
 	}

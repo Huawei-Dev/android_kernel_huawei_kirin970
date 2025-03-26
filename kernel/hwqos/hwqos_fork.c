@@ -42,10 +42,6 @@ void init_task_qos_info(struct task_struct *p)
 	p->vip_params.trans_flag = false;
 	p->vip_params.value = 0;
 #endif
-#ifdef CONFIG_SCHED_HISI_TASK_MIN_UTIL
-	p->min_util_params.trans_flag = false;
-	p->min_util_params.value = 0;
-#endif
 }
 
 void release_task_qos_info(struct task_struct *p)

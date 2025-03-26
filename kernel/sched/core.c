@@ -63,24 +63,6 @@ DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
 #ifdef CONFIG_ED_TASK
 static inline bool is_ed_task(struct rq *rq, struct task_struct *p, u64 wall)
 {
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-	if (p->uclamp.max_util < capacity_orig_of(cpu_of(rq))) {
-		/*
-		 * Obviously p is not a ed task.
-		 * Besides we have a overload_detection check in
-		 * schedutil which may break our util_clamp.
-		 * There's no easy way to keep both util_clamp and
-		 * overload_detection perfectly correct. Just shut
-		 * overload_detection off here because it's not
-		 * designed for user-experience.
-		 */
-#ifdef CONFIG_CPU_FREQ_GOV_SCHEDUTIL_OPT
-		rq->skip_overload_detect = true;
-#endif
-		return false;
-	}
-#endif
-
 	if (schedtune_prefer_idle(p)) {
 		if (p->last_wake_wait_sum >= rq->ed_task_waiting_duration)
 			return true;
@@ -916,138 +898,6 @@ unsigned int util_to_freq(unsigned int cpu, unsigned int util)
 }
 #endif
 
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-int set_task_max_util(struct task_struct *p, unsigned int new_util)
-{
-	if (!p || new_util > SCHED_CAPACITY_SCALE) {
-		pr_err("%s invalid arg %u\n", __func__, new_util);
-		return -EINVAL;
-	}
-
-	p->uclamp.max_util = new_util;
-	return 0;
-}
-
-unsigned int get_task_max_util(struct task_struct *p)
-{
-	return p->uclamp.max_util;
-}
-
-int set_task_min_util(struct task_struct *p, unsigned int new_util)
-{
-	struct rq_flags rf;
-	struct rq *rq = NULL;
-	unsigned int old_util;
-	int cpu;
-	bool should_update_freq = false;
-
-	if (!p || new_util > SCHED_CAPACITY_SCALE) {
-		pr_err("%s invalid arg %u\n", __func__, new_util);
-		return -EINVAL;
-	}
-
-	rq = task_rq_lock(p, &rf);
-	cpu = cpu_of(rq);
-
-	old_util = p->uclamp.min_util;
-	p->uclamp.min_util = new_util;
-
-	/*
-	 * Nothing more to do for sleeping tasks or no change.
-	 * Protected by p->pi_lock, we can safely check p->on_rq
-	 * and check p's old min_util.
-	 * Protected by rq->lock, we can safely manipulate rq's
-	 * min_util_req list.
-	 */
-	if (task_on_rq_queued(p) && new_util != old_util) {
-		if (new_util > old_util &&
-		    new_util > capacity_curr_of(cpu))
-			should_update_freq = true;
-
-		if (old_util == 0) {
-			WARN_ON(!list_empty(&p->uclamp.min_util_entry));
-			list_add(&p->uclamp.min_util_entry, &rq->min_util_req);
-		}
-
-		if (new_util == 0) {
-			WARN_ON(list_empty(&p->uclamp.min_util_entry));
-			list_del_init(&p->uclamp.min_util_entry);
-		}
-	}
-
-	task_rq_unlock(rq, p, &rf);
-
-	if (should_update_freq) {
-		sugov_mark_util_change(cpu, SET_MIN_UTIL);
-		sugov_check_freq_update(cpu);
-	}
-
-	return 0;
-}
-
-unsigned int get_task_min_util(struct task_struct *p)
-{
-	return p->uclamp.min_util;
-}
-
-static void add_freq_request(struct rq *rq, struct task_struct *p)
-{
-	struct util_clamp *req = &p->uclamp;
-
-	if (unlikely(req->min_util)) {
-		if (unlikely(!list_empty(&req->min_util_entry))) {
-			pr_warn("error when add req %d\n", p->pid);
-			return;
-		}
-
-		list_add(&req->min_util_entry, &rq->min_util_req);
-
-		if (req->min_util > capacity_curr_of(cpu_of(rq)))
-			sugov_mark_util_change(cpu_of(rq), ENQUEUE_MIN_UTIL);
-	}
-}
-
-static void del_freq_request(struct task_struct *p)
-{
-	struct util_clamp *req = &p->uclamp;
-
-	if (unlikely(req->min_util)) {
-		if (unlikely(list_empty(&req->min_util_entry))) {
-			pr_warn("error when del req %d\n", p->pid);
-			return;
-		}
-
-		list_del_init(&req->min_util_entry);
-	}
-}
-
-unsigned int get_min_util(struct rq *rq)
-{
-	struct util_clamp *req = NULL;
-	unsigned int ret = 0;
-	int loop_max = 10;
-
-	if (likely(list_empty(&rq->min_util_req)))
-		return 0;
-
-	lockdep_assert_held(&rq->lock);
-
-	list_for_each_entry(req, &rq->min_util_req, min_util_entry) {
-		/* Return the highest min_util req. */
-		if (req->min_util > ret)
-			ret = req->min_util;
-
-		/*
-		 * Meaningless to have too many min_util reqs.
-		 * Protect us against attack.
-		 */
-		if (--loop_max <= 0)
-			break;
-	}
-
-	return ret;
-}
-#else
 int set_task_max_util(struct task_struct *p, unsigned int new_util)
 {
 	return -ENOENT;
@@ -1067,7 +917,6 @@ unsigned int get_task_min_util(struct task_struct *p)
 {
 	return 0;
 }
-#endif
 
 static inline void enqueue_task(struct rq *rq, struct task_struct *p, int flags)
 {
@@ -1084,9 +933,6 @@ static inline void enqueue_task(struct rq *rq, struct task_struct *p, int flags)
 #ifdef CONFIG_HISI_EAS_SCHED
 	p->last_enqueued_ts = walt_ktime_clock();
 #endif
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-	add_freq_request(rq, p);
-#endif
 }
 
 static inline void dequeue_task(struct rq *rq, struct task_struct *p, int flags)
@@ -1100,10 +946,6 @@ static inline void dequeue_task(struct rq *rq, struct task_struct *p, int flags)
 	}
 
 	p->sched_class->dequeue_task(rq, p, flags);
-
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-	del_freq_request(p);
-#endif
 }
 
 void activate_task(struct rq *rq, struct task_struct *p, int flags)
@@ -2665,12 +2507,6 @@ static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
 #ifdef CONFIG_HUAWEI_SCHED_VIP
 	INIT_LIST_HEAD(&p->hisi_vip_entry);
 	p->vip_prio = 0;
-#endif
-
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-	INIT_LIST_HEAD(&p->uclamp.min_util_entry);
-	p->uclamp.min_util = 0;
-	p->uclamp.max_util = SCHED_CAPACITY_SCALE;
 #endif
 
 #ifdef CONFIG_SCHED_STAT_YIELD
@@ -6769,10 +6605,6 @@ void __init sched_init(void)
 #endif
 #ifdef CONFIG_CPU_FREQ_GOV_SCHEDUTIL_OPT
 		rq->skip_overload_detect = false;
-#endif
-
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-		INIT_LIST_HEAD(&rq->min_util_req);
 #endif
 
 		INIT_LIST_HEAD(&rq->cfs_tasks);

@@ -134,15 +134,7 @@ update_window_start(struct rq *rq, u64 wallclock)
 	rq->window_start += (u64)nr_windows * (u64)walt_ravg_window;
 }
 
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-static inline u32 max_runtime(struct task_struct *p)
-{
-	u64 max_util = p->uclamp.max_util;
-	return (max_util * walt_ravg_window) >> SCHED_CAPACITY_SHIFT;
-}
-#else
 #define max_runtime(p) walt_ravg_window
-#endif
 
 /*
  * Translate absolute delta time accounted on a CPU

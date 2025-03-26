@@ -8832,12 +8832,6 @@ static inline bool task_fits(struct task_struct *p, int cpu)
 	unsigned long boosted_util = boosted_task_util(p);
 	unsigned int margin = hisi_capacity_margin_general(p, cpu);
 
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-	if (capacity < p->uclamp.min_util)
-		return false;
-	if (capacity >= p->uclamp.max_util)
-		return true;
-#endif
 	if (p->sched_class == &rt_sched_class)
 		return ((capacity << SCHED_CAPACITY_SHIFT) >=
 			(task_util(p) * margin)) &&

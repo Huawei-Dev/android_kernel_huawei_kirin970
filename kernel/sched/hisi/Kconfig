@@ -12,19 +12,6 @@ config HUAWEI_SCHED_VIP_STRICT
 	default n
 	depends on HUAWEI_SCHED_VIP
 
-config SCHED_HISI_TASK_MIN_UTIL
-	bool "Support boosting a task to a specified opp"
-	default y
-	depends on SCHED_HISI_UTIL_CLAMP
-
-config SCHED_HISI_UTIL_CLAMP
-	bool "Support userspace constraints on a task's min/max opp use"
-	default y
-	depends on CPU_FREQ_GOV_SCHEDUTIL_OPT
-	depends on HISI_EAS_SCHED
-	depends on SCHED_WALT
-	select SCHED_HISI_TASK_MIN_UTIL
-
 config SCHED_DEPRECATED
 	bool "Sched optimization deprecated code"
 	default n

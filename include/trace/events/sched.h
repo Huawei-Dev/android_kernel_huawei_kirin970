@@ -132,11 +132,7 @@ DECLARE_EVENT_CLASS(sched_qos_template,
 #else
 		__entry->vip_prio = -1;
 #endif
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-		__entry->min_util = p->uclamp.min_util;
-#else
 		__entry->min_util = -1;
-#endif
 		__entry->trans_qos   = get_task_trans_qos(tq);
 		__entry->trans_from  = (tq == NULL) ? 0 : tq->trans_pid;
 		__entry->trans_type  = (tq == NULL) ? 0 : tq->trans_type;
@@ -1142,13 +1138,8 @@ TRACE_EVENT(sched_boost_task,
 		__entry->pid      = tsk->pid;
 		__entry->util     = util;
 		__entry->margin   = margin;
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-		__entry->min_util = tsk->uclamp.min_util;
-		__entry->max_util = tsk->uclamp.max_util;
-#else
 		__entry->min_util = 0;
 		__entry->max_util = 1024;
-#endif
 	),
 
 	TP_printk("comm=%s pid=%d util=%lu margin=%ld min_util=%u max_util=%u",

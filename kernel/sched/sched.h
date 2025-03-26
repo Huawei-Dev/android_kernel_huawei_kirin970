@@ -909,10 +909,6 @@ struct rq {
 	bool skip_overload_detect;
 #endif
 
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-	struct list_head min_util_req;
-#endif
-
 	u64 group_load;
 
 #ifdef CONFIG_IRQ_TIME_ACCOUNTING
@@ -2490,8 +2486,4 @@ static inline void kick_load_balance(struct rq *rq) { return; }
 
 #ifdef CONFIG_HUAWEI_SCHED_VIP
 extern int find_lowest_vip_cpu(struct task_struct *p, struct cpumask *search_cpus);
-#endif
-
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-extern unsigned int get_min_util(struct rq *rq);
 #endif

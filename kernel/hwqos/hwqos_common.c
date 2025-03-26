@@ -263,38 +263,6 @@ static void dynamic_vip_prio_dequeue(struct task_struct *task, unsigned int type
 }
 #endif
 
-#ifdef CONFIG_SCHED_HISI_TASK_MIN_UTIL
-static void dynamic_min_util_enqueue(struct task_struct *task,
-	struct task_struct *from, unsigned int type)
-{
-	unsigned int min_util_desired;
-
-	if (!MIN_UTIL_TRANS_ENABLE || type != DYNAMIC_QOS_BINDER)
-		return;
-
-	if (task->min_util_params.trans_flag)
-		return;
-	min_util_desired = from->uclamp.min_util;
-	if (min_util_desired == 0 || min_util_desired <= task->uclamp.min_util)
-		return;
-	task->min_util_params.value = task->uclamp.min_util;
-	set_task_min_util(task, min_util_desired);
-	task->min_util_params.trans_flag = true;
-}
-
-static void dynamic_min_util_dequeue(struct task_struct *task, unsigned int type)
-{
-	if (!MIN_UTIL_TRANS_ENABLE || type != DYNAMIC_QOS_BINDER)
-		return;
-
-	if (!task->min_util_params.trans_flag)
-		return;
-	set_task_min_util(task, task->min_util_params.value);
-	task->min_util_params.value = 0;
-	task->min_util_params.trans_flag = false;
-}
-#endif
-
 static bool dynamic_qos_enqueue_inner(struct task_struct *task,
 	struct task_struct *from, unsigned int type)
 {
@@ -349,9 +317,6 @@ bool dynamic_qos_enqueue(struct task_struct *task,
 #ifdef CONFIG_HUAWEI_SCHED_VIP
 	dynamic_vip_prio_enqueue(task, from, type);
 #endif
-#ifdef CONFIG_SCHED_HISI_TASK_MIN_UTIL
-	dynamic_min_util_enqueue(task, from, type);
-#endif
 	if (get_trans_qos_by_type(task, type) == VALUE_QOS_CRITICAL)
 		return ret;
 	return dynamic_qos_enqueue_inner(task, from, type);
@@ -373,10 +338,6 @@ void dynamic_qos_dequeue(struct task_struct *task, unsigned int type)
 #ifdef CONFIG_HUAWEI_SCHED_VIP
 	dynamic_vip_prio_dequeue(task, type);
 #endif
-#ifdef CONFIG_SCHED_HISI_TASK_MIN_UTIL
-	dynamic_min_util_dequeue(task, type);
-#endif
-
 	flags = atomic_read(&task->trans_flags);
 	if (!get_trans_type(flags, type))
 		return;

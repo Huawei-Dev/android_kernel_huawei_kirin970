@@ -246,7 +246,7 @@ enum DYNAMIC_QOS_OPERATION {
 	OPERATION_QOS_DEQUEUE,
 	OPERATION_QOS_MAX,
 };
-#if defined (CONFIG_HUAWEI_SCHED_VIP) || defined (CONFIG_SCHED_HISI_TASK_MIN_UTIL)
+#ifdef CONFIG_HUAWEI_SCHED_VIP
 struct restore_sched_param {
 	bool trans_flag;
 	unsigned int value;
@@ -842,14 +842,6 @@ struct rtg_class {
 	void (*sched_update_rtg_tick)(struct related_thread_group *grp);
 };
 
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-struct util_clamp {
-	unsigned int min_util;
-	unsigned int max_util;
-	struct list_head min_util_entry;
-};
-#endif
-
 struct task_struct {
 #ifdef CONFIG_THREAD_INFO_IN_TASK
 	/*
@@ -897,9 +889,6 @@ struct task_struct {
 #ifdef CONFIG_HUAWEI_SCHED_VIP
 	struct restore_sched_param vip_params;
 #endif
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-	struct restore_sched_param min_util_params;
-#endif
 #endif
 #ifdef CONFIG_SMP
 	struct llist_node		wake_entry;
@@ -945,10 +934,6 @@ struct task_struct {
 	/* cumulative waiting time since last wake */
 	u64 last_wake_wait_sum;
 	u64 last_wake_ts;
-#endif
-
-#ifdef CONFIG_SCHED_HISI_UTIL_CLAMP
-	struct util_clamp		uclamp;
 #endif
 
 #ifdef CONFIG_CGROUP_SCHED
