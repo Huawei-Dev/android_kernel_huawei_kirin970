@@ -4,16 +4,6 @@
 
 if SCHED_WALT
 
-config SCHED_USE_WALT
-	bool "Scheduler use WALT for cpu util and task util"
-	default y
-	help
-	  This option enables calculation of WALT's task_util/cpu_util
-	  signal, and sets sysctl_sched_use_walt_[cpu/task]_util to 1.
-
-	  When enabled, you can still change the sysctl node to
-	  enable or disable walt signal for debug purpose.
-
 config SCHED_MIGRATE_SPREAD_LOAD
 	bool "Spread task's load when inter-cluster migration"
 	default y

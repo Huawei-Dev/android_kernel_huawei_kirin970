@@ -3028,11 +3028,6 @@ void wake_up_new_task(struct task_struct *p)
 		struct sched_avg *sa = &se->avg;
 		memset(sa, 0, sizeof(*sa));
 	}
-
-#ifdef CONFIG_SCHED_USE_WALT
-	if (render_rt_inited() && !schedtune_prefer_idle(p))
-		walt_reset_new_task_load(p);
-#endif
 #endif
 
 #ifdef CONFIG_32BIT_COMPAT

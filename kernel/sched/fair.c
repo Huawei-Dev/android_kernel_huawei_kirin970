@@ -133,13 +133,8 @@ const_debug unsigned int sysctl_sched_migration_cost = 500000UL;
 #endif
 
 #ifdef CONFIG_SCHED_WALT
-#ifdef CONFIG_SCHED_USE_WALT
-__read_mostly unsigned int sysctl_sched_use_walt_cpu_util = 1;
-__read_mostly unsigned int sysctl_sched_use_walt_task_util = 1;
-#else
 __read_mostly unsigned int sysctl_sched_use_walt_cpu_util = 0;
 __read_mostly unsigned int sysctl_sched_use_walt_task_util = 0;
-#endif /* CONFIG_SCHED_USE_WALT */
 __read_mostly unsigned int sysctl_sched_use_walt_cpu_util_freq = 1;
 #ifdef CONFIG_HISI_EAS_SCHED
 #ifdef CONFIG_SCHED_DEPRECATED
@@ -4809,22 +4804,11 @@ static int tg_throttle_down(struct task_group *tg, void *data)
 	return 0;
 }
 
-#if defined(CONFIG_SCHED_WALT) && defined(CONFIG_SCHED_USE_WALT)
-static inline void walt_propagate_cumulative_runnable_avg(u64 *accumulated,
-							  u64 value, bool add)
-{
-	if (add)
-		*accumulated += value;
-	else
-		*accumulated -= value;
-}
-#else
 /*
  * Provide a nop definition since cumulative_runnable_avg is not
  * available in rq or cfs_rq when WALT is not enabled.
  */
 #define walt_propagate_cumulative_runnable_avg(...)
-#endif
 
 static void throttle_cfs_rq(struct cfs_rq *cfs_rq)
 {
@@ -5407,23 +5391,6 @@ static void walt_fixup_cumulative_runnable_avg_fair(struct rq *rq,
 						    struct task_struct *p,
 						    u64 new_task_load)
 {
-#ifdef CONFIG_SCHED_USE_WALT
-	struct cfs_rq *cfs_rq;
-	struct sched_entity *se = &p->se;
-	s64 task_load_delta = (s64)new_task_load - p->ravg.demand;
-
-	for_each_sched_entity(se) {
-		cfs_rq = cfs_rq_of(se);
-
-		cfs_rq->cumulative_runnable_avg += task_load_delta;
-		if (cfs_rq_throttled(cfs_rq))
-			break;
-	}
-
-	/* Fix up rq only if we didn't find any throttled cfs_rq */
-	if (!se)
-		walt_fixup_cumulative_runnable_avg(rq, p, new_task_load);
-#endif
 }
 
 #endif /* CONFIG_SCHED_WALT */
@@ -8481,14 +8448,6 @@ static inline int find_best_target(struct task_struct *p, int *backup_cpu,
 				continue;
 
 			if (!idle_cpu(i)) {
-#ifdef CONFIG_SCHED_USE_WALT
-				/*
-				 * Skip active cpus that will be overutilized.
-				 */
-				if ((new_util * hisi_sd_capacity_margin(i)) >
-				    (capacity_orig * SCHED_CAPACITY_SCALE))
-					continue;
-#endif
 				/*
 				 * Limit cpu util to current capacity for
 				 * userspace governor.
@@ -8621,7 +8580,6 @@ static inline int find_best_target(struct task_struct *p, int *backup_cpu,
 				continue;
 			}
 
-#ifndef CONFIG_SCHED_USE_WALT
 			/*
 			 * Enforce EAS mode
 			 *
@@ -8634,7 +8592,6 @@ static inline int find_best_target(struct task_struct *p, int *backup_cpu,
 			if ((new_util * hisi_sd_capacity_margin(i)) >
 			    (capacity_orig * SCHED_CAPACITY_SCALE))
 				continue;
-#endif
 #ifdef CONFIG_HISI_EAS_SCHED
 			/*
 			 * Favor CPUs with smaller capacity for non latency
@@ -8814,7 +8771,7 @@ static int wake_cap(struct task_struct *p, int cpu, int prev_cpu)
 		return 0;
 
 	/* Bring task utilization in sync with prev_cpu */
-#if defined(CONFIG_HISI_EAS_SCHED) && !defined(CONFIG_SCHED_USE_WALT)
+#ifdef CONFIG_HISI_EAS_SCHED
 	if (schedtune_task_boost(p) <= 0 && schedtune_prefer_idle(p) <= 0)
 #endif
 	sync_entity_load_avg(&p->se);
@@ -9438,7 +9395,7 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
 		 * in find_idlest_group. Sync it up to prev_cpu's
 		 * last_update_time.
 		 */
-#if defined(CONFIG_HISI_EAS_SCHED) && !defined(CONFIG_SCHED_USE_WALT)
+#ifdef CONFIG_HISI_EAS_SCHED
 		if (schedtune_task_boost(p) <= 0 && schedtune_prefer_idle(p) <= 0)
 #endif
 		sync_entity_load_avg(&p->se);
@@ -13315,13 +13272,6 @@ static inline bool nohz_kick_needed(struct rq *rq, bool only_update)
 	struct sched_domain *sd;
 	int nr_busy, i, cpu = rq->cpu;
 	bool kick = false;
-
-#ifdef CONFIG_SCHED_USE_WALT
-	/* When use walt, there's no need for "force update of blocked
-	 * load of idle cpus". */
-	if (only_update)
-		return false;
-#endif
 
 	if (unlikely(rq->idle_balance) && !only_update)
 		return false;
