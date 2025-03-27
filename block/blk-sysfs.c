@@ -337,7 +337,7 @@ static ssize_t queue_nomerges_store(struct request_queue *q, const char *page,
 
 	return ret;
 }
-#if defined(CONFIG_QOS_BLKIO) || defined(CONFIG_ROW_VIP_QUEUE)
+#ifdef CONFIG_QOS_BLKIO
 static ssize_t queue_qos_show(struct request_queue *q, char *page)
 {
 	return queue_var_show(blk_queue_qos_on(q), page);
@@ -755,7 +755,7 @@ static struct queue_sysfs_entry queue_nomerges_entry = {
 	.store = queue_nomerges_store,
 };
 
-#if defined(CONFIG_QOS_BLKIO) || defined(CONFIG_ROW_VIP_QUEUE)
+#ifdef CONFIG_QOS_BLKIO
 static struct queue_sysfs_entry queue_qos_entry = {
 	.attr = {.name = "qos_on", .mode = S_IRUGO | S_IWUSR },
 	.show = queue_qos_show,
@@ -888,7 +888,7 @@ static struct attribute *default_attrs[] = {
 	&queue_iostats_entry.attr,
 	&queue_random_entry.attr,
 	&queue_poll_entry.attr,
-#if defined(CONFIG_QOS_BLKIO) || defined(CONFIG_ROW_VIP_QUEUE)
+#ifdef CONFIG_QOS_BLKIO
 	&queue_qos_entry.attr,
 #endif
 #ifdef CONFIG_MAS_BLK

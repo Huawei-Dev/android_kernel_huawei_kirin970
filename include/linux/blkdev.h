@@ -60,7 +60,7 @@ struct blk_stat_callback;
  */
 #define BLKCG_MAX_POLS		3
 
-#if defined(CONFIG_QOS_BLKIO) || defined(CONFIG_ROW_VIP_QUEUE)
+#ifdef CONFIG_QOS_BLKIO
 #ifndef BLKIO_QOS_HIGH
 #define BLKIO_QOS_HIGH	VALUE_QOS_HIGH
 #endif
@@ -1288,13 +1288,6 @@ static inline bool rq_is_sync(struct request *rq)
 {
 	return op_is_sync(rq->cmd_flags);
 }
-
-#ifdef CONFIG_ROW_VIP_QUEUE
-static inline bool rq_is_vip(struct request *rq)
-{
-	return rq->cmd_flags & REQ_VIP;
-}
-#endif
 
 static inline bool blk_rl_full(struct request_list *rl, bool sync)
 {

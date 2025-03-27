@@ -41,12 +41,7 @@
  *
  */
 enum row_queue_prio {
-#ifdef CONFIG_ROW_VIP_QUEUE
-	ROWQ_PRIO_HIGH_VIP = 0,
-	ROWQ_PRIO_HIGH_READ,
-#else
 	ROWQ_PRIO_HIGH_READ = 0,
-#endif
 	ROWQ_PRIO_HIGH_SWRITE,
 	ROWQ_PRIO_REG_READ,
 	ROWQ_PRIO_REG_SWRITE,
@@ -61,11 +56,7 @@ enum row_queue_prio {
  * priorities. Each index defines the first queue in that priority group.
  */
 
-#ifdef CONFIG_ROW_VIP_QUEUE
-#define ROWQ_HIGH_PRIO_IDX	ROWQ_PRIO_HIGH_VIP
-#else
 #define ROWQ_HIGH_PRIO_IDX	ROWQ_PRIO_HIGH_READ
-#endif
 #define ROWQ_REG_PRIO_IDX	ROWQ_PRIO_REG_READ
 #define ROWQ_LOW_PRIO_IDX	ROWQ_PRIO_LOW_READ
 
@@ -99,9 +90,6 @@ struct row_queue_params {
  */
 static const struct row_queue_params row_queues_def[] = {
 /* idling_enabled, quantum, is_urgent */
-#ifdef CONFIG_ROW_VIP_QUEUE
-	{false, 10, true},      /* ROWQ_PRIO_HIGH_VIP */
-#endif
 	{false, 10, true},	/* ROWQ_PRIO_HIGH_READ */
 	{false, 1, false},	/* ROWQ_PRIO_HIGH_SWRITE */
 	{true, 100, true},	/* ROWQ_PRIO_REG_READ */
@@ -937,28 +925,9 @@ static enum row_queue_prio row_get_queue_prio(struct request *rq,
 {
 	const int data_dir = rq_data_dir(rq);
 	const bool is_sync = rq_is_sync(rq);
-#ifdef CONFIG_ROW_VIP_QUEUE
-	const bool is_vip = rq_is_vip(rq);
-#endif
 	enum row_queue_prio q_type = ROWQ_MAX_PRIO;
 	int ioprio_class = IOPRIO_PRIO_CLASS(rq->elv.icq->ioc->ioprio);
 
-#if 0
-	if (unlikely(row_get_current()->flags & PF_MUTEX_GC)) {
-		if (data_dir == READ)
-			q_type = ROWQ_PRIO_HIGH_READ;
-		else
-			q_type = ROWQ_PRIO_HIGH_SWRITE;
-		return q_type;
-	}
-#endif
-
-#ifdef CONFIG_ROW_VIP_QUEUE
-	if (is_vip && blk_queue_qos_on(rq->q)) {
-		q_type = ROWQ_PRIO_HIGH_VIP;
-		return q_type;
-	}
-#endif
 	switch (ioprio_class) {
 	case IOPRIO_CLASS_RT:
 		if (data_dir == READ)
@@ -1039,10 +1008,6 @@ static ssize_t __FUNC(struct elevator_queue *e, char *page)		\
 	return row_var_show(__data, (page));			\
 }
 
-#ifdef CONFIG_ROW_VIP_QUEUE
-SHOW_FUNCTION(row_hp_vip_quantum_show,
-	rowd->row_queues[ROWQ_PRIO_HIGH_VIP].disp_quantum);
-#endif
 SHOW_FUNCTION(row_hp_read_quantum_show,
 	rowd->row_queues[ROWQ_PRIO_HIGH_READ].disp_quantum);
 SHOW_FUNCTION(row_rp_read_quantum_show,
@@ -1080,10 +1045,6 @@ static ssize_t __FUNC(struct elevator_queue *e,				\
 	return ret;							\
 }
 
-#ifdef CONFIG_ROW_VIP_QUEUE
-STORE_FUNCTION(row_hp_vip_quantum_store,
-&rowd->row_queues[ROWQ_PRIO_HIGH_VIP].disp_quantum, 1, INT_MAX);
-#endif
 STORE_FUNCTION(row_hp_read_quantum_store,
 &rowd->row_queues[ROWQ_PRIO_HIGH_READ].disp_quantum, 1, INT_MAX);
 STORE_FUNCTION(row_rp_read_quantum_store,

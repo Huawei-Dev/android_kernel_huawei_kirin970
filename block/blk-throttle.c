@@ -3510,7 +3510,7 @@ again:
 	    (blkcg == &blkcg_root || !blk_throtl_weight_offon))
 		goto out;
 
-#if defined(CONFIG_QOS_BLKIO) || defined(CONFIG_ROW_VIP_QUEUE)
+#ifdef CONFIG_QOS_BLKIO
 	if (!blk_queue_qos_on(q)) {
 		if (blkcg->type <= BLK_THROTL_FG)
 			bio->bi_opf |= REQ_FG;

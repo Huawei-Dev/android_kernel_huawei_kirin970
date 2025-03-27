@@ -34,7 +34,7 @@
 #include <linux/pm_runtime.h>
 #include <linux/blk-cgroup.h>
 #include <linux/debugfs.h>
-#if defined(CONFIG_QOS_BLKIO) || defined(CONFIG_ROW_VIP_QUEUE)
+#ifdef CONFIG_QOS_BLKIO
 #include <chipset_common/hwqos/hwqos_common.h>
 #endif
 #define CREATE_TRACE_POINTS
@@ -1033,9 +1033,6 @@ int blk_init_allocated_queue(struct request_queue *q)
 
 	INIT_WORK(&q->timeout_work, blk_timeout_work);
 	q->queue_flags		|= QUEUE_FLAG_DEFAULT;
-#ifdef CONFIG_ROW_VIP_QUEUE
-	queue_flag_set(QUEUE_FLAG_QOS,q);
-#endif
 
 	/*
 	 * This also sets hw/phys segments, boundary and size
@@ -1928,14 +1925,6 @@ get_rq:
 	 * Grab a free request. This is might sleep but can not fail.
 	 * Returns with the queue unlocked.
 	 */
-
-#ifdef CONFIG_ROW_VIP_QUEUE
-	if (blk_queue_qos_on(bio->bi_disk->queue)) {
-		int qos = get_task_qos(current);
-		if ((qos >= BLKIO_QOS_HIGH) || (bio->bi_opf & (REQ_META | REQ_PRIO)))
-			bio->bi_opf |= (REQ_FG | REQ_VIP);
-	}
-#endif
 
 	req = get_request(q, bio->bi_opf, bio, GFP_NOIO);
 	if (IS_ERR(req)) {
