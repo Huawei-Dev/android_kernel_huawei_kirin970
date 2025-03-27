@@ -369,9 +369,6 @@ static inline bool hw_check_canary(struct kmem_cache *s, void *object, unsigned 
 	if (*canary == hw_get_canary_value(canary, value)) {
 		saudit_log(DOUBLE_FREE, STP_RISK, SAUDIT_ASYNC,
 			"type=harden,kmem_cache_name=%s", s->name);
-#ifdef CONFIG_HW_SLUB_DF_BUGON
-		BUG_ON(1);
-#endif
 		return false;
 	}
 	return true;
@@ -390,9 +387,6 @@ static inline bool hw_check_and_set_canary(struct kmem_cache *s, void *object,
 	if (*canary == hw_get_canary_value(canary, value)) {
 		saudit_log(DOUBLE_FREE, STP_RISK, SAUDIT_ASYNC,
 			"type=harden,kmem_cache_name=%s", s->name);
-#ifdef CONFIG_HW_SLUB_DF_BUGON
-		BUG_ON(1);
-#endif
 		return false;
 	}
 	*canary = hw_get_canary_value(canary, value);
