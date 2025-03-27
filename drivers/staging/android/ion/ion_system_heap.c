@@ -60,9 +60,6 @@ struct ion_system_heap {
 	wait_queue_head_t sys_pool_wait;
 	atomic_t wait_flag;
 	struct mutex pool_lock;
-#ifdef CONFIG_ZONE_MEDIA_OPT
-	atomic64_t cma_page_num;
-#endif
 };
 
 static struct ion_system_heap *ion_sys_heap;
@@ -127,9 +124,6 @@ static int ion_sys_pool_kthread(void *p)
 {
 	struct ion_system_heap *heap = NULL;
 	int ret;
-#ifdef CONFIG_ZONE_MEDIA_OPT
-	long nr_fill_count = 0;
-#endif
 
 	if (!p)
 		return -EINVAL;
@@ -143,15 +137,6 @@ static int ion_sys_pool_kthread(void *p)
 
 		atomic_set(&heap->wait_flag, 0);
 
-#ifdef CONFIG_ZONE_MEDIA_OPT
-		nr_fill_count = heap->pool_watermark -
-				(unsigned long)ion_sys_pool_count(heap);
-		if (nr_fill_count <= 0)
-			continue;
-		mutex_lock(&heap->pool_lock);
-		fill_pool_watermark(heap->pools, nr_fill_count);
-		mutex_unlock(&heap->pool_lock);
-#else
 		mutex_lock(&heap->pool_lock);
 		if (heap->pool_watermark)
 			fill_pool_watermark(heap->pools,
@@ -159,7 +144,6 @@ static int ion_sys_pool_kthread(void *p)
 
 		heap->pool_watermark = 0;
 		mutex_unlock(&heap->pool_lock);
-#endif
 	}
 
 	return 0;
@@ -225,18 +209,7 @@ static struct page *alloc_buffer_page(struct ion_system_heap *heap,
 {
 	struct ion_page_pool *pool = heap->pools[order_to_index(order)];
 	struct page *page = NULL;
-#ifdef CONFIG_ZONE_MEDIA_OPT
-	unsigned long cam_flag = buffer->flags & ION_FLAG_CAM_CMA_BUFFER;
-	gfp_t gfp_mask = 0;
-
-	if (cam_flag)
-		gfp_mask = ___GFP_CMA;
-	page = ion_page_pool_alloc_with_gfp(pool, gfp_mask);
-	if (page && page_is_cma(page))
-		atomic64_add(1 << compound_order(page), &heap->cma_page_num);
-#else
 	page = ion_page_pool_alloc(pool);
-#endif
 
 #ifdef CONFIG_HISI_KERNELDUMP
 	if (page)
@@ -251,11 +224,6 @@ static void free_buffer_page(struct ion_system_heap *heap,
 	struct ion_page_pool *pool;
 	unsigned int order = compound_order(page);
 	pgprot_t pgprot;
-
-#ifdef CONFIG_ZONE_MEDIA_OPT
-	if (page_is_cma(page))
-		atomic64_sub(1 << compound_order(page), &heap->cma_page_num);
-#endif
 
 	/* go to system */
 	if (buffer->private_flags & ION_PRIV_FLAG_SHRINKER_FREE) {
@@ -382,25 +350,11 @@ static int ion_system_heap_shrink(struct ion_heap *heap, gfp_t gfp_mask,
 	int nr_total = 0;
 	int i, nr_freed;
 	int only_scan = 0;
-#ifdef CONFIG_ZONE_MEDIA_OPT
-	unsigned long pool_pages = 0;
-	long gt_watermark_count = 0; /* greater than watermark count */
-#endif
 
 	sys_heap = container_of(heap, struct ion_system_heap, heap);
 
-	if (!nr_to_scan) {
+	if (!nr_to_scan)
 		only_scan = 1;
-	} else {
-#ifdef CONFIG_ZONE_MEDIA_OPT
-		gt_watermark_count = (unsigned long)ion_sys_pool_count(sys_heap) -
-				    sys_heap->pool_watermark;
-		if (gt_watermark_count <= 0)
-			return 0;
-		if (nr_to_scan > gt_watermark_count)
-			nr_to_scan = (int)gt_watermark_count;
-#endif
-	}
 
 	for (i = 0; i < NUM_ORDERS; i++) {
 		pool = sys_heap->pools[i];
@@ -419,13 +373,6 @@ static int ion_system_heap_shrink(struct ion_heap *heap, gfp_t gfp_mask,
 				break;
 		}
 	}
-
-#ifdef CONFIG_ZONE_MEDIA_OPT
-	if (only_scan) {
-		pool_pages = sys_heap->pool_watermark;
-		nr_total -= min(nr_total, pool_pages);
-	}
-#endif
 
 	return nr_total;
 }
@@ -458,11 +405,6 @@ static int ion_system_heap_debug_show(struct ion_heap *heap, struct seq_file *s,
 			   pool->low_count, pool->order,
 			   (PAGE_SIZE << pool->order) * pool->low_count);
 	}
-
-#ifdef CONFIG_ZONE_MEDIA_OPT
-	seq_printf(s, "%ld cma pages allocated by camera\n",
-		   atomic64_read(&sys_heap->cma_page_num));
-#endif
 
 	return 0;
 }
@@ -517,9 +459,6 @@ struct ion_heap *ion_system_heap_create(struct ion_platform_heap *unused_data)
 		goto free_heap;
 
 	atomic_set(&heap->wait_flag, 0);
-#ifdef CONFIG_ZONE_MEDIA_OPT
-	atomic64_set(&heap->cma_page_num, 0);
-#endif
 	init_waitqueue_head(&heap->sys_pool_wait);
 	heap->sys_pool_thread = kthread_run(ion_sys_pool_kthread, heap,
 						"%s", "sys_pool");

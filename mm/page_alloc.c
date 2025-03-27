@@ -69,9 +69,6 @@
 #include <linux/nmi.h>
 #include <linux/hisi/hisi_ion.h>
 #include <linux/psi.h>
-#ifdef CONFIG_ZONE_MEDIA
-#include <linux/cma.h>
-#endif
 
 #include <linux/hisi/rdr_hisi_ap_hook.h>
 #include <asm/sections.h>
@@ -254,9 +251,6 @@ static char * const zone_names[MAX_NR_ZONES] = {
 	 "Movable",
 #ifdef CONFIG_ZONE_DEVICE
 	 "Device",
-#endif
-#ifdef CONFIG_ZONE_MEDIA
-	 "Media",
 #endif
 };
 
@@ -1791,23 +1785,6 @@ static bool check_new_pcp(struct page *page)
 }
 #endif /* CONFIG_DEBUG_VM */
 
-#ifdef CONFIG_ZONE_MEDIA
-static bool pfn_check_next_zone(unsigned long zone,
-				unsigned long pfn)
-{
-	bool is_cma;
-
-	is_cma = is_cma_pfn(pfn);
-	if (is_cma && zone != ZONE_MEDIA)
-		return true;
-
-	if (!is_cma && zone == ZONE_MEDIA)
-		return true;
-
-	return false;
-}
-#endif
-
 static bool check_new_pages(struct page *page, unsigned int order)
 {
 	int i;
@@ -3004,12 +2981,7 @@ bool __zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
 			min -= min / 4;
 	}
 
-#if defined(CONFIG_CMA) && defined(CONFIG_ZONE_MEDIA)
-	/* If allocation can't use CMA areas don't use free CMA pages */
-	if (IS_MEIDA_ZONE_IDX(zone_idx(z)) ||
-	    !(alloc_flags & ALLOC_CMA))
-		free_pages -= zone_page_state(z, NR_FREE_CMA_PAGES);
-#elif defined(CONFIG_CMA)
+#ifdef CONFIG_CMA
 	/* If allocation can't use CMA areas don't use free CMA pages */
 	if (!(alloc_flags & ALLOC_CMA))
 		free_pages -= zone_page_state(z, NR_FREE_CMA_PAGES);
@@ -3040,18 +3012,10 @@ bool __zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
 				return true;
 		}
 
-#ifdef CONFIG_ZONE_MEDIA
-		if ((alloc_flags & ALLOC_CMA) &&
-		    !IS_MEIDA_ZONE_IDX(zone_idx(z)) &&
-		    !list_empty(&area->free_list[MIGRATE_CMA])) {
-			return true;
-		}
-#else
 		if ((alloc_flags & ALLOC_CMA) &&
 		    !list_empty(&area->free_list[MIGRATE_CMA])) {
 			return true;
 		}
-#endif
 
 		if (alloc_harder &&
 		    !list_empty(&area->free_list[MIGRATE_HIGHATOMIC]))
@@ -3073,12 +3037,7 @@ static inline bool zone_watermark_fast(struct zone *z, unsigned int order,
 	long free_pages = zone_page_state(z, NR_FREE_PAGES); /*lint !e578*/
 	long cma_pages = 0;
 
-#if defined(CONFIG_CMA) && defined(CONFIG_ZONE_MEDIA)
-	/* If allocation can't use CMA areas don't use free CMA pages */
-	if (IS_MEIDA_ZONE_IDX(zone_idx(z)) ||
-	    !(alloc_flags & ALLOC_CMA))
-		cma_pages = zone_page_state(z, NR_FREE_CMA_PAGES);
-#elif defined(CONFIG_CMA)
+#ifdef CONFIG_CMA
 	/* If allocation can't use CMA areas don't use free CMA pages */
 	if (!(alloc_flags & ALLOC_CMA))
 		cma_pages = zone_page_state(z, NR_FREE_CMA_PAGES);
@@ -3685,12 +3644,7 @@ static void wake_all_kswapds(unsigned int order, const struct alloc_context *ac)
 	pg_data_t *last_pgdat = NULL;
 
 	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist,
-					ac->high_zoneidx, ac->nodemask) { /*lint !e564*/
-#ifdef CONFIG_ZONE_MEDIA
-		if (IS_MEIDA_ZONE_IDX(z->zone_idx))
-			continue;
-#endif
-
+					ac->high_zoneidx, ac->nodemask) {
 		if (last_pgdat != zone->zone_pgdat)
 			wakeup_kswapd(zone, order, ac->high_zoneidx);
 		last_pgdat = zone->zone_pgdat;
@@ -5445,10 +5399,6 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
 			continue;
 		if (!early_pfn_in_nid(pfn, nid))
 			continue;
-#ifdef CONFIG_ZONE_MEDIA
-		if (pfn_check_next_zone(zone, pfn))
-			continue;
-#endif
 		if (!update_defer_init(pgdat, pfn, end_pfn, &nr_initialised))
 			break;
 
@@ -6003,13 +5953,6 @@ static inline unsigned long __meminit zone_spanned_pages_in_node(int nid,
 		*zone_start_pfn += zones_size[zone];
 
 	*zone_end_pfn = *zone_start_pfn + zones_size[zone_type];
-
-#ifdef CONFIG_ZONE_MEDIA
-	if (zone_type == ZONE_MEDIA) {
-		*zone_start_pfn = cma_min_pfn;
-		*zone_end_pfn = cma_max_pfn;
-	}
-#endif
 
 	return zones_size[zone_type];
 }

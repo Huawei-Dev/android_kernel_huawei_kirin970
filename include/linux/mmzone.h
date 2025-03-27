@@ -398,11 +398,7 @@ enum zone_type {
 #ifdef CONFIG_ZONE_DEVICE
 	ZONE_DEVICE,
 #endif
-#ifdef CONFIG_ZONE_MEDIA
-	ZONE_MEDIA,
-#endif
 	__MAX_NR_ZONES
-
 };
 
 #ifndef __GENERATING_BOUNDS_H

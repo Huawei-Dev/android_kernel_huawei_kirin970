@@ -120,17 +120,6 @@ struct ion_flush_data {
 	unsigned int length;
 };
 
-#ifdef CONFIG_ZONE_MEDIA
-#define MAX_MEDIA_ZONE_RSVDMEM  1
-struct media_zone_rsvdmem {
-	phys_addr_t base;
-	phys_addr_t size;
-};
-
-extern struct media_zone_rsvdmem media_zone_rsvdmem_sp[MAX_MEDIA_ZONE_RSVDMEM];
-extern int num_mz_rsvdmem;
-#endif
-
 /* user command add for additional use */
 enum ION_HISI_CUSTOM_CMD {
 	ION_HISI_CUSTOM_PHYS,

@@ -430,10 +430,6 @@ static inline bool gfpflags_normal_context(const gfp_t gfp_flags)
 	| 1 << (___GFP_MOVABLE | ___GFP_DMA32 | ___GFP_DMA | ___GFP_HIGHMEM)  \
 )
 
-#ifdef CONFIG_ZONE_MEDIA
-#define IS_MEIDA_ZONE_IDX(z)	(z >= ZONE_MEDIA)
-#endif
-
 static inline enum zone_type gfp_zone(gfp_t flags)
 {
 	enum zone_type z;

@@ -40,19 +40,11 @@
 #include "cma.h"
 #include "internal.h"
 
-#ifdef CONFIG_ZONE_MEDIA
-#include <linux/hisi/hisi_ion.h>
-#endif
-
 #include <linux/ktime.h>
 
 struct cma cma_areas[MAX_CMA_AREAS];
 unsigned cma_area_count;
 static DEFINE_MUTEX(cma_mutex);
-#ifdef CONFIG_ZONE_MEDIA
-unsigned long cma_max_pfn;
-unsigned long cma_min_pfn;
-#endif
 
 phys_addr_t cma_get_base(const struct cma *cma)
 {
@@ -68,38 +60,6 @@ const char *cma_get_name(const struct cma *cma)
 {
 	return cma->name ? cma->name : "(undefined)";
 }
-
-#ifdef CONFIG_ZONE_MEDIA
-static bool is_cma_reservd_pfn(unsigned long pfn)
-{
-	struct cma *cma = dma_contiguous_default_area;
-	unsigned long start_pfn = 0;
-	unsigned long end_pfn = 0;
-	int i;
-
-	if (pfn >= cma->base_pfn &&
-	    pfn < cma->base_pfn + cma->count)
-		return true;
-
-	for (i = 0; i < MAX_MEDIA_ZONE_RSVDMEM; i++) {
-		struct media_zone_rsvdmem *mz_rev = &media_zone_rsvdmem_sp[i];
-		start_pfn = PFN_DOWN(mz_rev->base);
-		end_pfn = start_pfn + (mz_rev->size >> PAGE_SHIFT);
-
-		if (pfn >= start_pfn && pfn <= end_pfn)
-			return true;
-	}
-
-	return false;
-}
-
-bool is_cma_pfn(unsigned long pfn)
-{
-	if (is_cma_reservd_pfn(pfn))
-		return true;
-	return false;
-}
-#endif
 
 static unsigned long cma_bitmap_aligned_mask(const struct cma *cma,
 					     unsigned int align_order)
@@ -263,14 +223,6 @@ int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
 	*res_cma = cma;
 	cma_area_count++;
 	totalcma_pages += (size / PAGE_SIZE);
-
-#ifdef CONFIG_ZONE_MEDIA
-	if (!cma_min_pfn || cma_min_pfn > cma->base_pfn)
-		cma_min_pfn = cma->base_pfn;
-
-	if (cma_max_pfn < cma->base_pfn + cma->count)
-		cma_max_pfn = cma->base_pfn + cma->count;
-#endif
 
 #ifdef CONFIG_HISI_KERNELDUMP
 	kdump_reserved_addr_save(base, size);

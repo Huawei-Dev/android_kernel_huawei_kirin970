@@ -81,9 +81,6 @@ enum ion_heap_type {
 #define ION_FLAG_NO_SHRINK_BUFFER (0x1 << 7)
 #define ION_FLAG_SMMUV3_BUFFER (0x1 << 8)
 #define ION_FLAG_DRM_HEAP_ONLY (0x1 << 9)
-#ifdef CONFIG_ZONE_MEDIA_OPT
-#define ION_FLAG_CAM_CMA_BUFFER (0x1 << 10)
-#endif
 
 /**
  * DOC: Ion Userspace API

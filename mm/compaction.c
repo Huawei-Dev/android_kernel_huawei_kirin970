@@ -259,11 +259,6 @@ void reset_isolation_suitable(pg_data_t *pgdat)
 		if (!populated_zone(zone))
 			continue;
 
-#ifdef CONFIG_ZONE_MEDIA
-		if (IS_MEIDA_ZONE_IDX(zoneid))
-			continue;
-#endif
-
 		/* Only flush if a full compaction finished recently */
 		if (zone->compact_blockskip_flush)
 			__reset_isolation_suitable(zone);
@@ -1571,10 +1566,6 @@ bool compaction_zonelist_suitable(struct alloc_context *ac, int order,
 		unsigned long available;
 		enum compact_result compact_result;
 
-#ifdef CONFIG_ZONE_MEDIA
-		if (IS_MEIDA_ZONE_IDX(z->zone_idx))
-			continue;
-#endif
 		/*
 		 * Do not consider all the reclaimable memory because we do not
 		 * want to trash just for a single high order allocation which
@@ -1833,11 +1824,6 @@ enum compact_result try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
 								ac->nodemask) {
 		enum compact_result status;
 
-#ifdef CONFIG_ZONE_MEDIA
-		if (IS_MEIDA_ZONE_IDX(z->zone_idx))
-			continue;
-#endif
-
 		if (prio > MIN_COMPACT_PRIORITY
 					&& compaction_deferred(zone, order)) {
 			rc = max_t(enum compact_result, COMPACT_DEFERRED, rc);
@@ -1900,11 +1886,6 @@ static void compact_node(int nid)
 
 
 	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
-#ifdef CONFIG_ZONE_MEDIA
-		if (IS_MEIDA_ZONE_IDX(zoneid))
-			continue;
-#endif
-
 		zone = &pgdat->node_zones[zoneid];
 		if (!populated_zone(zone))
 			continue;

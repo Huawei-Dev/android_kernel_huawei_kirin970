@@ -40,9 +40,6 @@
 #include <linux/mm.h>
 #include <linux/kexec.h>
 #include <linux/crash_dump.h>
-#ifdef CONFIG_ZONE_MEDIA
-#include <linux/cma.h>
-#endif
 
 #include <asm/boot.h>
 #include <asm/fixmap.h>
@@ -306,15 +303,7 @@ static void __init zone_sizes_init(unsigned long min, unsigned long max)
 
 	memset(zone_size, 0, sizeof(zone_size));
 
-#ifdef CONFIG_ZONE_MEDIA
-	zone_size[ZONE_MEDIA] = cma_max_pfn - cma_min_pfn;
-#endif
-
 	zone_size_config(min, max, zone_size, zhole_size);
-
-#ifdef CONFIG_ZONE_MEDIA
-	zhole_size[ZONE_MEDIA] = cma_max_pfn - cma_min_pfn - totalcma_pages;
-#endif
 
 	free_area_init_node(0, zone_size, min, zhole_size);
 }

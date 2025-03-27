@@ -2528,11 +2528,6 @@ static void get_scan_count(struct lruvec *lruvec, struct mem_cgroup *memcg,
 			if (!managed_zone(zone))
 				continue;
 
-#ifdef CONFIG_ZONE_MEDIA
-			if (IS_MEIDA_ZONE_IDX(zone_idx(zone)))
-				continue;
-#endif
-
 			total_high_wmark += high_wmark_pages(zone);
 		}
 
@@ -3935,11 +3930,6 @@ static bool pgdat_balanced(pg_data_t *pgdat, int order, int classzone_idx)
 		if (!managed_zone(zone))
 			continue;
 
-#ifdef CONFIG_ZONE_MEDIA
-		if (IS_MEIDA_ZONE_IDX(zone_idx(zone)))
-			continue;
-#endif
-
 		mark = high_wmark_pages(zone);
 		if (zone_watermark_ok_safe(zone, order, mark, classzone_idx))
 			return true;
@@ -4107,11 +4097,6 @@ fine_reclaim_begin:
 				zone = pgdat->node_zones + i;
 				if (!managed_zone(zone))
 					continue;
-
-#ifdef CONFIG_ZONE_MEDIA
-				if (IS_MEIDA_ZONE_IDX(zone_idx(zone)))
-					continue;
-#endif
 
 				sc.reclaim_idx = i;
 				break;

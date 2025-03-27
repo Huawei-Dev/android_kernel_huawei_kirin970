@@ -717,23 +717,6 @@ config ZONE_DEVICE
 
 	  If FS_DAX is enabled, then say Y.
 
-config ZONE_MEDIA
-	bool "CMA reuse management for Media components with ZONE_MEDIA"
-	depends on CMA
-
-	help
-	  This feature will manage CMA pages in an independent zone instead of
-	  managing CMA pages in ZONE_DMA/ZONE_NORMAL. And sometimes this zone
-	  can reuse for Media, E.g Camera.
-
-config ZONE_MEDIA_OPT
-	bool "CMA zone_media opt for Media components"
-	depends on ZONE_MEDIA
-
-	help
-	  Based on zone media, this feature contains
-	  some optimization featureshis.
-
 config ARCH_HAS_HMM
 	bool
 	default y

@@ -39,11 +39,7 @@
 #define MAX_D_TABLE_NUM  5
 #define MAX_MM_ION_DYNAMIC_AREA_NAME_LEN  64
 #define MM_ION_FLUSH_ALL_CPUS_CACHES_THRESHOLD  0x1000000 /* 16MB */
-#ifdef CONFIG_ZONE_MEDIA_OPT
-#define MAX_WATER_MARK (SZ_1M * 400) /* 400MB */
-#else
 #define MAX_WATER_MARK (SZ_1M * 236) /* 236MB */
-#endif
 
 #define LOCK_RECURSIVE 1
 
@@ -78,11 +74,6 @@ static int num_heaps;
 struct platform_device *mm_ion_pdev;
 static struct mm_ion_dynamic_area  d_table[MAX_D_TABLE_NUM];
 static int ion_dynamic_area_count;
-
-#ifdef CONFIG_ZONE_MEDIA
-struct media_zone_rsvdmem media_zone_rsvdmem_sp[MAX_MEDIA_ZONE_RSVDMEM];
-int num_mz_rsvdmem;
-#endif
 
 static int add_dynamic_area(phys_addr_t base,
 				unsigned long  len,

@@ -286,11 +286,6 @@ static unsigned long node_dirtyable_memory(struct pglist_data *pgdat)
 		if (!populated_zone(zone))
 			continue;
 
-#ifdef CONFIG_ZONE_MEDIA
-		if (IS_MEIDA_ZONE_IDX(zone_idx(zone)))
-			continue;
-#endif
-
 		nr_pages += zone_page_state(zone, NR_FREE_PAGES);
 	}
 
@@ -318,11 +313,6 @@ static unsigned long highmem_dirtyable_memory(unsigned long total)
 		for (i = ZONE_NORMAL + 1; i < MAX_NR_ZONES; i++) {
 			struct zone *z;
 			unsigned long nr_pages;
-
-#ifdef CONFIG_ZONE_MEDIA
-			if (IS_MEIDA_ZONE_IDX(i))
-				continue;
-#endif
 
 			if (!is_highmem_idx(i))
 				continue;

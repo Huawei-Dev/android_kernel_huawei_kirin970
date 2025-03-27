@@ -41,12 +41,6 @@ static int lmkd_dbg_trigger_proc_show(struct seq_file *m, void *v)
 	seq_printf(m, "lmkd_no_cma_cnt:  %ld\n",
 			atomic64_read(&lmkd_no_cma_cnt));
 
-#ifdef CONFIG_ZONE_MEDIA
-	for_each_populated_zone(z) {
-		if (IS_MEIDA_ZONE_IDX(zone_idx(z)))
-			media_zone_nr_free = zone_page_state(z, NR_FREE_PAGES);
-	}
-#endif
 	seq_printf(m, "lmkd_media_zone_free:  %ld\n", media_zone_nr_free);
 
 	return 0;

@@ -561,11 +561,7 @@ int ion_alloc(size_t len, unsigned int heap_id_mask, unsigned int flags)
 		heap_id_mask |= 0x1U << ION_IRIS_DAEMON_HEAP_ID;
 
 	if ((heap_id_mask & 0x1U << ION_CAMERA_HEAP_ID)) {
-#ifdef CONFIG_ZONE_MEDIA_OPT
-		heap_id_mask = 0x1U << ION_SYSTEM_HEAP_ID;
-#else
 		heap_id_mask |= 0x1U << ION_CAMERA_DAEMON_HEAP_ID;
-#endif
 		flags |= (ION_FLAG_NO_SHRINK_BUFFER |
 			  ION_FLAG_ALLOC_NOWARN_BUFFER);
 	}

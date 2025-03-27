@@ -100,16 +100,6 @@ int mm_sec_cma_reserve(struct reserved_mem *rmem)
 
 	set_svc_cma(svc_id, cma);
 
-#ifdef CONFIG_ZONE_MEDIA
-	if (of_get_flat_dt_prop(node, "media_zone_rsvd", NULL)) {
-		struct media_zone_rsvdmem *mz_rev =
-			&media_zone_rsvdmem_sp[num_mz_rsvdmem];
-		mz_rev->base = rmem->base;
-		mz_rev->size = rmem->size;
-		num_mz_rsvdmem++;
-	}
-#endif
-
 	pr_err("%s init cma:rmem->base:0x%llx, size:0x%llx\n",
 	       __func__, rmem->base, rmem->size);
 
