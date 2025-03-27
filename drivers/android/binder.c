@@ -7375,25 +7375,6 @@ static int __init binder_init(void)
 	}
 #endif
 
-	if (!IS_ENABLED(CONFIG_ANDROID_BINDERFS) &&
-	    strcmp(binder_devices_param, "") != 0) {
-		/*
-		* Copy the module_parameter string, because we don't want to
-		* tokenize it in-place.
-		 */
-		device_names = kstrdup(binder_devices_param, GFP_KERNEL);
-		if (!device_names) {
-			ret = -ENOMEM;
-			goto err_alloc_device_names_failed;
-		}
-
-		device_tmp = device_names;
-		while ((device_name = strsep(&device_tmp, ","))) {
-			ret = init_binder_device(device_name);
-			if (ret)
-				goto err_init_binder_device_failed;
-		}
-	}
 #ifdef CONFIG_BINDER_TRANSACTION_PROC_BRIEF
 	if (create_sysfs_binder())
 		pr_err("binder: create sysfs_binder failed.\n");

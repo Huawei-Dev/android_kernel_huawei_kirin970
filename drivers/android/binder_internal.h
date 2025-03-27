@@ -39,22 +39,14 @@ extern const struct file_operations binder_fops;
 
 extern char *binder_devices_param;
 
-#ifdef CONFIG_ANDROID_BINDERFS
-extern bool is_binderfs_device(const struct inode *inode);
-#else
 static inline bool is_binderfs_device(const struct inode *inode)
 {
 	return false;
 }
-#endif
 
-#ifdef CONFIG_ANDROID_BINDERFS
-extern int __init init_binderfs(void);
-#else
 static inline int __init init_binderfs(void)
 {
 	return 0;
 }
-#endif
 
 #endif /* _LINUX_BINDER_INTERNAL_H */
