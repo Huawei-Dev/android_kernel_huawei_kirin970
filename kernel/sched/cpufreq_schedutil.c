@@ -141,11 +141,6 @@ struct sugov_tunables {
 	unsigned int ed_task_waiting_duration;
 	unsigned int ed_new_task_running_duration;
 #endif
-#ifdef CONFIG_MIGRATION_NOTIFY
-	unsigned int freq_inc_notify;
-	unsigned int freq_dec_notify;
-#endif
-
 	unsigned int up_rate_limit_us;
 	unsigned int down_rate_limit_us;
 };
@@ -1542,66 +1537,6 @@ static ssize_t freq_reporting_policy_store(struct gov_attr_set *attr_set,
 	return count;
 }
 
-#ifdef CONFIG_MIGRATION_NOTIFY
-static ssize_t freq_inc_notify_show(struct gov_attr_set *attr_set, char *buf)
-{
-	struct sugov_tunables *tunables = to_sugov_tunables(attr_set);
-
-	return scnprintf(buf, PAGE_SIZE, "%u\n", tunables->freq_inc_notify);
-}
-
-static ssize_t freq_inc_notify_store(struct gov_attr_set *attr_set,
-				      const char *buf, size_t count)
-{
-	struct sugov_tunables *tunables = to_sugov_tunables(attr_set);
-	struct sugov_policy *sg_policy;
-	unsigned int val;
-	int cpu;
-
-	if (kstrtouint(buf, 10, &val))
-		return -EINVAL;
-
-	tunables->freq_inc_notify = val;
-
-	list_for_each_entry(sg_policy, &attr_set->policy_list, tunables_hook) {
-		for_each_cpu(cpu, sg_policy->policy->cpus) {
-			cpu_rq(cpu)->freq_inc_notify = val;
-		}
-	}
-
-	return count;
-}
-
-static ssize_t freq_dec_notify_show(struct gov_attr_set *attr_set, char *buf)
-{
-	struct sugov_tunables *tunables = to_sugov_tunables(attr_set);
-
-	return scnprintf(buf, PAGE_SIZE, "%u\n", tunables->freq_dec_notify);
-}
-
-static ssize_t freq_dec_notify_store(struct gov_attr_set *attr_set,
-				      const char *buf, size_t count)
-{
-	struct sugov_tunables *tunables = to_sugov_tunables(attr_set);
-	struct sugov_policy *sg_policy;
-	unsigned int val;
-	int cpu;
-
-	if (kstrtouint(buf, 10, &val))
-		return -EINVAL;
-
-	tunables->freq_dec_notify = val;
-
-	list_for_each_entry(sg_policy, &attr_set->policy_list, tunables_hook) {
-		for_each_cpu(cpu, sg_policy->policy->cpus) {
-			cpu_rq(cpu)->freq_dec_notify = val;
-		}
-	}
-
-	return count;
-}
-#endif /* CONFIG_MIGRATION_NOTIFY */
-
 #ifdef CONFIG_ED_TASK
 static ssize_t ed_task_running_duration_show(struct gov_attr_set *attr_set, char *buf)
 {
@@ -2031,10 +1966,6 @@ static struct governor_attr ed_task_running_duration = __ATTR_RW(ed_task_running
 static struct governor_attr ed_task_waiting_duration = __ATTR_RW(ed_task_waiting_duration);
 static struct governor_attr ed_new_task_running_duration = __ATTR_RW(ed_new_task_running_duration);
 #endif
-#ifdef CONFIG_MIGRATION_NOTIFY
-static struct governor_attr freq_inc_notify = __ATTR_RW(freq_inc_notify);
-static struct governor_attr freq_dec_notify = __ATTR_RW(freq_dec_notify);
-#endif
 #ifdef CONFIG_HISI_FREQ_IO_LIMIT
 static struct governor_attr iowait_upper_limit = __ATTR_RW(iowait_upper_limit);
 #endif
@@ -2064,10 +1995,6 @@ static struct attribute *sugov_attributes[] = {
 	&ed_task_waiting_duration.attr,
 	&ed_new_task_running_duration.attr,
 #endif
-#ifdef CONFIG_MIGRATION_NOTIFY
-	&freq_inc_notify.attr,
-	&freq_dec_notify.attr,
-#endif
 #ifdef CONFIG_HISI_FREQ_IO_LIMIT
 	&iowait_upper_limit.attr,
 #endif
@@ -2093,10 +2020,6 @@ static struct governor_user_attr schedutil_user_attrs[] = {
 	{.name = "ed_task_running_duration", .uid = SYSTEM_UID, .gid = SYSTEM_GID, .mode = 0660},
 	{.name = "ed_task_waiting_duration", .uid = SYSTEM_UID, .gid = SYSTEM_GID, .mode = 0660},
 	{.name = "ed_new_task_running_duration", .uid = SYSTEM_UID, .gid = SYSTEM_GID, .mode = 0660},
-#endif
-#ifdef CONFIG_MIGRATION_NOTIFY
-	{.name = "freq_inc_notify", .uid = SYSTEM_UID, .gid = SYSTEM_GID, .mode = 0660},
-	{.name = "freq_dec_notify", .uid = SYSTEM_UID, .gid = SYSTEM_GID, .mode = 0660},
 #endif
 #ifdef CONFIG_HISI_FREQ_IO_LIMIT
 	{.name = "iowait_upper_limit", .uid = SYSTEM_UID, .gid = SYSTEM_GID, .mode = 0660},
@@ -2215,10 +2138,6 @@ static void sugov_tunables_init(struct sugov_tunables *tunables, struct sugov_tu
 	tunables->ed_task_running_duration = EARLY_DETECTION_TASK_RUNNING_DURATION;
 	tunables->ed_task_waiting_duration = EARLY_DETECTION_TASK_WAITING_DURATION;
 	tunables->ed_new_task_running_duration = EARLY_DETECTION_NEW_TASK_RUNNING_DURATION;
-#endif
-#ifdef CONFIG_MIGRATION_NOTIFY
-	tunables->freq_inc_notify = DEFAULT_FREQ_INC_NOTIFY;
-	tunables->freq_dec_notify = DEFAULT_FREQ_DEC_NOTIFY;
 #endif
 }
 #endif

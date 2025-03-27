@@ -425,11 +425,6 @@ struct cfs_bandwidth { };
 
 #endif	/* CONFIG_CGROUP_SCHED */
 
-#ifdef CONFIG_MIGRATION_NOTIFY
-#define DEFAULT_FREQ_INC_NOTIFY (200 * 1000)
-#define DEFAULT_FREQ_DEC_NOTIFY (200 * 1000)
-#endif
-
 #ifdef CONFIG_ED_TASK
 #define EARLY_DETECTION_TASK_WAITING_DURATION 11500000
 #define EARLY_DETECTION_TASK_RUNNING_DURATION 120000000
@@ -871,10 +866,6 @@ struct rq {
 	unsigned int ed_task_waiting_duration;
 	unsigned int ed_new_task_running_duration;
 #endif /* CONFIG_ED_TASK */
-#ifdef CONFIG_MIGRATION_NOTIFY
-	unsigned int freq_inc_notify;
-	unsigned int freq_dec_notify;
-#endif
 
 #ifdef CONFIG_SCHED_WALT
 	struct cpumask freq_domain_cpumask;
