@@ -48,9 +48,6 @@ extern unsigned int sysctl_sched_force_upmigrate_duration;
 #endif
 #endif
 
-#ifdef CONFIG_RT_CAS
-extern unsigned int sysctl_sched_enable_rt_cas;
-#endif
 #ifdef CONFIG_RT_ACTIVE_LB
 extern unsigned int sysctl_sched_enable_rt_active_lb;
 #endif

@@ -1057,13 +1057,6 @@ config RT_OPT
 	help
 	  Limit rt-threads to slow cpus for power saving.
 
-config RT_CAS
-	bool "rt-cas optimization"
-	depends on HISI_EAS_SCHED
-	default n
-	help
-	  allow rt-threads to be scheduled according to task_util.
-
 config RT_ACTIVE_LB
 	bool "rt-cas optimization"
 	depends on HISI_EAS_SCHED
