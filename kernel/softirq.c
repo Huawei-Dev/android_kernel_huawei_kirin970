@@ -197,9 +197,6 @@ EXPORT_SYMBOL(__local_bh_enable_ip);
  */
 #define MAX_SOFTIRQ_TIME  msecs_to_jiffies(2)
 #define MAX_SOFTIRQ_RESTART 10
-#ifdef CONFIG_SOFTIRQ_OPT
-#define MAX_SOFTIRQ_TIME_MS 2
-#endif
 
 #ifdef CONFIG_TRACE_IRQFLAGS
 /*
@@ -236,11 +233,7 @@ static inline void lockdep_softirq_end(bool in_hardirq) { }
 
 asmlinkage __visible void __softirq_entry __do_softirq(void)
 {
-#ifdef CONFIG_SOFTIRQ_OPT
-	ktime_t end = ktime_add_ms(ktime_get(), MAX_SOFTIRQ_TIME_MS);
-#else
 	unsigned long end = jiffies + MAX_SOFTIRQ_TIME;
-#endif
 	unsigned long old_flags = current->flags;
 	int max_restart = MAX_SOFTIRQ_RESTART;
 	struct softirq_action *h;
@@ -298,15 +291,9 @@ restart:
 
 	pending = local_softirq_pending();
 	if (pending) {
-#ifdef CONFIG_SOFTIRQ_OPT
-		if (ktime_before(ktime_get(), end) && !need_resched() &&
-		    --max_restart)
-			goto restart;
-#else
 		if (time_before(jiffies, end) && !need_resched() &&
 		    --max_restart)
 			goto restart;
-#endif
 
 		wakeup_softirqd();
 	}
