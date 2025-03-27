@@ -1051,13 +1051,6 @@ config HISI_EAS_SCHED
 	help
 	  EAS scheduler
 
-config MULTI_MARGIN
-	bool "EAS multiple margin"
-	depends on HISI_EAS_SCHED
-	default n
-	help
-	  Allow each cluster has its own capacity_margin/sd_capacity_margin.
-
 config RT_OPT
 	bool "rt-threads optimization"
 	default n
