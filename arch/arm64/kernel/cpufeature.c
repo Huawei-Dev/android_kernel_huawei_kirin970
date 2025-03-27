@@ -137,11 +137,7 @@ static const struct arm64_ftr_bits ftr_id_aa64pfr0[] = {
 	ARM64_FTR_BITS(FTR_HIDDEN, FTR_NONSTRICT, FTR_LOWER_SAFE, ID_AA64PFR0_EL3_SHIFT, 4, 0),
 	ARM64_FTR_BITS(FTR_HIDDEN, FTR_NONSTRICT, FTR_LOWER_SAFE, ID_AA64PFR0_EL2_SHIFT, 4, 0),
 	ARM64_FTR_BITS(FTR_HIDDEN, FTR_NONSTRICT, FTR_LOWER_SAFE, ID_AA64PFR0_EL1_SHIFT, 4, ID_AA64PFR0_EL1_64BIT_ONLY),
-#ifdef CONFIG_32BIT_COMPAT
-	ARM64_FTR_BITS(FTR_HIDDEN, FTR_NONSTRICT, FTR_HIGHER_SAFE, ID_AA64PFR0_EL0_SHIFT, 4, ID_AA64PFR0_EL0_64BIT_ONLY),
-#else
 	ARM64_FTR_BITS(FTR_HIDDEN, FTR_NONSTRICT, FTR_LOWER_SAFE, ID_AA64PFR0_EL0_SHIFT, 4, ID_AA64PFR0_EL0_64BIT_ONLY),
-#endif
 	ARM64_FTR_END,
 };
 
@@ -1385,12 +1381,7 @@ verify_local_cpu_features(const struct arm64_cpu_capabilities *caps_list)
 		 * If the new CPU misses an advertised feature, we cannot proceed
 		 * further, park the cpu.
 		 */
-#ifdef CONFIG_32BIT_COMPAT
-		if ((caps->capability != ARM64_HAS_32BIT_EL0) &&
-		    (!__this_cpu_has_cap(caps_list, caps->capability))) {
-#else
 		if (!__this_cpu_has_cap(caps_list, caps->capability)) {
-#endif
 			pr_crit("CPU%d: missing feature: %s\n",
 					smp_processor_id(), caps->desc);
 			cpu_die_early();
@@ -1413,60 +1404,9 @@ static void verify_local_cpu_capabilities(void)
 	verify_local_cpu_errata_workarounds();
 	verify_local_cpu_features(arm64_features);
 	verify_local_elf_hwcaps(arm64_elf_hwcaps);
-#ifdef CONFIG_32BIT_COMPAT
-	if (system_supports_32bit_el0() &&
-	    id_aa64pfr0_32bit_el0(read_sysreg_s(SYS_ID_AA64PFR0_EL1)))
-#else
 	if (system_supports_32bit_el0())
-#endif
 		verify_local_elf_hwcaps(compat_elf_hwcaps);
 }
-
-#ifdef CONFIG_32BIT_COMPAT
-static void update_32bit_el0_ftr_reg(void)
-{
-	struct arm64_ftr_reg *regp = get_arm64_ftr_reg(SYS_ID_AA64PFR0_EL1);
-	const struct arm64_ftr_bits *ftrp = NULL;
-	u64 reg_id = read_sysreg_s(SYS_ID_AA64PFR0_EL1);
-
-	BUG_ON(!regp);
-
-	for (ftrp = regp->ftr_bits; ftrp->width; ftrp++) {
-		s64 ftr_cur, ftr_new;
-
-		if (ftrp->shift != ID_AA64PFR0_EL0_SHIFT)
-			continue;
-
-		ftr_cur = arm64_ftr_value(ftrp, regp->sys_val);
-		ftr_new = arm64_ftr_value(ftrp, reg_id);
-
-		if (ftr_cur == ftr_new)
-			continue;
-
-		/* Find a safe value */
-		ftr_new = arm64_ftr_safe_value(ftrp, ftr_new, ftr_cur);
-		regp->sys_val = arm64_ftr_set_value(ftrp, regp->sys_val, ftr_new);
-	}
-}
-
-static void update_cpu_32bit_el0_cap(void)
-{
-	const struct arm64_cpu_capabilities *caps = arm64_features;
-
-	for (; caps->matches; caps++) {
-		if (caps->capability != ARM64_HAS_32BIT_EL0)
-			continue;
-
-		if (!caps->matches(caps, caps->def_scope))
-			return;
-
-		if (!cpus_have_cap(caps->capability) && caps->desc)
-			pr_info("%s %s\n", "detected feature:", caps->desc);
-		cpus_set_cap(caps->capability);
-		static_branch_enable(&cpu_hwcap_keys[ARM64_HAS_32BIT_EL0]);
-	}
-}
-#endif
 
 void check_local_cpu_capabilities(void)
 {
@@ -1476,10 +1416,6 @@ void check_local_cpu_capabilities(void)
 	 */
 	check_early_cpu_features();
 
-#ifdef CONFIG_32BIT_COMPAT
-	update_32bit_el0_ftr_reg();
-	update_cpu_32bit_el0_cap();
-#endif
 	/*
 	 * If we haven't finalised the system capabilities, this CPU gets
 	 * a chance to update the errata work arounds.

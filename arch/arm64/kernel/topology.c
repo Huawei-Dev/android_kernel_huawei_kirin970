@@ -306,27 +306,6 @@ int test_slow_cpu(int cpu)
 EXPORT_SYMBOL(test_slow_cpu);
 #endif
 
-#ifdef CONFIG_32BIT_COMPAT
-struct cpumask compat_cpu_mask;
-
-void hisi_get_compat_cpus(struct cpumask *cpumask)
-{
-	cpumask_copy(cpumask, &compat_cpu_mask);
-}
-
-int hisi_test_compat_cpu(int cpu)
-{
-	return cpumask_test_cpu(cpu, &compat_cpu_mask);
-}
-
-static bool is_current_compat_cpu(void)
-{
-	u64 reg_id_aa64pfr0 = read_sysreg_s(SYS_ID_AA64PFR0_EL1);
-
-	return id_aa64pfr0_32bit_el0(reg_id_aa64pfr0);
-}
-#endif
-
 const struct cpumask *cpu_coregroup_mask(int cpu)
 {
 	return &cpu_topology[cpu].core_sibling;
@@ -362,10 +341,6 @@ void store_cpu_topology(unsigned int cpuid)
 	struct cpu_topology *cpuid_topo = &cpu_topology[cpuid];
 	u64 mpidr;
 
-#ifdef CONFIG_32BIT_COMPAT
-	if (is_current_compat_cpu())
-		cpumask_set_cpu(cpuid, &compat_cpu_mask);
-#endif
 	if (cpuid_topo->cluster_id != -1)
 		goto topology_populated;
 
@@ -482,8 +457,5 @@ void __init init_cpu_topology(void)
 
 #ifdef CONFIG_ARCH_HISI
 	arch_get_fast_and_slow_cpus(&fast_cpu_mask, &slow_cpu_mask);
-#endif
-#ifdef CONFIG_32BIT_COMPAT
-	cpumask_clear(&compat_cpu_mask);
 #endif
 }

@@ -1160,12 +1160,6 @@ static int load_elf_binary(struct linux_binprm *bprm)
 
 	start_thread(regs, elf_entry, bprm->p);
 	retval = 0;
-#ifdef CONFIG_32BIT_COMPAT
-#if (ELF_CLASS == ELFCLASS32)
-	set_cpus_allowed_ptr(current, &current->cpus_allowed);
-#endif
-#endif
-
 out:
 	kfree(loc);
 out_ret:

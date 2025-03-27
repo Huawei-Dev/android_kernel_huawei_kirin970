@@ -1085,12 +1085,6 @@ config ED_TASK_RESET_AT_UPMIGRATION
 	  by its earlier running time on little core. Disable this feature
 	  and do not reset ed task on migration is a better choice.
 
-config 32BIT_COMPAT
-	bool "supporting 32bit compat"
-	default n
-	help
-	  Bind 32-bit threads to the cpus which support 32 bit.
-
 config SOFTIRQ_OPT
 	bool "Optimize softirq delay"
 	default n

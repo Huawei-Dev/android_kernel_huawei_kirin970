@@ -2148,10 +2148,6 @@ void hisi_get_fast_cpus(struct cpumask *cpumask);
 int test_slow_cpu(int cpu);
 void hisi_get_slow_cpus(struct cpumask *cpumask);
 #endif
-#ifdef CONFIG_32BIT_COMPAT
-int hisi_test_compat_cpu(int cpu);
-void hisi_get_compat_cpus(struct cpumask *cpumask);
-#endif
 
 #ifdef CONFIG_HISI_EAS_SCHED
 void print_hung_task_sched_info(struct task_struct *p);

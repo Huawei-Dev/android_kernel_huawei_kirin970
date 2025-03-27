@@ -1235,25 +1235,6 @@ static int migration_cpu_stop(void *data)
 	return 0;
 }
 
-#ifdef CONFIG_32BIT_COMPAT
-static void update_32bit_compat_mask(struct task_struct *p, struct cpumask *new_mask)
-{
-	struct cpumask compat_mask;
-
-	if (!test_tsk_thread_flag(p, TIF_32BIT))
-		return;
-
-	hisi_get_compat_cpus(&compat_mask);
-	if (cpumask_empty(&compat_mask))
-		return;
-
-	if (cpumask_intersects(&compat_mask, new_mask))
-		cpumask_and(new_mask, new_mask, &compat_mask);
-	else
-		cpumask_copy(new_mask, &compat_mask);
-}
-#endif
-
 /*
  * sched_class::set_cpus_allowed must do the below, but is not required to
  * actually call this function.
@@ -1268,9 +1249,6 @@ void do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask)
 {
 	struct rq *rq = task_rq(p);
 	bool queued, running;
-#ifdef CONFIG_32BIT_COMPAT
-	struct cpumask allowed_mask;
-#endif
 
 	lockdep_assert_held(&p->pi_lock);
 
@@ -1288,14 +1266,7 @@ void do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask)
 	if (running)
 		put_prev_task(rq, p);
 
-#ifdef CONFIG_32BIT_COMPAT
-	cpumask_copy(&allowed_mask, new_mask);
-	update_32bit_compat_mask(p, &allowed_mask);
-
-	p->sched_class->set_cpus_allowed(p, &allowed_mask);
-#else
 	p->sched_class->set_cpus_allowed(p, new_mask);
-#endif
 	if (queued)
 		enqueue_task(rq, p, ENQUEUE_RESTORE | ENQUEUE_NOCLOCK);
 	if (running)
@@ -1416,16 +1387,7 @@ out:
 
 int set_cpus_allowed_ptr(struct task_struct *p, const struct cpumask *new_mask)
 {
-#ifdef CONFIG_32BIT_COMPAT
-	struct cpumask allowed_mask;
-
-	cpumask_copy(&allowed_mask, new_mask);
-	update_32bit_compat_mask(p, &allowed_mask);
-
-	return __set_cpus_allowed_ptr(p, &allowed_mask, false);
-#else
 	return __set_cpus_allowed_ptr(p, new_mask, false);
-#endif
 }
 EXPORT_SYMBOL_GPL(set_cpus_allowed_ptr);
 
@@ -2816,17 +2778,6 @@ void wake_up_new_task(struct task_struct *p)
 		struct sched_entity *se = &p->se;
 		struct sched_avg *sa = &se->avg;
 		memset(sa, 0, sizeof(*sa));
-	}
-#endif
-
-#ifdef CONFIG_32BIT_COMPAT
-	/* update allowed cpus before select rq */
-	if (test_tsk_thread_flag(p, TIF_32BIT)) {
-		struct cpumask allowed_mask;
-
-		cpumask_copy(&allowed_mask, &p->cpus_allowed);
-		update_32bit_compat_mask(p, &allowed_mask);
-		set_cpus_allowed_common(p, &allowed_mask);
 	}
 #endif
 
@@ -5264,9 +5215,6 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
 	}
 #endif
 again:
-#ifdef CONFIG_32BIT_COMPAT
-	update_32bit_compat_mask(p, new_mask);
-#endif
 	retval = __set_cpus_allowed_ptr(p, new_mask, true);
 
 	if (!retval) {
