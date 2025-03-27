@@ -399,10 +399,4 @@ config BLK_MQ_RDMA
 	depends on BLOCK && INFINIBAND
 	default y
 
-config PARTITION_PATH_BY_LABEL
-	bool "/dev/disk/by-partlabel"
-	default n
-	---help---
-	This enable use /dev/disk/by-partlable path to access in kernel
-
 source block/Kconfig.iosched

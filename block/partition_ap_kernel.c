@@ -29,11 +29,7 @@
 #define A_POSTFIX "_a"
 #define B_POSTFIX "_b"
 
-#ifdef CONFIG_PARTITION_PATH_BY_LABEL
-#define BLKDEV_PATH_PREFIX "/dev/disk/by-partlabel/"
-#else
 #define BLKDEV_PATH_PREFIX "/dev/block/by-name/"
-#endif
 
 enum AB_PARTITION_TYPE ufs_boot_partition_type = XLOADER_A;
 
