@@ -316,6 +316,8 @@ static int tc_ns_client_login_func(struct tc_ns_dev_file *dev_file,
 
 	ret = get_public_key(dev_file, cert_buffer);
 	dev_file->login_setup = true;
+	
+	tlogd("Login with package : %s\n",dev_file->pkg_name);
 
 error:
 	kfree(temp_cert_buffer);

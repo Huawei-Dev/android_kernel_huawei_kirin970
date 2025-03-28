@@ -99,14 +99,38 @@ static int calc_hidl_process_hash(void)
 	return CHECK_ACCESS_SUCC;
 }
 
+void dump_hash_hidl(unsigned char *hash_buf)
+{
+
+	tlogd("{0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, ",
+		*(hash_buf + 0), *(hash_buf + 1), *(hash_buf + 2), *(hash_buf + 3),
+		*(hash_buf + 4), *(hash_buf + 5), *(hash_buf + 6), *(hash_buf + 7));
+	tlogd("0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, ",
+		*(hash_buf + 8), *(hash_buf + 9), *(hash_buf + 10), *(hash_buf + 11),
+		*(hash_buf + 12), *(hash_buf + 13), *(hash_buf + 14),
+		*(hash_buf + 15));
+	tlogd("0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X,  ",
+		*(hash_buf + 16), *(hash_buf + 17), *(hash_buf + 18),
+		*(hash_buf + 19), *(hash_buf + 20), *(hash_buf + 21),
+		*(hash_buf + 22), *(hash_buf + 23));
+	tlogd("0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X} ",
+		*(hash_buf + 24), *(hash_buf + 25), *(hash_buf + 26),
+		*(hash_buf + 27), *(hash_buf + 28), *(hash_buf + 29),
+		*(hash_buf + 30), *(hash_buf + 31));
+}
+
 static int check_hidl_path_access(void)
 {
 	unsigned char digest[SHA256_DIGEST_LENTH] = {0};
+	
+	tlogd("check_hidl_path_access enter \n");
 
 	if (calc_path_hash(true, digest, SHA256_DIGEST_LENTH)) {
 		tloge("calc path hash failed\n");
 		return CHECK_PATH_HASH_FAIL;
 	}
+	
+	dump_hash_hidl(digest);
 
 	if (memcmp(digest, g_hidl_path_hash, SHA256_DIGEST_LENTH)) {
 		tlogd("process is not libteec hidl service, keep going\n");
@@ -118,6 +142,8 @@ static int check_hidl_path_access(void)
 		tloge("check libteec hidl service seclabel failed\n");
 		return CHECK_SECLABEL_FAIL;
 	}
+	
+	tlogd("check_hidl_path_access exite \n");
 
 	return CHECK_ACCESS_SUCC;
 }
