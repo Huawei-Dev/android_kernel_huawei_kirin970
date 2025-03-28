@@ -854,8 +854,12 @@ isolate_migratepages_block(struct compact_control *cc, unsigned long low_pfn,
 
 		/* Successfully isolated */
 		del_page_from_lru_list(page, lruvec, page_lru(page));
+#ifdef CONFIG_ISOLATE_COUNT
+		inc_node_page_state(page, NR_ISOLATED_ANON);
+#else
 		inc_node_page_state(page,
 				NR_ISOLATED_ANON + page_is_file_cache(page));
+#endif
 
 isolate_success:
 		list_add(&page->lru, &cc->migratepages);
@@ -1287,6 +1291,71 @@ static inline bool is_via_compact_memory(int order)
 	return order == -1;
 }
 
+#ifdef CONFIG_COMPACTION_SPECIFIED
+static unsigned long __pageblock_count_order(struct zone *zone, int order)
+{
+	unsigned long totalcount = 0;
+	unsigned long flags;
+	unsigned int k = 1;
+	int o;
+
+	spin_lock_irqsave(&zone->lock, flags);
+	for (o = order; o < MAX_ORDER; o++) {
+		unsigned long freecount = 0;
+		struct free_area *area = &zone->free_area[o];
+		struct list_head *curr = NULL;
+		int mt;
+
+		if (!area->nr_free)
+			continue;
+
+		for (mt = 0; mt <= MIGRATE_MOVABLE; mt++) {
+			list_for_each(curr, &area->free_list[mt])
+				freecount++;
+		}
+
+		totalcount += freecount * k;
+		k *= 2;
+	}
+	spin_unlock_irqrestore(&zone->lock, flags);
+	return totalcount;
+}
+
+static bool __pageblock_is_enough(struct zone *zone,
+		int order, int mtype, unsigned long nr_expect)
+{
+	return (__pageblock_count_order(zone, order)
+			>= nr_expect);
+}
+
+static enum compact_result __force_compact_finished(struct zone *zone,
+						struct compact_control *cc)
+{
+	/* Compaction run completes if the migrate and free scanner meet */
+	if (compact_scanners_met(cc)) {
+		/* Let the next compaction start anew. */
+		reset_cached_positions(zone);
+		return COMPACT_COMPLETE;
+	}
+
+	if (__pageblock_is_enough(zone, cc->order,
+			cc->migratetype, cc->nr_expect))
+		return COMPACT_SUCCESS;
+
+	return COMPACT_NO_SUITABLE_PAGE;
+}
+
+static enum compact_result __force_compact_suitable(struct zone *zone,
+						struct compact_control *cc)
+{
+	if (__pageblock_is_enough(zone, cc->order,
+			cc->migratetype, cc->nr_expect))
+		return COMPACT_SUCCESS;
+	else
+		return COMPACT_CONTINUE;
+}
+#endif
+
 static enum compact_result __compact_finished(struct zone *zone,
 						struct compact_control *cc)
 {
@@ -1295,7 +1364,10 @@ static enum compact_result __compact_finished(struct zone *zone,
 
 	if (cc->contended || fatal_signal_pending(current))
 		return COMPACT_CONTENDED;
-
+#ifdef CONFIG_COMPACTION_SPECIFIED
+	if (cc->force_compact)
+		return __force_compact_finished(zone, cc);
+#endif
 	/* Compaction run completes if the migrate and free scanner meet */
 	if (compact_scanners_met(cc)) {
 		/* Let the next compaction start anew. */
@@ -1341,7 +1413,7 @@ static enum compact_result __compact_finished(struct zone *zone,
 
 #ifdef CONFIG_CMA
 		/* MIGRATE_MOVABLE can fallback on MIGRATE_CMA */
-		if (migratetype == MIGRATE_MOVABLE &&
+		if (cc->gfp_mask & ___GFP_CMA &&
 			!list_empty(&area->free_list[MIGRATE_CMA]))
 			return COMPACT_SUCCESS;
 #endif
@@ -1350,7 +1422,7 @@ static enum compact_result __compact_finished(struct zone *zone,
 		 * other migratetype buddy lists.
 		 */
 		if (find_suitable_fallback(area, order, migratetype,
-						true, &can_steal) != -1) {
+						true, &can_steal, cc->gfp_mask) != -1) {
 
 			/* movable pages are OK in any pageblock */
 			if (migratetype == MIGRATE_MOVABLE)
@@ -1518,9 +1590,24 @@ static enum compact_result compact_zone(struct zone *zone, struct compact_contro
 	unsigned long end_pfn = zone_end_pfn(zone);
 	const bool sync = cc->mode != MIGRATE_ASYNC;
 
+	/*
+	 * These counters track activities during zone compaction.  Initialize
+	 * them before compacting a new zone.
+	 */
+	cc->total_migrate_scanned = 0;
+	cc->total_free_scanned = 0;
+	cc->nr_migratepages = 0;
+	cc->nr_freepages = 0;
+	INIT_LIST_HEAD(&cc->freepages);
+	INIT_LIST_HEAD(&cc->migratepages);
+
 	cc->migratetype = gfpflags_to_migratetype(cc->gfp_mask);
 	ret = compaction_suitable(zone, cc->order, cc->alloc_flags,
 							cc->classzone_idx);
+#ifdef CONFIG_COMPACTION_SPECIFIED
+	if (cc->force_compact)
+		ret = __force_compact_suitable(zone, cc);
+#endif
 	/* Compaction is likely to fail */
 	if (ret == COMPACT_SUCCESS || ret == COMPACT_SKIPPED)
 		return ret;
@@ -1681,10 +1768,6 @@ static enum compact_result compact_zone_order(struct zone *zone, int order,
 {
 	enum compact_result ret;
 	struct compact_control cc = {
-		.nr_freepages = 0,
-		.nr_migratepages = 0,
-		.total_migrate_scanned = 0,
-		.total_free_scanned = 0,
 		.order = order,
 		.gfp_mask = gfp_mask,
 		.zone = zone,
@@ -1695,10 +1778,8 @@ static enum compact_result compact_zone_order(struct zone *zone, int order,
 		.direct_compaction = true,
 		.whole_zone = (prio == MIN_COMPACT_PRIORITY),
 		.ignore_skip_hint = (prio == MIN_COMPACT_PRIORITY),
-		.ignore_block_suitable = (prio == MIN_COMPACT_PRIORITY)
+		.ignore_block_suitable = (prio == MIN_COMPACT_PRIORITY),
 	};
-	INIT_LIST_HEAD(&cc.freepages);
-	INIT_LIST_HEAD(&cc.migratepages);
 
 	ret = compact_zone(zone, &cc);
 
@@ -1797,8 +1878,6 @@ static void compact_node(int nid)
 	struct zone *zone;
 	struct compact_control cc = {
 		.order = -1,
-		.total_migrate_scanned = 0,
-		.total_free_scanned = 0,
 		.mode = MIGRATE_SYNC,
 		.ignore_skip_hint = true,
 		.whole_zone = true,
@@ -1807,16 +1886,11 @@ static void compact_node(int nid)
 
 
 	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
-
 		zone = &pgdat->node_zones[zoneid];
 		if (!populated_zone(zone))
 			continue;
 
-		cc.nr_freepages = 0;
-		cc.nr_migratepages = 0;
 		cc.zone = zone;
-		INIT_LIST_HEAD(&cc.freepages);
-		INIT_LIST_HEAD(&cc.migratepages);
 
 		compact_zone(zone, &cc);
 
@@ -1925,13 +1999,10 @@ static void kcompactd_do_work(pg_data_t *pgdat)
 	struct zone *zone;
 	struct compact_control cc = {
 		.order = pgdat->kcompactd_max_order,
-		.total_migrate_scanned = 0,
-		.total_free_scanned = 0,
 		.classzone_idx = pgdat->kcompactd_classzone_idx,
 		.mode = MIGRATE_SYNC_LIGHT,
 		.ignore_skip_hint = true,
 		.gfp_mask = GFP_KERNEL,
-
 	};
 	trace_mm_compaction_kcompactd_wake(pgdat->node_id, cc.order,
 							cc.classzone_idx);
@@ -1951,16 +2022,10 @@ static void kcompactd_do_work(pg_data_t *pgdat)
 							COMPACT_CONTINUE)
 			continue;
 
-		cc.nr_freepages = 0;
-		cc.nr_migratepages = 0;
-		cc.total_migrate_scanned = 0;
-		cc.total_free_scanned = 0;
-		cc.zone = zone;
-		INIT_LIST_HEAD(&cc.freepages);
-		INIT_LIST_HEAD(&cc.migratepages);
-
 		if (kthread_should_stop())
 			return;
+
+		cc.zone = zone;
 		status = compact_zone(zone, &cc);
 
 		if (status == COMPACT_SUCCESS) {

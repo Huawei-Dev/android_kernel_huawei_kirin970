@@ -40,6 +40,7 @@
 #include <linux/ramfs.h>
 #include <linux/percpu-refcount.h>
 #include <linux/mount.h>
+#include <linux/fscrypt_common.h>
 
 #include <asm/kmap_types.h>
 #include <linux/uaccess.h>
@@ -1524,8 +1525,10 @@ static ssize_t aio_read(struct kiocb *req, struct iocb *iocb, bool vectored,
 	if (ret)
 		return ret;
 	ret = rw_verify_area(READ, file, &req->ki_pos, iov_iter_count(&iter));
-	if (!ret)
+
+	if (!ret) {
 		ret = aio_ret(req, call_read_iter(file, req, &iter));
+	}
 	kfree(iovec);
 	return ret;
 }

@@ -14,6 +14,8 @@
  *
  */
 
+#define pr_fmt(fmt) "[ION: ]" fmt
+
 #include <linux/err.h>
 #include <linux/freezer.h>
 #include <linux/kthread.h>
@@ -68,6 +70,16 @@ void ion_heap_unmap_kernel(struct ion_heap *heap,
 	vunmap(buffer->vaddr);
 }
 
+void ion_lb_close(struct vm_area_struct *area)
+{
+	pr_info("%s:start-0x%lx,end-0x%lx\n", __func__, area->vm_start,
+		area->vm_end);
+}
+
+const struct vm_operations_struct ion_lb_vm_ops = {
+	.close = ion_lb_close,
+};
+
 int ion_heap_map_user(struct ion_heap *heap, struct ion_buffer *buffer,
 		      struct vm_area_struct *vma)
 {
@@ -93,24 +105,26 @@ int ion_heap_map_user(struct ion_heap *heap, struct ion_buffer *buffer,
 		}
 		len = min(len, remainder);
 		ret = remap_pfn_range(vma, addr, page_to_pfn(page), len,
-				      vma->vm_page_prot);
+				vma->vm_page_prot);
 		if (ret)
 			return ret;
 		addr += len;
 		if (addr >= vma->vm_end)
-			return 0;
+			goto done;
 	}
+
+done:
 	return 0;
 }
 
 static int ion_heap_clear_pages(struct page **pages, int num, pgprot_t pgprot)
 {
-	void *addr = vm_map_ram(pages, num, -1, pgprot);
+	void *addr = vmap(pages, num, VM_MAP, pgprot);
 
 	if (!addr)
 		return -ENOMEM;
 	memset(addr, 0, PAGE_SIZE * num);
-	vm_unmap_ram(addr, num);
+	vunmap(addr);
 
 	return 0;
 }
@@ -275,7 +289,7 @@ static unsigned long ion_heap_shrink_count(struct shrinker *shrinker,
 	total = ion_heap_freelist_size(heap) / PAGE_SIZE;
 	if (heap->ops->shrink)
 		total += heap->ops->shrink(heap, sc->gfp_mask, 0);
-	return total;
+	return total; /* [false alarm]:fortify */
 }
 
 static unsigned long ion_heap_shrink_scan(struct shrinker *shrinker,
@@ -283,11 +297,11 @@ static unsigned long ion_heap_shrink_scan(struct shrinker *shrinker,
 {
 	struct ion_heap *heap = container_of(shrinker, struct ion_heap,
 					     shrinker);
-	int freed = 0;
-	int to_scan = sc->nr_to_scan;
+	unsigned long freed = 0;
+	unsigned long to_scan = sc->nr_to_scan;
 
 	if (to_scan == 0)
-		return 0;
+		return SHRINK_STOP;
 
 	/*
 	 * shrink the free list first, no point in zeroing the memory if we're
@@ -299,11 +313,12 @@ static unsigned long ion_heap_shrink_scan(struct shrinker *shrinker,
 
 	to_scan -= freed;
 	if (to_scan <= 0)
-		return freed;
+		return freed ? freed : SHRINK_STOP;
 
 	if (heap->ops->shrink)
 		freed += heap->ops->shrink(heap, sc->gfp_mask, to_scan);
-	return freed;
+
+	return freed ? freed : SHRINK_STOP;
 }
 
 void ion_heap_init_shrinker(struct ion_heap *heap)

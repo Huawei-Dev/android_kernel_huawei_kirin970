@@ -13,7 +13,7 @@
 #include <linux/mmc/sdio_ids.h>
 
 #include "card.h"
-
+/*lint -e501*/
 static const struct mmc_fixup mmc_blk_fixups[] = {
 #define INAND_CMD38_ARG_EXT_CSD  113
 #define INAND_CMD38_ARG_ERASE    0x00
@@ -98,10 +98,9 @@ static const struct mmc_fixup mmc_blk_fixups[] = {
 		  MMC_QUIRK_TRIM_BROKEN),
 	MMC_FIXUP("V10016", CID_MANFID_KINGSTON, CID_OEMID_ANY, add_quirk_mmc,
 		  MMC_QUIRK_TRIM_BROKEN),
-
 	END_FIXUP
 };
-
+/*lint +e501*/
 static const struct mmc_fixup mmc_ext_csd_fixups[] = {
 	/*
 	 * Certain Hynix eMMC 4.41 cards might get broken when HPI feature

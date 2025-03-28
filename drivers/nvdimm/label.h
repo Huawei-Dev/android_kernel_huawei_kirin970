@@ -13,7 +13,7 @@
 #ifndef __LABEL_H__
 #define __LABEL_H__
 
-#include <linux/ndctl.h>
+#include <linux/hisi/ndctl.h>
 #include <linux/sizes.h>
 #include <linux/uuid.h>
 #include <linux/io.h>

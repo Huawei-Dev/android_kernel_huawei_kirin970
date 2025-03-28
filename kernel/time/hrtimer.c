@@ -470,7 +470,12 @@ static ktime_t __hrtimer_get_next_event(struct hrtimer_cpu_base *cpu_base,
 	unsigned int active = cpu_base->active_bases;
 	ktime_t expires, expires_next = KTIME_MAX;
 
-	hrtimer_update_next_timer(cpu_base, NULL);
+	/*
+	 * Skip initializing cpu_base->next_timer to NULL as we skip updating
+	 * next_timer in below loop if the timer is being exluded.
+	 */
+	if (!exclude)
+		hrtimer_update_next_timer(cpu_base, NULL);
 	for (; active; base++, active >>= 1) {
 		struct timerqueue_node *next;
 		struct hrtimer *timer;
@@ -979,6 +984,11 @@ void hrtimer_start_range_ns(struct hrtimer *timer, ktime_t tim,
 
 	/* Switch the timer base, if necessary: */
 	new_base = switch_hrtimer_base(timer, base, mode & HRTIMER_MODE_PINNED);
+
+#ifdef CONFIG_HUAWEI_DUBAI
+	memcpy(timer->comm, current->comm, TASK_COMM_LEN);
+	timer->pid = current->pid;
+#endif
 
 	leftmost = enqueue_hrtimer(timer, new_base);
 	if (!leftmost)
@@ -1644,7 +1654,6 @@ int hrtimers_prepare_cpu(unsigned int cpu)
 }
 
 #ifdef CONFIG_HOTPLUG_CPU
-
 static void migrate_hrtimer_list(struct hrtimer_clock_base *old_base,
 				struct hrtimer_clock_base *new_base)
 {

@@ -43,6 +43,10 @@ struct cpuidle_state {
 	unsigned int	exit_latency; /* in US */
 	int		power_usage; /* in mW */
 	unsigned int	target_residency; /* in US */
+#ifdef CONFIG_HISI_CPUIDLE_LP_MODE
+	unsigned int	lp_exit_latency; /* in US */
+	unsigned int	lp_target_residency; /* in US */
+#endif
 	bool		disabled; /* disabled on all CPUs */
 
 	int (*enter)	(struct cpuidle_device *dev,
@@ -251,6 +255,12 @@ struct cpuidle_governor {
 					bool *stop_tick);
 	void (*reflect)		(struct cpuidle_device *dev, int index);
 };
+
+
+#ifdef CONFIG_HISI_CPUIDLE_LP_MODE
+extern int get_lp_mode(void);
+extern void cpuidle_switch_to_lp_mode(int enabled);
+#endif
 
 #ifdef CONFIG_CPU_IDLE
 extern int cpuidle_register_governor(struct cpuidle_governor *gov);

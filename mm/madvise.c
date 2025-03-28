@@ -184,7 +184,13 @@ success:
 	/*
 	 * vm_flags is protected by the mmap_sem held in write mode.
 	 */
+#ifdef CONFIG_SPECULATIVE_PAGE_FAULT
+	vm_write_begin(vma);
+	WRITE_ONCE(vma->vm_flags, new_flags);
+	vm_write_end(vma);
+#else
 	vma->vm_flags = new_flags;
+#endif
 out:
 	return error;
 }
@@ -449,10 +455,15 @@ static void madvise_free_page_range(struct mmu_gather *tlb,
 		.mm = vma->vm_mm,
 		.private = tlb,
 	};
-
+#ifdef CONFIG_SPECULATIVE_PAGE_FAULT
+	vm_write_begin(vma);
+#endif
 	tlb_start_vma(tlb, vma);
 	walk_page_range(addr, end, &free_walk);
 	tlb_end_vma(tlb, vma);
+#ifdef CONFIG_SPECULATIVE_PAGE_FAULT
+	vm_write_end(vma);
+#endif
 }
 
 static int madvise_free_single_vma(struct vm_area_struct *vma,
@@ -607,6 +618,7 @@ static long madvise_remove(struct vm_area_struct *vma,
 		/* mmap_sem was not released by userfaultfd_remove() */
 		up_read(&current->mm->mmap_sem);
 	}
+
 	error = vfs_fallocate(f,
 				FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
 				offset, end - start);
@@ -797,6 +809,8 @@ SYSCALL_DEFINE3(madvise, unsigned long, start, size_t, len_in, int, behavior)
 	int write;
 	size_t len;
 	struct blk_plug plug;
+
+	start = untagged_addr(start);
 
 	if (!madvise_behavior_valid(behavior))
 		return error;

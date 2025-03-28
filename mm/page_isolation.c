@@ -236,6 +236,7 @@ __test_page_isolated_in_pageblock(unsigned long pfn, unsigned long end_pfn,
 				  bool skip_hwpoisoned_pages)
 {
 	struct page *page;
+	unsigned long rc = 0;
 
 	while (pfn < end_pfn) {
 		if (!pfn_valid_within(pfn)) {
@@ -253,11 +254,12 @@ __test_page_isolated_in_pageblock(unsigned long pfn, unsigned long end_pfn,
 		else if (skip_hwpoisoned_pages && PageHWPoison(page))
 			/* A HWPoisoned page cannot be also PageBuddy */
 			pfn++;
-		else
+		else {
 			break;
+		}
 	}
 
-	return pfn;
+	return (rc ? rc : pfn);
 }
 
 /* Caller should ensure that requested range is in a single zone */

@@ -104,6 +104,7 @@ extern struct cpumask __cpu_active_mask;
 #define cpu_possible(cpu)	cpumask_test_cpu((cpu), cpu_possible_mask)
 #define cpu_present(cpu)	cpumask_test_cpu((cpu), cpu_present_mask)
 #define cpu_active(cpu)		cpumask_test_cpu((cpu), cpu_active_mask)
+
 #else
 #define num_online_cpus()	1U
 #define num_possible_cpus()	1U
@@ -114,6 +115,10 @@ extern struct cpumask __cpu_active_mask;
 #define cpu_present(cpu)	((cpu) == 0)
 #define cpu_active(cpu)		((cpu) == 0)
 #endif
+
+#define num_isolated_cpus()	0U
+#define num_online_uniso_cpus()	num_online_cpus()
+#define cpu_isolated(cpu)	0
 
 /* verify cpu argument to cpumask_* operators */
 static inline unsigned int cpumask_check(unsigned int cpu)
@@ -795,7 +800,6 @@ set_cpu_active(unsigned int cpu, bool active)
 	else
 		cpumask_clear_cpu(cpu, &__cpu_active_mask);
 }
-
 
 /**
  * to_cpumask - convert an NR_CPUS bitmap to a struct cpumask *

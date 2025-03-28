@@ -29,7 +29,6 @@
 #include <linux/vmalloc.h>
 #include <linux/swiotlb.h>
 #include <linux/pci.h>
-
 #include <asm/cacheflush.h>
 
 static int swiotlb __ro_after_init;
@@ -202,6 +201,7 @@ static dma_addr_t __swiotlb_map_page(struct device *dev, struct page *page,
 	dma_addr_t dev_addr;
 
 	dev_addr = swiotlb_map_page(dev, page, offset, size, dir, attrs);
+
 	if (!is_device_dma_coherent(dev) &&
 	    (attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
 		__dma_map_area(phys_to_virt(dma_to_phys(dev, dev_addr)), size, dir);
@@ -278,10 +278,11 @@ static void __swiotlb_sync_sg_for_cpu(struct device *dev,
 	struct scatterlist *sg;
 	int i;
 
-	if (!is_device_dma_coherent(dev))
+	if (!is_device_dma_coherent(dev)) {
 		for_each_sg(sgl, sg, nelems, i)
 			__dma_unmap_area(phys_to_virt(dma_to_phys(dev, sg->dma_address)),
 					 sg->length, dir);
+	}
 	swiotlb_sync_sg_for_cpu(dev, sgl, nelems, dir);
 }
 
@@ -293,10 +294,11 @@ static void __swiotlb_sync_sg_for_device(struct device *dev,
 	int i;
 
 	swiotlb_sync_sg_for_device(dev, sgl, nelems, dir);
-	if (!is_device_dma_coherent(dev))
+	if (!is_device_dma_coherent(dev)) {
 		for_each_sg(sgl, sg, nelems, i)
 			__dma_map_area(phys_to_virt(dma_to_phys(dev, sg->dma_address)),
 				       sg->length, dir);
+	}
 }
 
 static int __swiotlb_mmap_pfn(struct vm_area_struct *vma,
@@ -542,7 +544,7 @@ EXPORT_SYMBOL(dummy_dma_ops);
 static int __init arm64_dma_init(void)
 {
 	if (swiotlb_force == SWIOTLB_FORCE ||
-	    max_pfn > (arm64_dma_phys_limit >> PAGE_SHIFT))
+	    max_pfn >= (arm64_dma_phys_limit >> PAGE_SHIFT))
 		swiotlb = 1;
 
 	return atomic_pool_init();
@@ -710,6 +712,11 @@ static int __iommu_mmap_attrs(struct device *dev, struct vm_area_struct *vma,
 	if (dma_mmap_from_dev_coherent(dev, vma, cpu_addr, size, &ret))
 		return ret;
 
+	if (!is_vmalloc_addr(cpu_addr)) {
+		unsigned long pfn = page_to_pfn(virt_to_page(cpu_addr));
+		return __swiotlb_mmap_pfn(vma, pfn, size);
+	}
+
 	if (attrs & DMA_ATTR_FORCE_CONTIGUOUS) {
 		/*
 		 * DMA_ATTR_FORCE_CONTIGUOUS allocations are always remapped,
@@ -732,6 +739,11 @@ static int __iommu_get_sgtable(struct device *dev, struct sg_table *sgt,
 {
 	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
 	struct vm_struct *area = find_vm_area(cpu_addr);
+
+	if (!is_vmalloc_addr(cpu_addr)) {
+		struct page *page = virt_to_page(cpu_addr);
+		return __swiotlb_get_sgtable_page(sgt, page, size);
+	}
 
 	if (attrs & DMA_ATTR_FORCE_CONTIGUOUS) {
 		/*

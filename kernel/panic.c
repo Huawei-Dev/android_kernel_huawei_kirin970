@@ -28,6 +28,13 @@
 #include <linux/console.h>
 #include <linux/bug.h>
 #include <linux/ratelimit.h>
+#ifdef CONFIG_CORESIGHT
+#include <linux/coresight.h>
+#endif
+#ifdef CONFIG_HISI_BB
+#include <asm/ptrace.h>
+#include <linux/hisi/rdr_hisi_platform.h>
+#endif
 
 #define PANIC_TIMER_STEP 100
 #define PANIC_BLINK_SPD 18
@@ -130,6 +137,9 @@ EXPORT_SYMBOL(nmi_panic);
  *
  *	This function never returns.
  */
+#ifdef CONFIG_HISI_BB
+extern void get_pt_regs(struct pt_regs *);
+#endif
 void panic(const char *fmt, ...)
 {
 	static char buf[1024];
@@ -138,6 +148,27 @@ void panic(const char *fmt, ...)
 	int state = 0;
 	int old_cpu, this_cpu;
 	bool _crash_kexec_post_notifiers = crash_kexec_post_notifiers;
+#ifdef CONFIG_HISI_BB
+	struct pt_regs regs;
+#endif
+
+#ifdef CONFIG_CORESIGHT
+	coresight_disable_all();
+#endif
+
+#ifdef CONFIG_HISI_BB
+	reentrant_exception();
+	memset(&regs, 0x00, sizeof(regs));
+
+	/*
+	 * Avoid nested register-dumping if a panic occurs during oops processing
+	 */
+	if (!test_taint(TAINT_DIE) && oops_in_progress == 0) {
+		get_pt_regs(&regs);
+		console_verbose();
+		show_regs(&regs);
+	}
+#endif
 
 	/*
 	 * Disable local interrupts. This will prevent panic_smp_self_stop
@@ -146,6 +177,7 @@ void panic(const char *fmt, ...)
 	 * after setting panic_cpu) from invoking panic() again.
 	 */
 	local_irq_disable();
+	preempt_disable_notrace();
 
 	/*
 	 * It's possible to come here directly from a panic-assertion and
@@ -509,7 +541,7 @@ void oops_exit(void)
 {
 	do_oops_enter_exit();
 	print_oops_end_marker();
-	kmsg_dump(KMSG_DUMP_OOPS);
+	/*kmsg_dump has been done in the func of rdr_hisiap_reset*/
 }
 
 struct warn_args {

@@ -31,6 +31,10 @@
 #include <linux/writeback.h>
 #include <linux/page-flags.h>
 
+#ifdef CONFIG_HUAWEI_PROMM
+#define PROMM_PRIORITY_MAX 20
+#endif
+
 struct mem_cgroup;
 struct page;
 struct mm_struct;
@@ -62,6 +66,18 @@ struct mem_cgroup_reclaim_cookie {
 	int priority;
 	unsigned int generation;
 };
+
+#ifdef CONFIG_MEMCG_PROTECT_LRU
+static inline bool is_prot_page(struct page *page)
+{
+	return PageProtect(page);
+}
+#else
+static inline bool is_prot_page(struct page *page)
+{
+	return false;
+}
+#endif
 
 #ifdef CONFIG_MEMCG
 
@@ -110,8 +126,11 @@ struct mem_cgroup_per_node {
 	struct lruvec		lruvec;
 	struct lruvec_stat __percpu *lruvec_stat;
 	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
-
+#ifdef CONFIG_HUAWEI_PROMM
+	struct mem_cgroup_reclaim_iter	iter[PROMM_PRIORITY_MAX + 1];
+#else
 	struct mem_cgroup_reclaim_iter	iter[DEF_PRIORITY + 1];
+#endif
 
 	struct rb_node		tree_node;	/* RB tree node */
 	unsigned long		usage_in_excess;/* Set to the value by which */
@@ -290,8 +309,17 @@ void mem_cgroup_cancel_charge(struct page *page, struct mem_cgroup *memcg,
 		bool compound);
 void mem_cgroup_uncharge(struct page *page);
 void mem_cgroup_uncharge_list(struct list_head *page_list);
-
 void mem_cgroup_migrate(struct page *oldpage, struct page *newpage);
+#ifdef CONFIG_MEMCG_PROTECT_LRU
+void protect_memcg_drain_all_stock(struct mem_cgroup *root_memcg);
+void protect_memcg_cancel_charge(
+	struct mem_cgroup *memcg, unsigned int nr_pages);
+int protect_memcg_move_account(
+	struct page *page, bool compound,
+	struct mem_cgroup *from, struct mem_cgroup *to);
+int protect_memcg_resize_limit(struct mem_cgroup *memcg, unsigned long limit);
+unsigned long protect_memcg_usage(struct mem_cgroup *memcg, bool swap);
+#endif
 
 static struct mem_cgroup_per_node *
 mem_cgroup_nodeinfo(struct mem_cgroup *memcg, int nid)
@@ -318,6 +346,9 @@ static inline struct lruvec *mem_cgroup_lruvec(struct pglist_data *pgdat,
 		lruvec = node_lruvec(pgdat);
 		goto out;
 	}
+
+	if (!memcg)
+		memcg = root_mem_cgroup;
 
 	mz = mem_cgroup_nodeinfo(memcg, pgdat->node_id);
 	lruvec = &mz->lruvec;
@@ -579,6 +610,7 @@ static inline void __mod_lruvec_state(struct lruvec *lruvec,
 	__mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
 	if (mem_cgroup_disabled())
 		return;
+
 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
 	__mod_memcg_state(pn->memcg, idx, val);
 	__this_cpu_add(pn->lruvec_stat->count[idx], val);
@@ -592,19 +624,21 @@ static inline void mod_lruvec_state(struct lruvec *lruvec,
 	mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
 	if (mem_cgroup_disabled())
 		return;
+
 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
 	mod_memcg_state(pn->memcg, idx, val);
 	this_cpu_add(pn->lruvec_stat->count[idx], val);
 }
 
 static inline void __mod_lruvec_page_state(struct page *page,
-					   enum node_stat_item idx, int val)
+				   enum node_stat_item idx, int val)
 {
 	struct mem_cgroup_per_node *pn;
 
 	__mod_node_page_state(page_pgdat(page), idx, val);
 	if (mem_cgroup_disabled() || !page->mem_cgroup)
 		return;
+
 	__mod_memcg_state(page->mem_cgroup, idx, val);
 	pn = page->mem_cgroup->nodeinfo[page_to_nid(page)];
 	__this_cpu_add(pn->lruvec_stat->count[idx], val);
@@ -618,6 +652,7 @@ static inline void mod_lruvec_page_state(struct page *page,
 	mod_node_page_state(page_pgdat(page), idx, val);
 	if (mem_cgroup_disabled() || !page->mem_cgroup)
 		return;
+
 	mod_memcg_state(page->mem_cgroup, idx, val);
 	pn = page->mem_cgroup->nodeinfo[page_to_nid(page)];
 	this_cpu_add(pn->lruvec_stat->count[idx], val);
@@ -936,6 +971,11 @@ static inline
 void count_memcg_event_mm(struct mm_struct *mm, enum vm_event_item idx)
 {
 }
+
+static inline struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *memcg)
+{
+	return NULL;
+}
 #endif /* CONFIG_MEMCG */
 
 /* idx can be of type enum memcg_stat_item or node_stat_item */
@@ -1041,6 +1081,22 @@ static inline void dec_lruvec_page_state(struct page *page,
 {
 	mod_lruvec_page_state(page, idx, -1);
 }
+
+#ifdef CONFIG_REFAULT_IO_VMSCAN
+static inline struct lruvec *parent_lruvec(struct lruvec *lruvec)
+{
+	struct mem_cgroup *memcg = NULL;
+
+	memcg = lruvec_memcg(lruvec);
+	if (!memcg)
+		return NULL;
+	memcg = parent_mem_cgroup(memcg);
+	if (!memcg)
+		return NULL;
+
+	return mem_cgroup_lruvec(lruvec_pgdat(lruvec), memcg);
+}
+#endif
 
 #ifdef CONFIG_CGROUP_WRITEBACK
 

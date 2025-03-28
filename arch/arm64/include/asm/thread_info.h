@@ -93,6 +93,10 @@ void arch_setup_new_exec(void);
 #define TIF_SINGLESTEP		21
 #define TIF_32BIT		22	/* 32bit process */
 #define TIF_SSBD		23	/* Wants SSB mitigation */
+#ifdef CONFIG_HISI_EAS_SCHED
+#define TIF_WAKE_SYNC		24	/* Wakes someone up with WF_SYNC */
+#define TIF_FAVOR_SMALL_CAP	25	/* Prefer scheduled on a smaller cpu */
+#endif
 
 #define _TIF_SIGPENDING		(1 << TIF_SIGPENDING)
 #define _TIF_NEED_RESCHED	(1 << TIF_NEED_RESCHED)

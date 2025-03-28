@@ -10,6 +10,7 @@
  */
 
 #include <linux/fs.h>
+#include <linux/hisi/unicode.h>
 #include <linux/compiler.h>
 #include <linux/bitops.h>
 #include "ext4.h"
@@ -200,7 +201,8 @@ static void str2hashbuf_unsigned(const char *msg, int len, __u32 *buf, int num)
  * represented, and whether or not the returned hash is 32 bits or 64
  * bits.  32 bit hashes will return 0 for the minor hash.
  */
-int ext4fs_dirhash(const char *name, int len, struct dx_hash_info *hinfo)
+static int __ext4fs_dirhash(const char *name, int len,
+			    struct dx_hash_info *hinfo)
 {
 	__u32	hash;
 	__u32	minor_hash = 0;
@@ -269,4 +271,10 @@ int ext4fs_dirhash(const char *name, int len, struct dx_hash_info *hinfo)
 	hinfo->hash = hash;
 	hinfo->minor_hash = minor_hash;
 	return 0;
+}
+
+int ext4fs_dirhash(const struct inode *dir, const char *name, int len,
+		   struct dx_hash_info *hinfo)
+{
+	return __ext4fs_dirhash(name, len, hinfo);
 }

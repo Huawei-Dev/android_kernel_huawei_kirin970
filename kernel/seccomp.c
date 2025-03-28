@@ -667,7 +667,6 @@ static int __seccomp_filter(int this_syscall, const struct seccomp_data *sd,
 	 * been seen after TIF_SECCOMP was seen.
 	 */
 	rmb();
-
 	filter_ret = seccomp_run_filters(sd, &match);
 	data = filter_ret & SECCOMP_RET_DATA;
 	action = filter_ret & SECCOMP_RET_ACTION_FULL;

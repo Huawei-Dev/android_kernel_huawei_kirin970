@@ -260,15 +260,67 @@ void rotate_reclaimable_page(struct page *page)
 	}
 }
 
+#ifndef CONFIG_REFAULT_IO_VMSCAN
 static void update_page_reclaim_stat(struct lruvec *lruvec,
 				     int file, int rotated)
 {
 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
-
 	reclaim_stat->recent_scanned[file]++;
-	if (rotated)
+	if (rotated) {
 		reclaim_stat->recent_rotated[file]++;
+	}
 }
+#else
+static void update_page_reclaim_stat(struct lruvec *lruvec,
+				     int file, int rotated) {}
+
+
+static void __lru_note_cost(struct lruvec *lruvec, bool file,
+			    unsigned int nr_pages)
+{
+	unsigned long lrusize;
+
+	/* Record cost event */
+	if (file)
+		lruvec->file_cost += nr_pages;
+	else
+		lruvec->anon_cost += nr_pages;
+
+	/*
+	 * Decay previous events
+	 *
+	 * Because workloads change over time (and to avoid
+	 * overflow) we keep these statistics as a floating
+	 * average, which ends up weighing recent refaults
+	 * more than old ones.
+	 */
+	lrusize = lruvec_page_state(lruvec, NR_INACTIVE_ANON) +
+			lruvec_page_state(lruvec, NR_ACTIVE_ANON) +
+			lruvec_page_state(lruvec, NR_INACTIVE_FILE) +
+			lruvec_page_state(lruvec, NR_ACTIVE_FILE);
+
+	if (lruvec->file_cost + lruvec->anon_cost > lrusize / 4) {
+		lruvec->file_cost /= 2;
+		lruvec->anon_cost /= 2;
+	}
+}
+
+void lru_note_cost(struct lruvec *lruvec, bool file, unsigned int nr_pages)
+{
+	if (nr_pages == 0)
+		return;
+	do {
+		__lru_note_cost(lruvec, file, nr_pages);
+	} while ((lruvec = parent_lruvec(lruvec)));
+}
+
+void lru_note_cost_page(struct page *page)
+{
+	lru_note_cost(mem_cgroup_lruvec(page_pgdat(page), page_memcg(page)),
+		      page_is_file_cache(page), hpage_nr_pages(page));
+}
+
+#endif
 
 static void __activate_page(struct page *page, struct lruvec *lruvec,
 			    void *arg)
@@ -390,8 +442,7 @@ void mark_page_accessed(struct page *page)
 		else
 			__lru_cache_activate_page(page);
 		ClearPageReferenced(page);
-		if (page_is_file_cache(page))
-			workingset_activation(page);
+		workingset_activation(page);
 	} else if (!PageReferenced(page)) {
 		SetPageReferenced(page);
 	}
@@ -461,10 +512,10 @@ void add_page_to_unevictable_list(struct page *page)
 	struct lruvec *lruvec;
 
 	spin_lock_irq(&pgdat->lru_lock);
-	lruvec = mem_cgroup_page_lruvec(page, pgdat);
 	ClearPageActive(page);
 	SetPageUnevictable(page);
 	SetPageLRU(page);
+	lruvec = mem_cgroup_page_lruvec(page, pgdat);
 	add_page_to_lru_list(page, lruvec, LRU_UNEVICTABLE);
 	spin_unlock_irq(&pgdat->lru_lock);
 }
@@ -479,13 +530,23 @@ void add_page_to_unevictable_list(struct page *page)
  * directly back onto it's zone's unevictable list, it does NOT use a
  * per cpu pagevec.
  */
+#ifdef CONFIG_SPECULATIVE_PAGE_FAULT
+void __lru_cache_add_active_or_unevictable(struct page *page,
+					   unsigned long vma_flags)
+#else
 void lru_cache_add_active_or_unevictable(struct page *page,
 					 struct vm_area_struct *vma)
+#endif
 {
 	VM_BUG_ON_PAGE(PageLRU(page), page);
-
+#ifdef CONFIG_SPECULATIVE_PAGE_FAULT
+	if (likely((vma_flags & (VM_LOCKED | VM_SPECIAL)) != VM_LOCKED)) {
+#else
 	if (likely((vma->vm_flags & (VM_LOCKED | VM_SPECIAL)) != VM_LOCKED)) {
+#endif
+#ifndef CONFIG_REFAULT_IO_VMSCAN
 		SetPageActive(page);
+#endif
 		lru_cache_add(page);
 		return;
 	}
@@ -648,7 +709,6 @@ void deactivate_file_page(struct page *page)
 
 	if (likely(get_page_unless_zero(page))) {
 		struct pagevec *pvec = &get_cpu_var(lru_deactivate_file_pvecs);
-
 		if (!pagevec_add(pvec, page) || PageCompound(page))
 			pagevec_lru_move_fn(pvec, lru_deactivate_file_fn, NULL);
 		put_cpu_var(lru_deactivate_file_pvecs);

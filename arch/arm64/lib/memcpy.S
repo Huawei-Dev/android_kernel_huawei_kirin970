@@ -75,3 +75,9 @@ ENTRY(memcpy)
 	ret
 ENDPIPROC(memcpy)
 ENDPROC(__memcpy)
+
+	.globl memcpy_reg
+ENTRY(memcpy_reg)
+#include "copy_reg.S"
+	ret
+ENDPIPROC(memcpy_reg)

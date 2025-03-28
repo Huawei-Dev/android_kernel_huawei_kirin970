@@ -19,6 +19,7 @@
 #include <linux/security.h>
 #include <linux/binfmts.h>
 #include <linux/cn_proc.h>
+#include <linux/hisi/hkip.h>
 
 #if 0
 #define kdebug(FMT, ...)						\
@@ -85,7 +86,6 @@ static inline void alter_cred_subscribers(const struct cred *_cred, int n)
 {
 #ifdef CONFIG_DEBUG_CREDENTIALS
 	struct cred *cred = (struct cred *) _cred;
-
 	atomic_add(n, &cred->subscribers);
 #endif
 }
@@ -96,22 +96,23 @@ static inline void alter_cred_subscribers(const struct cred *_cred, int n)
 static void put_cred_rcu(struct rcu_head *rcu)
 {
 	struct cred *cred = container_of(rcu, struct cred, rcu);
+	atomic_t *usage = &cred->usage;
 
 	kdebug("put_cred_rcu(%p)", cred);
 
 #ifdef CONFIG_DEBUG_CREDENTIALS
 	if (cred->magic != CRED_MAGIC_DEAD ||
-	    atomic_read(&cred->usage) != 0 ||
+	    atomic_read(usage) != 0 ||
 	    read_cred_subscribers(cred) != 0)
 		panic("CRED: put_cred_rcu() sees %p with"
 		      " mag %x, put %p, usage %d, subscr %d\n",
 		      cred, cred->magic, cred->put_addr,
-		      atomic_read(&cred->usage),
+		      atomic_read(usage),
 		      read_cred_subscribers(cred));
 #else
-	if (atomic_read(&cred->usage) != 0)
+	if (atomic_read(usage) != 0)
 		panic("CRED: put_cred_rcu() sees %p with usage %d\n",
-		      cred, atomic_read(&cred->usage));
+		      cred, atomic_read(usage));
 #endif
 
 	security_cred_free(cred);
@@ -217,7 +218,7 @@ struct cred *cred_alloc_blank(void)
 	new->magic = CRED_MAGIC;
 #endif
 
-	if (security_cred_alloc_blank(new, GFP_KERNEL) < 0)
+	if (security_cred_alloc_blank(new, GFP_KERNEL_ACCOUNT) < 0)
 		goto error;
 
 	return new;
@@ -257,7 +258,6 @@ struct cred *prepare_creds(void)
 
 	old = task->cred;
 	memcpy(new, old, sizeof(struct cred));
-
 	atomic_set(&new->usage, 1);
 	set_cred_subscribers(new, 0);
 	get_group_info(new->group_info);
@@ -275,9 +275,11 @@ struct cred *prepare_creds(void)
 	new->security = NULL;
 #endif
 
-	if (security_prepare_creds(new, old, GFP_KERNEL) < 0)
+	if (security_prepare_creds(new, old, GFP_KERNEL_ACCOUNT) < 0)
 		goto error;
 	validate_creds(new);
+	if (unlikely(hkip_check_xid_root()))
+		goto error;
 	return new;
 
 error:
@@ -340,7 +342,7 @@ int copy_creds(struct task_struct *p, unsigned long clone_flags)
 		atomic_inc(&p->cred->user->processes);
 		return 0;
 	}
-
+	validate_task_creds(current);
 	new = prepare_creds();
 	if (!new)
 		return -ENOMEM;
@@ -424,18 +426,20 @@ int commit_creds(struct cred *new)
 {
 	struct task_struct *task = current;
 	const struct cred *old = task->real_cred;
+	atomic_t *usage = &new->usage;
 
 	kdebug("commit_creds(%p{%d,%d})", new,
-	       atomic_read(&new->usage),
+	       atomic_read(usage),
 	       read_cred_subscribers(new));
 
+	validate_task_creds(current);
 	BUG_ON(task->cred != old);
 #ifdef CONFIG_DEBUG_CREDENTIALS
 	BUG_ON(read_cred_subscribers(old) < 2);
 	validate_creds(old);
 	validate_creds(new);
 #endif
-	BUG_ON(atomic_read(&new->usage) < 1);
+	BUG_ON(atomic_read(usage) < 1);
 
 	get_cred(new); /* we will require a ref for the subj creds too */
 
@@ -448,6 +452,15 @@ int commit_creds(struct cred *new)
 		if (task->mm)
 			set_dumpable(task->mm, suid_dumpable);
 		task->pdeath_signal = 0;
+		/*
+		 * If a task drops privileges and becomes nondumpable,
+		 * the dumpability change must become visible before
+		 * the credential change; otherwise, a __ptrace_may_access()
+		 * racing with this change may be able to attach to a task it
+		 * shouldn't be able to attach to (as if the task had dropped
+		 * privileges without becoming nondumpable).
+		 * Pairs with a read barrier in __ptrace_may_access().
+		 */
 		smp_wmb();
 	}
 
@@ -482,6 +495,7 @@ int commit_creds(struct cred *new)
 	    !gid_eq(new->sgid,  old->sgid) ||
 	    !gid_eq(new->fsgid, old->fsgid))
 		proc_id_connector(task, PROC_EVENT_GID);
+	hkip_update_xid_root(new);
 
 	/* release the old obj and subj refs both */
 	put_cred(old);
@@ -499,14 +513,16 @@ EXPORT_SYMBOL(commit_creds);
  */
 void abort_creds(struct cred *new)
 {
+	atomic_t *usage = &new->usage;
+
 	kdebug("abort_creds(%p{%d,%d})", new,
-	       atomic_read(&new->usage),
+	       atomic_read(usage),
 	       read_cred_subscribers(new));
 
 #ifdef CONFIG_DEBUG_CREDENTIALS
 	BUG_ON(read_cred_subscribers(new) != 0);
 #endif
-	BUG_ON(atomic_read(&new->usage) < 1);
+	BUG_ON(atomic_read(usage) < 1);
 	put_cred(new);
 }
 EXPORT_SYMBOL(abort_creds);
@@ -555,10 +571,12 @@ void revert_creds(const struct cred *old)
 	       atomic_read(&old->usage),
 	       read_cred_subscribers(old));
 
+	validate_task_creds(current);
 	validate_creds(old);
 	validate_creds(override);
 	alter_cred_subscribers(old, 1);
 	rcu_assign_pointer(current->cred, old);
+	validate_task_creds(current);
 	alter_cred_subscribers(override, -1);
 	put_cred(override);
 }
@@ -628,7 +646,7 @@ struct cred *prepare_kernel_cred(struct task_struct *daemon)
 #ifdef CONFIG_SECURITY
 	new->security = NULL;
 #endif
-	if (security_prepare_creds(new, old, GFP_KERNEL) < 0)
+	if (security_prepare_creds(new, old, GFP_KERNEL_ACCOUNT) < 0)
 		goto error;
 
 	put_cred(old);
@@ -776,6 +794,7 @@ EXPORT_SYMBOL(__invalid_creds);
 void __validate_process_creds(struct task_struct *tsk,
 			      const char *file, unsigned line)
 {
+	validate_task_creds(current);
 	if (tsk->cred == tsk->real_cred) {
 		if (unlikely(read_cred_subscribers(tsk->cred) < 2 ||
 			     creds_are_invalid(tsk->cred)))
@@ -812,6 +831,7 @@ void validate_creds_for_do_exit(struct task_struct *tsk)
 	       atomic_read(&tsk->cred->usage),
 	       read_cred_subscribers(tsk->cred));
 
+	validate_task_creds(current);
 	__validate_process_creds(tsk, __FILE__, __LINE__);
 }
 

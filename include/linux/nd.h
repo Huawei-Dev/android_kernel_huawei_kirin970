@@ -13,7 +13,7 @@
 #ifndef __LINUX_ND_H__
 #define __LINUX_ND_H__
 #include <linux/fs.h>
-#include <linux/ndctl.h>
+#include <linux/hisi/ndctl.h>
 #include <linux/device.h>
 #include <linux/badblocks.h>
 

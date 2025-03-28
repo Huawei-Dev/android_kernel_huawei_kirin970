@@ -219,8 +219,9 @@ void __split_page_owner(struct page *page, unsigned int order)
 
 	page_owner = get_page_owner(page_ext);
 	page_owner->order = 0;
-	for (i = 1; i < (1 << order); i++)
+	for (i = 1; i < (1 << order); i++) {
 		__copy_page_owner(page, page + i);
+	}
 }
 
 void __copy_page_owner(struct page *oldpage, struct page *newpage)

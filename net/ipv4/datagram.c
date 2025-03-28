@@ -19,6 +19,9 @@
 #include <net/sock.h>
 #include <net/route.h>
 #include <net/tcp_states.h>
+#ifdef CONFIG_MPTCP_EPC
+#include <net/hw_mptcp_epc.h>
+#endif
 
 int __ip4_datagram_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 {
@@ -38,6 +41,10 @@ int __ip4_datagram_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len
 		return -EAFNOSUPPORT;
 
 	sk_dst_reset(sk);
+
+#ifdef CONFIG_MPTCP_EPC
+	mutp_rewrite_dst_addr(sk, uaddr);
+#endif
 
 	oif = sk->sk_bound_dev_if;
 	saddr = inet->inet_saddr;
@@ -75,7 +82,7 @@ int __ip4_datagram_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len
 	inet->inet_dport = usin->sin_port;
 	sk->sk_state = TCP_ESTABLISHED;
 	sk_set_txhash(sk);
-	inet->inet_id = jiffies;
+	inet->inet_id = prandom_u32();
 
 	sk_dst_set(sk, &rt->dst);
 	err = 0;

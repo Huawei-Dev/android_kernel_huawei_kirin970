@@ -246,8 +246,7 @@ static int create_safe_exec_page(void *src_start, size_t length,
 	}
 
 	pte = pte_offset_kernel(pmd, dst_addr);
-	set_pte(pte, __pte(virt_to_phys((void *)dst) |
-			 pgprot_val(PAGE_KERNEL_EXEC)));
+	set_pte(pte, pfn_pte(virt_to_pfn(dst), PAGE_KERNEL_EXEC));
 
 	/*
 	 * Load our new page tables. A strict BBM approach requires that we
@@ -290,7 +289,6 @@ int swsusp_arch_suspend(void)
 	if (__cpu_suspend_enter(&state)) {
 		/* make the crash dump kernel image visible/saveable */
 		crash_prepare_suspend();
-
 		sleep_cpu = smp_processor_id();
 		ret = swsusp_save();
 	} else {
@@ -299,10 +297,8 @@ int swsusp_arch_suspend(void)
 		dcache_clean_range(__idmap_text_start, __idmap_text_end);
 
 		/* Clean kvm setup code to PoC? */
-		if (el2_reset_needed()) {
+		if (el2_reset_needed())
 			dcache_clean_range(__hyp_idmap_text_start, __hyp_idmap_text_end);
-			dcache_clean_range(__hyp_text_start, __hyp_text_end);
-		}
 
 		/* make the crash dump kernel image protected again */
 		crash_post_resume();

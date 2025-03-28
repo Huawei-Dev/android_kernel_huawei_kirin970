@@ -169,7 +169,11 @@ DECLARE_EVENT_CLASS(block_rq,
 
 		blk_fill_rwbs(__entry->rwbs, rq->cmd_flags, blk_rq_bytes(rq));
 		__get_str(cmd)[0] = '\0';
+#ifdef CONFIG_MAS_BLK
+		memcpy(__entry->comm, rq->mas_req.task_comm, TASK_COMM_LEN);
+#else
 		memcpy(__entry->comm, current->comm, TASK_COMM_LEN);
+#endif
 	),
 
 	TP_printk("%d,%d %s %u (%s) %llu + %u [%s]",
@@ -634,9 +638,7 @@ TRACE_EVENT(block_rq_remap,
 		  MAJOR(__entry->old_dev), MINOR(__entry->old_dev),
 		  (unsigned long long)__entry->old_sector, __entry->nr_bios)
 );
-
 #endif /* _TRACE_BLOCK_H */
 
 /* This part must be outside protection */
 #include <trace/define_trace.h>
-

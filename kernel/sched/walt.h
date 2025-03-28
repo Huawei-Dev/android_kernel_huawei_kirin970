@@ -16,10 +16,18 @@
 
 #ifdef CONFIG_SCHED_WALT
 
+#define WINDOW_STATS_RECENT		0
+#define WINDOW_STATS_MAX		1
+#define WINDOW_STATS_MAX_RECENT_AVG	2
+#define WINDOW_STATS_AVG		3
+#define WINDOW_STATS_INVALID_POLICY	4
+
 void walt_update_task_ravg(struct task_struct *p, struct rq *rq, int event,
 		u64 wallclock, u64 irqtime);
 void walt_inc_cumulative_runnable_avg(struct rq *rq, struct task_struct *p);
 void walt_dec_cumulative_runnable_avg(struct rq *rq, struct task_struct *p);
+void walt_fixup_cumulative_runnable_avg(struct rq *rq, struct task_struct *p,
+					u64 new_task_load);
 
 void walt_fixup_busy_time(struct task_struct *p, int new_cpu);
 void walt_init_new_task_load(struct task_struct *p);
@@ -32,6 +40,24 @@ void walt_account_irqtime(int cpu, struct task_struct *curr, u64 delta,
 
 u64 walt_irqload(int cpu);
 int walt_cpu_high_irqload(int cpu);
+#ifdef CONFIG_HISI_EAS_SCHED
+int walt_cpu_overload_irqload(int cpu);
+#else
+#define walt_cpu_overload_irqload(cpu) false
+#endif
+
+extern void reset_task_stats(struct task_struct *p);
+
+#define NEW_TASK_WINDOWS 5
+static inline bool is_new_task(struct task_struct *p)
+{
+	return p->ravg.active_windows < NEW_TASK_WINDOWS;
+}
+
+#ifdef CONFIG_HISI_EAS_SCHED
+void walt_reset_new_task_load(struct task_struct *p);
+extern unsigned int sysctl_sched_walt_init_task_load_pct;
+#endif
 
 #else /* CONFIG_SCHED_WALT */
 
@@ -39,6 +65,9 @@ static inline void walt_update_task_ravg(struct task_struct *p, struct rq *rq,
 		int event, u64 wallclock, u64 irqtime) { }
 static inline void walt_inc_cumulative_runnable_avg(struct rq *rq, struct task_struct *p) { }
 static inline void walt_dec_cumulative_runnable_avg(struct rq *rq, struct task_struct *p) { }
+static inline void walt_fixup_cumulative_runnable_avg(struct rq *rq,
+						      struct task_struct *p,
+						      u64 new_task_load) { }
 static inline void walt_fixup_busy_time(struct task_struct *p, int new_cpu) { }
 static inline void walt_init_new_task_load(struct task_struct *p) { }
 static inline void walt_mark_task_starting(struct task_struct *p) { }
@@ -46,7 +75,11 @@ static inline void walt_set_window_start(struct rq *rq, struct rq_flags *rf) { }
 static inline void walt_migrate_sync_cpu(int cpu) { }
 static inline u64 walt_ktime_clock(void) { return 0; }
 
+static inline u64 walt_irqload(int cpu) { return 0; }
 #define walt_cpu_high_irqload(cpu) false
+#define walt_cpu_overload_irqload(cpu) false
+
+#define is_new_task(p) false
 
 #endif /* CONFIG_SCHED_WALT */
 
@@ -62,6 +95,12 @@ static inline void walt_dec_cfs_cumulative_runnable_avg(struct cfs_rq *rq,
 		struct task_struct *p) { }
 #endif
 
-extern bool walt_disabled;
+extern const bool walt_disabled;
+
+static inline bool use_pred_load(int cpu) { return false; }
+static inline unsigned long predict_util(struct rq *rq) { return 0; }
+static inline unsigned long task_pred_util(struct task_struct *p) { return 0; }
+static inline unsigned long max_pred_ls(struct rq *rq) { return 0; }
+static inline unsigned long cpu_util_pred_min(struct rq *rq) { return 0; }
 
 #endif

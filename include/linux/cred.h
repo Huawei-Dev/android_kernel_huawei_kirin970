@@ -31,7 +31,7 @@ struct group_info {
 	atomic_t	usage;
 	int		ngroups;
 	kgid_t		gid[0];
-} __randomize_layout;
+};
 
 /**
  * get_group_info - Get a reference to a group info structure
@@ -109,6 +109,11 @@ extern void groups_sort(struct group_info *);
  * same context as task->real_cred.
  */
 struct cred {
+/*
+ * Members that are frequently written are not in the protected range. We change
+ * these members into pointers which point to the corresponding rw members of
+ * struct cred_rw.
+ */
 	atomic_t	usage;
 #ifdef CONFIG_DEBUG_CREDENTIALS
 	atomic_t	subscribers;	/* number of processes subscribed */
@@ -146,7 +151,7 @@ struct cred {
 	struct user_namespace *user_ns; /* user_ns the caps and keyrings are relative to. */
 	struct group_info *group_info;	/* supplementary groups for euid/fsgid */
 	struct rcu_head	rcu;		/* RCU deletion hook */
-} __randomize_layout;
+};
 
 extern void __put_cred(struct cred *);
 extern void exit_creds(struct task_struct *);
@@ -165,6 +170,9 @@ extern int set_security_override(struct cred *, u32);
 extern int set_security_override_from_ctx(struct cred *, const char *);
 extern int set_create_files_as(struct cred *, struct inode *);
 extern void __init cred_init(void);
+
+#define validate_task_creds(t)
+#define validate_cred_rw(c)
 
 /*
  * check for validity of credentials
@@ -273,7 +281,10 @@ static inline void put_cred(const struct cred *_cred)
  * since nobody else can modify it.
  */
 #define current_cred() \
-	rcu_dereference_protected(current->cred, 1)
+({									\
+	validate_task_creds(current);					\
+	rcu_dereference_protected(current->cred, 1);			\
+})
 
 /**
  * current_real_cred - Access the current task's objective credentials
@@ -282,7 +293,10 @@ static inline void put_cred(const struct cred *_cred)
  * since nobody else can modify it.
  */
 #define current_real_cred() \
-	rcu_dereference_protected(current->real_cred, 1)
+({									\
+	validate_task_creds(current);					\
+	rcu_dereference_protected(current->real_cred, 1);		\
+})
 
 /**
  * __task_cred - Access a task's objective credentials
@@ -295,7 +309,10 @@ static inline void put_cred(const struct cred *_cred)
  * rather get_task_cred() should be used instead.
  */
 #define __task_cred(task)	\
-	rcu_dereference((task)->real_cred)
+({									\
+	validate_task_creds(task);					\
+	rcu_dereference((task)->real_cred);				\
+})
 
 /**
  * get_current_cred - Get the current task's subjective credentials

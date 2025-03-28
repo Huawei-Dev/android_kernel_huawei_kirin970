@@ -16,6 +16,10 @@
 #include <linux/err.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
+#ifdef CONFIG_HISI_CLK
+#include <linux/clkdev.h>
+#include <securec.h>
+#endif
 
 /*
  * DOC: basic fixed-rate clock that cannot gate
@@ -72,7 +76,7 @@ struct clk_hw *clk_hw_register_fixed_rate_with_accuracy(struct device *dev,
 	init.name = name;
 	init.ops = &clk_fixed_rate_ops;
 	init.flags = flags | CLK_IS_BASIC;
-	init.parent_names = (parent_name ? &parent_name: NULL);
+	init.parent_names = (parent_name ? &parent_name : NULL);
 	init.num_parents = (parent_name ? 1 : 0);
 
 	/* struct clk_fixed_rate assignments */
@@ -184,6 +188,9 @@ static struct clk *_of_fixed_clk_setup(struct device_node *node)
 		return ERR_PTR(ret);
 	}
 
+#ifdef CONFIG_HISI_CLK
+	clk_register_clkdev(clk, clk_name, NULL);
+#endif
 	return clk;
 }
 

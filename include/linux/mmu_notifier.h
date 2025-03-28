@@ -144,7 +144,6 @@ struct mmu_notifier_ops {
 	void (*invalidate_range_end)(struct mmu_notifier *mn,
 				     struct mm_struct *mm,
 				     unsigned long start, unsigned long end);
-
 	/*
 	 * invalidate_range() is either called between
 	 * invalidate_range_start() and invalidate_range_end() when the

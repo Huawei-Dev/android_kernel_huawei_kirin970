@@ -40,8 +40,6 @@ enum migratetype {
 	MIGRATE_UNMOVABLE,
 	MIGRATE_MOVABLE,
 	MIGRATE_RECLAIMABLE,
-	MIGRATE_PCPTYPES,	/* the number of types on the pcp lists */
-	MIGRATE_HIGHATOMIC = MIGRATE_PCPTYPES,
 #ifdef CONFIG_CMA
 	/*
 	 * MIGRATE_CMA migration type is designed to mimic the way
@@ -58,6 +56,8 @@ enum migratetype {
 	 */
 	MIGRATE_CMA,
 #endif
+	MIGRATE_PCPTYPES,	/* the number of types on the pcp lists */
+	MIGRATE_HIGHATOMIC = MIGRATE_PCPTYPES,
 #ifdef CONFIG_MEMORY_ISOLATION
 	MIGRATE_ISOLATE,	/* can't allocate from here */
 #endif
@@ -66,6 +66,12 @@ enum migratetype {
 
 /* In mm/page_alloc.c; keep in sync also with show_migration_types() there */
 extern char * const migratetype_names[MIGRATE_TYPES];
+
+#ifdef CONFIG_ISOLATE_COUNT
+extern atomic_long_t compact_file_nums;
+extern atomic_long_t p_reclaim_file_nums;
+extern atomic_long_t shrink_file_nums;
+#endif
 
 #ifdef CONFIG_CMA
 #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
@@ -148,6 +154,15 @@ enum zone_stat_item {
 	NR_ZSPAGES,		/* allocated in zsmalloc */
 #endif
 	NR_FREE_CMA_PAGES,
+	NR_IONCACHE_PAGES,
+	NR_MALI_PAGES,
+	NR_SWAPCACHE,
+#ifdef CONFIG_HISI_PAGE_TRACE
+	NR_SKB_PAGES,
+	NR_VMALLOC_PAGES,
+	NR_LSLAB_PAGES,
+	NR_BUDDY_PAGES,
+#endif
 	NR_VM_ZONE_STAT_ITEMS };
 
 enum node_stat_item {
@@ -161,9 +176,21 @@ enum node_stat_item {
 	NR_SLAB_UNRECLAIMABLE,
 	NR_ISOLATED_ANON,	/* Temporary isolated pages from anon lru */
 	NR_ISOLATED_FILE,	/* Temporary isolated pages from file lru */
+#ifndef CONFIG_REFAULT_IO_VMSCAN
 	WORKINGSET_REFAULT,
 	WORKINGSET_ACTIVATE,
 	WORKINGSET_RESTORE,
+#else
+	WORKINGSET_REFAULT_BASE,
+	WORKINGSET_REFAULT_ANON = WORKINGSET_REFAULT_BASE,
+	WORKINGSET_REFAULT_FILE,
+	WORKINGSET_ACTIVATE_BASE,
+	WORKINGSET_ACTIVATE_ANON = WORKINGSET_ACTIVATE_BASE,
+	WORKINGSET_ACTIVATE_FILE,
+	WORKINGSET_RESTORE_BASE,
+	WORKINGSET_RESTORE_ANON = WORKINGSET_RESTORE_BASE,
+	WORKINGSET_RESTORE_FILE,
+#endif
 	WORKINGSET_NODERECLAIM,
 	NR_ANON_MAPPED,	/* Mapped anonymous pages */
 	NR_FILE_MAPPED,	/* pagecache pages mapped into pagetables.
@@ -221,6 +248,7 @@ static inline int is_active_lru(enum lru_list lru)
 	return (lru == LRU_ACTIVE_ANON || lru == LRU_ACTIVE_FILE);
 }
 
+#ifndef CONFIG_REFAULT_IO_VMSCAN
 struct zone_reclaim_stat {
 	/*
 	 * The pageout code in vmscan.c keeps track of how many of the
@@ -233,14 +261,33 @@ struct zone_reclaim_stat {
 	unsigned long		recent_rotated[2];
 	unsigned long		recent_scanned[2];
 };
+#endif
+
+#ifdef CONFIG_MEMCG_PROTECT_LRU
+#define PROTECT_LEVELS_MAX	3
+#endif
 
 struct lruvec {
 	struct list_head		lists[NR_LRU_LISTS];
+#ifndef CONFIG_REFAULT_IO_VMSCAN
 	struct zone_reclaim_stat	reclaim_stat;
 	/* Evictions & activations on the inactive file list */
 	atomic_long_t			inactive_age;
 	/* Refaults at the time of last reclaim cycle */
 	unsigned long			refaults;
+#else
+	/*
+	 * These track the cost of reclaiming one LRU - file or anon -
+	 * over the other. As the observed cost of reclaiming one LRU
+	 * increases, the reclaim scan balance tips toward the other.
+	 */
+	unsigned long			anon_cost;
+	unsigned long			file_cost;
+	/* Evictions & activations on the inactive file list */
+	atomic_long_t			nonresident_age;
+	/* Refaults at the time of last reclaim cycle, anon=0, file=1 */
+	unsigned long			refaults[2];
+#endif
 #ifdef CONFIG_MEMCG
 	struct pglist_data *pgdat;
 #endif
@@ -352,7 +399,6 @@ enum zone_type {
 	ZONE_DEVICE,
 #endif
 	__MAX_NR_ZONES
-
 };
 
 #ifndef __GENERATING_BOUNDS_H
@@ -748,7 +794,12 @@ static inline spinlock_t *zone_lru_lock(struct zone *zone)
 
 static inline struct lruvec *node_lruvec(struct pglist_data *pgdat)
 {
-	return &pgdat->lruvec;
+	struct lruvec *lruvec = &pgdat->lruvec;
+#ifdef CONFIG_MEMCG
+	if (unlikely(lruvec->pgdat != pgdat))
+		lruvec->pgdat = pgdat;
+#endif
+	return lruvec;
 }
 
 static inline unsigned long pgdat_end_pfn(pg_data_t *pgdat)
@@ -874,7 +925,7 @@ static inline int is_highmem_idx(enum zone_type idx)
 }
 
 /**
- * is_highmem - helper function to quickly check if a struct zone is a 
+ * is_highmem - helper function to quickly check if a struct zone is a
  *              highmem zone or not.  This is an attempt to keep references
  *              to ZONE_{DMA/NORMAL/HIGHMEM/etc} in general code to a minimum.
  * @zone - pointer to struct zone variable

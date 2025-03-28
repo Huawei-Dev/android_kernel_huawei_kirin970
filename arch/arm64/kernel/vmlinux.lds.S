@@ -105,6 +105,8 @@ SECTIONS
 
 	. = KIMAGE_VADDR + TEXT_OFFSET;
 
+	. = ALIGN(SZ_64K);
+	_protect_start = .;
 	.head.text : {
 		_text = .;
 		HEAD_TEXT
@@ -128,16 +130,32 @@ SECTIONS
 			TRAMP_TEXT
 			*(.fixup)
 			*(.gnu.warning)
-		. = ALIGN(16);
-		*(.got)			/* Global offset table		*/
 	}
 
 	. = ALIGN(SEGMENT_ALIGN);
 	_etext = .;			/* End of text section */
 
-	RO_DATA(PAGE_SIZE)		/* everything from this point to     */
-	EXCEPTION_TABLE(8)		/* __init_begin will be marked RO NX */
+	RO_AFTER_INIT_SECTION(PAGE_SIZE)	/* everything from this point */
+	RO_DATA(PAGE_SIZE)			/* to __init_begin will be    */
+	.got : {
+		. = ALIGN(16);
+		*(.got)			/* Global offset table		*/
+	}
+
+#ifdef CONFIG_HW_LOGGER
+	. = ALIGN(32);
+	__start_hwlog_tag = .;
+	__start_hwlog_tag : {
+		*(__hwlog_tag)
+	}
+	. = ALIGN(SEGMENT_ALIGN);
+	__stop_hwlog_tag = .;
+#endif
+
+	EXCEPTION_TABLE(8)			/* marked RO NX		      */
 	NOTES
+	. = ALIGN(SZ_64K);
+	_protect_end = .; /* begin from _protect_start to _protect_end, only access by acpu */
 
 	. = ALIGN(SEGMENT_ALIGN);
 	__init_begin = .;
@@ -187,6 +205,8 @@ SECTIONS
 	. = ALIGN(SEGMENT_ALIGN);
 	__initdata_end = .;
 	__init_end = .;
+
+	PRMEM_SECTIONS
 
 	_data = .;
 	_sdata = .;
@@ -238,6 +258,7 @@ SECTIONS
 	STABS_DEBUG
 
 	HEAD_SYMBOLS
+
 }
 
 /*

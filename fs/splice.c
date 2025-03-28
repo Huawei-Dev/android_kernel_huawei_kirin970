@@ -34,6 +34,7 @@
 #include <linux/socket.h>
 #include <linux/compat.h>
 #include <linux/sched/signal.h>
+#include <linux/fscrypt_common.h>
 
 #include "internal.h"
 
@@ -877,7 +878,9 @@ static long do_splice_to(struct file *in, loff_t *ppos,
 	else
 		splice_read = default_file_splice_read;
 
-	return splice_read(in, ppos, pipe, len, flags);
+	ret = splice_read(in, ppos, pipe, len, flags);
+
+	return ret;
 }
 
 /**

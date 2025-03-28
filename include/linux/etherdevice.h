@@ -29,6 +29,16 @@
 #include <asm/bitsperlong.h>
 
 #ifdef __KERNEL__
+
+#ifdef CONFIG_HW_WAUDIO_MODULE
+struct hw_wifi_audio_ops {
+	void (*wifi_audio_skb_send_handle)(struct sk_buff *skb, struct net_device *dev);
+	int (*wifi_audio_skb_receive_handle)(struct sk_buff *skb);
+};
+int hw_register_wifi_audio(const struct hw_wifi_audio_ops *ops);
+int hw_unregister_wifi_audio(void);
+#endif
+
 struct device;
 int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr);
 unsigned char *arch_get_platform_mac_address(void);

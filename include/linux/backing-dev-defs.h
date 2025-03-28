@@ -175,6 +175,9 @@ struct backing_dev_info {
 	struct device *owner;
 
 	struct timer_list laptop_mode_wb_timer;
+#ifdef CONFIG_MAS_BLK
+	struct request_queue *queue;
+#endif
 
 #ifdef CONFIG_DEBUG_FS
 	struct dentry *debug_dir;
@@ -185,6 +188,8 @@ struct backing_dev_info {
 enum {
 	BLK_RW_ASYNC	= 0,
 	BLK_RW_SYNC	= 1,
+	BLK_RW_BG	= 2,
+	BLK_RW_FG	= 3,
 };
 
 void clear_wb_congested(struct bdi_writeback_congested *congested, int sync);
@@ -234,14 +239,6 @@ static inline void wb_get(struct bdi_writeback *wb)
  */
 static inline void wb_put(struct bdi_writeback *wb)
 {
-	if (WARN_ON_ONCE(!wb->bdi)) {
-		/*
-		 * A driver bug might cause a file to be removed before bdi was
-		 * initialized.
-		 */
-		return;
-	}
-
 	if (wb != &wb->bdi->wb)
 		percpu_ref_put(&wb->refcnt);
 }

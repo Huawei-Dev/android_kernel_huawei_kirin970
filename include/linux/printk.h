@@ -528,4 +528,36 @@ static inline void print_hex_dump_debug(const char *prefix_str, int prefix_type,
 }
 #endif
 
+#ifdef CONFIG_HISI_TIME
+u64 hisi_getcurtime(void);
+struct printk_log {
+	u64 ts_nsec;		/* timestamp in nanoseconds */
+	u16 len;		/* length of entire record */
+	u16 text_len;		/* length of text buffer */
+	u16 dict_len;		/* length of dictionary buffer */
+	u8 facility;		/* syslog facility */
+	u8 flags:5;		/* internal record flags */
+	u8 level:3;		/* syslog level */
+}
+#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
+__packed __aligned(4)
+#endif
+;
+size_t print_time(u64 ts, char *buf);
+void panic_print_msg(struct printk_log *msg);
+void pr_log_store_add_time(char *pr_char, u32 sizeof_pr_char, u16 *pr_len);
+#else
+extern u64 local_clock(void);
+static inline u64 hisi_getcurtime(void) {
+	return local_clock();
+}
+#endif
+
+#ifdef CONFIG_HISI_BB
+extern char *hisirdr_ex_log_buf;
+extern u32 hisirdr_ex_log_buf_len;
+extern u32 *hisirdr_ex_log_first_idx;
+extern u32 *hisirdr_ex_log_next_idx;
+#endif
+
 #endif

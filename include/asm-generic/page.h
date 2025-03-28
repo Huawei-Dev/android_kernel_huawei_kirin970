@@ -82,6 +82,7 @@ extern unsigned long memory_end;
 #define pfn_to_virt(pfn)	__va((pfn) << PAGE_SHIFT)
 
 #define virt_to_page(addr)	pfn_to_page(virt_to_pfn(addr))
+
 #define page_to_virt(page)	pfn_to_virt(page_to_pfn(page))
 
 #ifndef page_to_phys

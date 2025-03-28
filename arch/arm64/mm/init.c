@@ -60,7 +60,9 @@
  * that cannot be mistaken for a real physical address.
  */
 s64 memstart_addr __ro_after_init = -1;
+s64 phystart_addr __ro_after_init = -1;
 phys_addr_t arm64_dma_phys_limit __ro_after_init;
+static unsigned int dma_zone_only;
 
 #ifdef CONFIG_BLK_DEV_INITRD
 static int __init early_initrd(char *p)
@@ -79,6 +81,20 @@ static int __init early_initrd(char *p)
 }
 early_param("initrd", early_initrd);
 #endif
+
+static int __init early_dma_zone_only(char *arg)
+{
+	if (!arg)
+		return -EINVAL;
+
+	if (!strncmp(arg, "true", strlen("true")))
+		dma_zone_only = 1;
+	else
+		dma_zone_only = 0;
+
+	return 0;
+}
+early_param("dma_zone_only", early_dma_zone_only); /*lint -e528 */
 
 #ifdef CONFIG_KEXEC_CORE
 /*
@@ -224,7 +240,10 @@ static void __init reserve_elfcorehdr(void)
 static phys_addr_t __init max_zone_dma_phys(void)
 {
 	phys_addr_t offset = memblock_start_of_DRAM() & GENMASK_ULL(63, 32);
-	return min(offset + (1ULL << 32), memblock_end_of_DRAM());
+	if (dma_zone_only)
+		return memblock_end_of_DRAM();
+	else
+		return min(offset + (1ULL << 32), memblock_end_of_DRAM());
 }
 
 #ifdef CONFIG_NUMA
@@ -242,13 +261,11 @@ static void __init zone_sizes_init(unsigned long min, unsigned long max)
 
 #else
 
-static void __init zone_sizes_init(unsigned long min, unsigned long max)
+static void zone_size_config(unsigned long min, unsigned long max,
+			unsigned long *zone_size, unsigned long *zhole_size)
 {
 	struct memblock_region *reg;
-	unsigned long zone_size[MAX_NR_ZONES], zhole_size[MAX_NR_ZONES];
 	unsigned long max_dma = min;
-
-	memset(zone_size, 0, sizeof(zone_size));
 
 	/* 4GB maximum for 32-bit only capable devices */
 #ifdef CONFIG_ZONE_DMA
@@ -257,7 +274,7 @@ static void __init zone_sizes_init(unsigned long min, unsigned long max)
 #endif
 	zone_size[ZONE_NORMAL] = max - max_dma;
 
-	memcpy(zhole_size, zone_size, sizeof(zhole_size));
+	memcpy(zhole_size, zone_size, MAX_NR_ZONES * sizeof(unsigned long));
 
 	for_each_memblock(memory, reg) {
 		unsigned long start = memblock_region_memory_base_pfn(reg);
@@ -278,6 +295,15 @@ static void __init zone_sizes_init(unsigned long min, unsigned long max)
 			zhole_size[ZONE_NORMAL] -= normal_end - normal_start;
 		}
 	}
+}
+
+static void __init zone_sizes_init(unsigned long min, unsigned long max)
+{
+	unsigned long zone_size[MAX_NR_ZONES], zhole_size[MAX_NR_ZONES];
+
+	memset(zone_size, 0, sizeof(zone_size));
+
+	zone_size_config(min, max, zone_size, zhole_size);
 
 	free_area_init_node(0, zone_size, min, zhole_size);
 }
@@ -383,6 +409,7 @@ void __init arm64_memblock_init(void)
 	memstart_addr = round_down(memblock_start_of_DRAM(),
 				   ARM64_MEMSTART_ALIGN);
 
+	phystart_addr = memstart_addr;
 	/*
 	 * Remove the memory that we will not be able to cover with the
 	 * linear mapping. Take care not to clip the kernel which may be
@@ -447,7 +474,7 @@ void __init arm64_memblock_init(void)
 		 * memory spans, randomize the linear region as well.
 		 */
 		if (memstart_offset_seed > 0 && range >= ARM64_MEMSTART_ALIGN) {
-			range /= ARM64_MEMSTART_ALIGN;
+			range = range / ARM64_MEMSTART_ALIGN;
 			memstart_addr -= ARM64_MEMSTART_ALIGN *
 					 ((range * memstart_offset_seed) >> 16);
 		}
@@ -484,6 +511,7 @@ void __init arm64_memblock_init(void)
 
 	dma_contiguous_reserve(arm64_dma_phys_limit);
 
+
 	memblock_allow_resize();
 }
 
@@ -511,7 +539,48 @@ void __init bootmem_init(void)
 	memblock_dump_all();
 }
 
-#ifndef CONFIG_SPARSEMEM_VMEMMAP
+#ifdef CONFIG_SPARSEMEM_VMEMMAP
+#define VMEMMAP_PAGE_INUSE 0xFD
+static inline void free_memmap(unsigned long start_pfn, unsigned long end_pfn)
+{
+	unsigned long addr, end;
+	unsigned long next;
+	pmd_t *pmd;
+	void *page_addr;
+	phys_addr_t phys_addr;
+
+	addr = (unsigned long)pfn_to_page(start_pfn);
+	end = (unsigned long)pfn_to_page(end_pfn);
+
+	pmd = pmd_offset(pud_offset(pgd_offset_k(addr), addr), addr);
+	for (; addr < end; addr = next, pmd++) {
+		next = pmd_addr_end(addr, end);
+
+		if (!pmd_present(*pmd))
+			continue;
+
+		if (IS_ALIGNED(addr, PMD_SIZE) &&
+			IS_ALIGNED(next, PMD_SIZE)) {
+			phys_addr = __pfn_to_phys(pmd_pfn(*pmd));
+			free_bootmem(phys_addr, PMD_SIZE);
+			pmd_clear(pmd);
+		} else {
+			/* If here, we are freeing vmemmap pages. */
+			memset((void *)addr, VMEMMAP_PAGE_INUSE, next - addr);
+			page_addr = page_address(pmd_page(*pmd));
+
+			if (!memchr_inv(page_addr, VMEMMAP_PAGE_INUSE,
+				PMD_SIZE)) {
+				phys_addr = __pfn_to_phys(pmd_pfn(*pmd));
+				free_bootmem(phys_addr, PMD_SIZE);
+				pmd_clear(pmd);
+			}
+		}
+	}
+
+	flush_tlb_all();
+}
+#else
 static inline void free_memmap(unsigned long start_pfn, unsigned long end_pfn)
 {
 	struct page *start_pg, *end_pg;
@@ -537,38 +606,60 @@ static inline void free_memmap(unsigned long start_pfn, unsigned long end_pfn)
 	if (pg < pgend)
 		free_bootmem(pg, pgend - pg);
 }
+#endif
 
 /*
  * The mem_map array can get very big. Free the unused area of the memory map.
  */
 static void __init free_unused_memmap(void)
 {
-	unsigned long start, prev_end = 0;
+	unsigned long start, cur_start, prev_end = 0;
 	struct memblock_region *reg;
 
 	for_each_memblock(memory, reg) {
-		start = __phys_to_pfn(reg->base);
+		cur_start = round_down(__phys_to_pfn(reg->base),
+				   MAX_ORDER_NR_PAGES);
 
 #ifdef CONFIG_SPARSEMEM
 		/*
 		 * Take care not to free memmap entries that don't exist due
 		 * to SPARSEMEM sections which aren't present.
 		 */
-		start = min(start, ALIGN(prev_end, PAGES_PER_SECTION));
-#endif
+		start = min(cur_start, ALIGN(prev_end, PAGES_PER_SECTION));
+
 		/*
-		 * If we had a previous bank, and there is a space between the
-		 * current bank and the previous, free it.
+		 * Free memory in the case of:
+		 * 1. if cur_start - prev_end <= PAGES_PER_SECTION,
+		 * free pre_end ~ cur_start.
+		 * 2. if cur_start - prev_end > PAGES_PER_SECTION,
+		 * free pre_end ~ ALIGN(prev_end, PAGES_PER_SECTION).
 		 */
 		if (prev_end && prev_end < start)
 			free_memmap(prev_end, start);
 
 		/*
+		 * Free memory in the case of:
+		 * if cur_start - prev_end > PAGES_PER_SECTION,
+		 * free ALIGN_DOWN(cur_start, PAGES_PER_SECTION) ~ cur_start.
+		 */
+		if (cur_start > start &&
+			!IS_ALIGNED(cur_start, PAGES_PER_SECTION))
+			free_memmap(ALIGN_DOWN(cur_start, PAGES_PER_SECTION),
+					cur_start);
+#else
+		/*
+		 * If we had a previous bank, and there is a space between the
+		 * current bank and the previous, free it.
+		 */
+		if (prev_end && prev_end < cur_start)
+			free_memmap(prev_end, cur_start);
+#endif
+		/*
 		 * Align up here since the VM subsystem insists that the
 		 * memmap entries are valid from the bank end aligned to
 		 * MAX_ORDER_NR_PAGES.
 		 */
-		prev_end = ALIGN(__phys_to_pfn(reg->base + reg->size),
+		prev_end = round_up(__phys_to_pfn(reg->base + reg->size),
 				 MAX_ORDER_NR_PAGES);
 	}
 
@@ -577,7 +668,6 @@ static void __init free_unused_memmap(void)
 		free_memmap(prev_end, ALIGN(prev_end, PAGES_PER_SECTION));
 #endif
 }
-#endif	/* !CONFIG_SPARSEMEM_VMEMMAP */
 
 /*
  * mem_init() marks the free areas in the mem_map and tells us how much memory
@@ -587,16 +677,15 @@ static void __init free_unused_memmap(void)
 void __init mem_init(void)
 {
 	if (swiotlb_force == SWIOTLB_FORCE ||
-	    max_pfn > (arm64_dma_phys_limit >> PAGE_SHIFT))
+	    max_pfn >= (arm64_dma_phys_limit >> PAGE_SHIFT))
 		swiotlb_init(1);
 	else
 		swiotlb_force = SWIOTLB_NO_FORCE;
 
 	set_max_mapnr(pfn_to_page(max_pfn) - mem_map);
 
-#ifndef CONFIG_SPARSEMEM_VMEMMAP
 	free_unused_memmap();
-#endif
+
 	/* this will put all unused low memory onto the freelists */
 	free_all_bootmem();
 
@@ -628,6 +717,10 @@ void __init mem_init(void)
 		MLK_ROUNDUP(_sdata, _edata));
 	pr_notice("       .bss : 0x%p" " - 0x%p" "   (%6ld KB)\n",
 		MLK_ROUNDUP(__bss_start, __bss_stop));
+#ifdef CONFIG_HKIP_PRMEM
+	pr_notice("    prmem   : 0x%16lx - 0x%16lx   (%6ld MB)\n",
+		MLM(PRMEM_START, PRMEM_END));
+#endif
 	pr_notice("    fixed   : 0x%16lx - 0x%16lx   (%6ld KB)\n",
 		MLK(FIXADDR_START, FIXADDR_TOP));
 	pr_notice("    PCI I/O : 0x%16lx - 0x%16lx   (%6ld MB)\n",
@@ -729,3 +822,133 @@ static int __init register_mem_limit_dumper(void)
 	return 0;
 }
 __initcall(register_mem_limit_dumper);
+
+#ifdef CONFIG_MEMORY_HOTPLUG
+int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
+{
+	pg_data_t *pgdat = NULL;
+	unsigned long start_pfn = start >> PAGE_SHIFT;
+	unsigned long nr_pages = size >> PAGE_SHIFT;
+	unsigned long end_pfn = start_pfn + nr_pages;
+	unsigned long max_sparsemem_pfn = 1UL << (MAX_PHYSMEM_BITS - PAGE_SHIFT);
+	int ret;
+
+	if (end_pfn > max_sparsemem_pfn) {
+		pr_err("end_pfn too big");
+		return -1;
+	}
+	hotplug_paging(start, size);
+
+	/*
+	 * Mark the first page in the range as unusable. This is needed
+	 * because __add_section (within __add_pages) wants pfn_valid
+	 * of it to be false, and in arm64 pfn falid is implemented by
+	 * just checking at the nomap flag for existing blocks.
+	 *
+	 * A small trick here is that __add_section() requires only
+	 * phys_start_pfn (that is the first pfn of a section) to be
+	 * invalid. Regardless of whether it was assumed (by the function
+	 * author) that all pfns within a section are either all valid
+	 * or all invalid, it allows to avoid looping twice (once here,
+	 * second when memblock_clear_nomap() is called) through all
+	 * pfns of the section and modify only one pfn. Thanks to that,
+	 * further, in __add_zone() only this very first pfn is skipped
+	 * and corresponding page is not flagged reserved. Therefore it
+	 * is enough to correct this setup only for it.
+	 *
+	 * When arch_add_memory() returns the walk_memory_range() function
+	 * is called and passed with online_memory_block() callback,
+	 * which execution finally reaches the memory_block_action()
+	 * function, where also only the first pfn of a memory block is
+	 * checked to be reserved. Above, it was first pfn of a section,
+	 * here it is a block but
+	 * (drivers/base/memory.c):
+	 *     sections_per_block = block_sz / MIN_MEMORY_BLOCK_SIZE;
+	 * (include/linux/memory.h):
+	 *     #define MIN_MEMORY_BLOCK_SIZE     (1UL << SECTION_SIZE_BITS)
+	 * so we can consider block and section equivalently
+	 */
+	memblock_mark_nomap(start, 1 << PAGE_SHIFT);
+
+	pgdat = NODE_DATA(nid);
+
+	ret = __add_pages(nid, start_pfn, nr_pages, want_memblock);
+
+	/*
+	 * Make the pages usable after they have been added.
+	 * This will make pfn_valid return true
+	 */
+	memblock_clear_nomap(start, 1 << PAGE_SHIFT);
+
+	/*
+	 * This is a hack to avoid having to mix arch specific code
+	 * into arch independent code. SetPageReserved is supposed
+	 * to be called by __add_zone (within __add_section, within
+	 * __add_pages). However, when it is called there, it assumes that
+	 * pfn_valid returns true.  For the way pfn_valid is implemented
+	 * in arm64 (a check on the nomap flag), the only way to make
+	 * this evaluate true inside __add_zone is to clear the nomap
+	 * flags of blocks in architecture independent code.
+	 *
+	 * To avoid this, we set the Reserved flag here after we cleared
+	 * the nomap flag in the line above.
+	 */
+	SetPageReserved(pfn_to_page(start_pfn));
+
+	if (ret)
+		pr_warn("%s: Problem encountered in __add_pages() ret=%d\n",
+			__func__, ret);
+
+	return ret;
+}
+
+#ifdef CONFIG_MEMORY_HOTREMOVE
+static void kernel_physical_mapping_remove(unsigned long start,
+	unsigned long end)
+{
+	start = (unsigned long)__va(start);
+	end = (unsigned long)__va(end);
+
+	remove_pagetable(start, end, true);
+
+}
+
+int arch_remove_memory(u64 start, u64 size)
+{
+	unsigned long start_pfn = start >> PAGE_SHIFT;
+	unsigned long nr_pages = size >> PAGE_SHIFT;
+	struct page *page = pfn_to_page(start_pfn);
+	struct zone *zone = NULL;
+	int ret;
+
+	zone = page_zone(page);
+	ret = __remove_pages(zone, start_pfn, nr_pages);
+	WARN_ON_ONCE(ret);
+
+	kernel_physical_mapping_remove(start, start + size);
+
+	return ret;
+}
+
+#endif /* CONFIG_MEMORY_HOTREMOVE */
+static int arm64_online_page(struct page *page)
+{
+	unsigned long phy_addr = page_to_phys(page);
+
+	if (phy_addr + PAGE_SIZE > bootloader_memory_limit)
+		return -EINVAL;
+
+	__online_page_set_limits(page);
+	__online_page_increment_counters(page);
+	__online_page_free(page);
+
+	return 0;
+}
+
+static int __init arm64_memory_hotplug_init(void)
+{
+	set_online_page_callback(&arm64_online_page);
+	return 0;
+}
+core_initcall(arm64_memory_hotplug_init);
+#endif /* CONFIG_MEMORY_HOTPLUG */

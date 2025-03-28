@@ -127,6 +127,9 @@ ENTRY(stext)
 	 * the TCR will have been set.
 	 */
 	bl	__cpu_setup			// initialise processor
+#ifdef CONFIG_UEFI_HHEE
+	bl	hhee_vmmu_enable
+#endif
 	b	__primary_switch
 ENDPROC(stext)
 
@@ -325,8 +328,19 @@ __primary_switched:
 	add	sp, x4, #THREAD_SIZE
 	adr_l	x5, init_task
 	msr	sp_el0, x5			// Save thread_info
+#ifdef CONFIG_HISI_HARDEN_BRANCH_PREDICTOR
+	mrs	x4, mpidr_el1
+	isb
+	ubfx	x4, x4, #8, #8
+	cmp	x4, #0x4
 
+	adr_l	x5, vectors
+	adr_l	x8, bigcpus_vectors
+
+	csel	x8, x5, x8, lt
+#else
 	adr_l	x8, vectors			// load VBAR_EL1 with virtual
+#endif
 	msr	vbar_el1, x8			// vector table address
 	isb
 
@@ -346,7 +360,6 @@ __primary_switched:
 	sub	x2, x2, x0
 	bl	__pi_memset
 	dsb	ishst				// Make zero page visible to PTW
-
 #ifdef CONFIG_KASAN
 	bl	kasan_early_init
 #endif
@@ -388,13 +401,17 @@ ENTRY(el2_setup)
 	mrs	x0, CurrentEL
 	cmp	x0, #CurrentEL_EL2
 	b.eq	1f
-	mov_q	x0, (SCTLR_EL1_RES1 | ENDIAN_SET_EL1)
+	mrs	x0, sctlr_el1
+CPU_BE(	orr	x0, x0, #(3 << 24)	)	// Set the EE and E0E bits for EL1
+CPU_LE(	bic	x0, x0, #(3 << 24)	)	// Clear the EE and E0E bits for EL1
 	msr	sctlr_el1, x0
 	mov	w0, #BOOT_CPU_MODE_EL1		// This cpu booted in EL1
 	isb
 	ret
 
-1:	mov_q	x0, (SCTLR_EL2_RES1 | ENDIAN_SET_EL2)
+1:	mrs	x0, sctlr_el2
+CPU_BE(	orr	x0, x0, #(1 << 25)	)	// Set the EE bit for EL2
+CPU_LE(	bic	x0, x0, #(1 << 25)	)	// Clear the EE bit for EL2
 	msr	sctlr_el2, x0
 
 #ifdef CONFIG_ARM64_VHE
@@ -501,6 +518,7 @@ install_el2_stub:
 	 * requires no configuration, and all non-hyp-specific EL2 setup
 	 * will be done via the _EL1 system register aliases in __cpu_setup.
 	 */
+	/* sctlr_el1 */
 	mov_q	x0, (SCTLR_EL1_RES1 | ENDIAN_SET_EL1)
 	msr	sctlr_el1, x0
 
@@ -601,7 +619,19 @@ secondary_startup:
 ENDPROC(secondary_startup)
 
 __secondary_switched:
+#ifdef CONFIG_HISI_HARDEN_BRANCH_PREDICTOR
+	mrs	x1, mpidr_el1
+	isb
+	ubfx	x1, x1, #8, #8
+	cmp	x1, #0x4
+
+	adr_l	x0, vectors
+	adr_l	x5, bigcpus_vectors
+
+	csel	x5, x0, x5, lt
+#else
 	adr_l	x5, vectors
+#endif
 	msr	vbar_el1, x5
 	isb
 

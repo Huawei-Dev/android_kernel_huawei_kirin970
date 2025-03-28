@@ -65,7 +65,6 @@ ENTRY(memmove)
 	add	tmp1, src, count
 	cmp	dstin, tmp1
 	b.hs	__memcpy		/* No overlap.  */
-
 	add	dst, dstin, count
 	add	src, src, count
 	cmp	count, #16

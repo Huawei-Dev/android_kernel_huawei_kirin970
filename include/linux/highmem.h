@@ -68,6 +68,7 @@ static inline void *kmap_atomic(struct page *page)
 {
 	preempt_disable();
 	pagefault_disable();
+
 	return page_address(page);
 }
 #define kmap_atomic_prot(page, prot)	kmap_atomic(page)
@@ -181,7 +182,8 @@ static inline struct page *
 alloc_zeroed_user_highpage_movable(struct vm_area_struct *vma,
 					unsigned long vaddr)
 {
-	return __alloc_zeroed_user_highpage(__GFP_MOVABLE, vma, vaddr);
+	gfp_t gfp_flags = __GFP_MOVABLE | ___GFP_CMA;
+	return __alloc_zeroed_user_highpage(gfp_flags, vma, vaddr);
 }
 
 static inline void clear_highpage(struct page *page)

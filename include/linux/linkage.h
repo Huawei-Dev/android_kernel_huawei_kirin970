@@ -85,6 +85,7 @@
 	ALIGN ASM_NL \
 	name:
 #endif
+
 #endif /* LINKER_SCRIPT */
 
 #ifndef WEAK
