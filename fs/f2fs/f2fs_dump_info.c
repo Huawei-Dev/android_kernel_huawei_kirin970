@@ -1,5 +1,3 @@
-
-
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/fs.h>
@@ -191,11 +189,6 @@ void f2fs_print_sbi_info(struct f2fs_sb_info *sbi)
 		if (likely(FREE_I(sbi))) {
 			f2fs_msg(sbi->sb, KERN_ALERT, "free_segs: %d\n", free_segments(sbi));
 			f2fs_msg(sbi->sb, KERN_ALERT, "free_secs: %d\n", free_sections(sbi));
-#ifdef CONFIG_F2FS_TURBO_ZONE
-			if (is_tz_existed(sbi))
-				f2fs_msg(sbi->sb, KERN_ALERT, "normal_free_segs: %d\n",
-					 get_free_segs_in_normal_zone(sbi));
-#endif
 		}
 		if (likely(DIRTY_I(sbi))) {
 			f2fs_msg(sbi->sb, KERN_ALERT, "prefree_count: %d\n", prefree_segments(sbi));

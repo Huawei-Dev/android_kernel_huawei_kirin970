@@ -37,11 +37,6 @@
 #include "trace.h"
 #include "sdp_metadata.h"
 
-
-#ifdef CONFIG_F2FS_TURBO_ZONE
-#include "turbo_zone.h"
-#endif
-
 #define CREATE_TRACE_POINTS
 #include <trace/events/f2fs.h>
 
@@ -931,9 +926,6 @@ static int parse_options(struct super_block *sb, char *options)
 #endif
 			break;
 		case Opt_turbozone_v2:
-#ifdef CONFIG_F2FS_TURBO_ZONE_V2
-			set_hw_opt(sbi, TURBOZONE_V2);
-#endif
 			break;
 		default:
 			f2fs_msg(sb, KERN_ERR,
@@ -1607,10 +1599,6 @@ static int f2fs_show_options(struct seq_file *seq, struct dentry *root)
 		seq_printf(seq, ",fsync_mode=%s", "strict");
 	else if (F2FS_OPTION(sbi).fsync_mode == FSYNC_MODE_NOBARRIER)
 		seq_printf(seq, ",fsync_mode=%s", "nobarrier");
-#ifdef CONFIG_F2FS_TURBO_ZONE_V2
-	if (test_hw_opt(sbi, TURBOZONE_V2))
-		seq_puts(seq, ",turbozonev2");
-#endif
 	return 0;
 }
 
@@ -1675,11 +1663,7 @@ static int f2fs_disable_checkpoint(struct f2fs_sb_info *sbi)
 
 	while (!f2fs_time_over(sbi, DISABLE_TIME)) {
 		mutex_lock(&sbi->gc_mutex);
-#ifdef CONFIG_F2FS_TURBO_ZONE
-		err = f2fs_gc(sbi, true, false, false, NULL_SEGNO);
-#else
 		err = f2fs_gc(sbi, true, false, NULL_SEGNO);
-#endif
 		if (err == -ENODATA) {
 			err = 0;
 			break;
@@ -1734,10 +1718,6 @@ static int f2fs_remount(struct super_block *sb, int *flags, char *data)
 	int err;
 	bool need_restart_gc = false;
 	bool need_stop_gc = false;
-#ifdef CONFIG_F2FS_TURBO_ZONE
-	bool need_restart_gc_turbo = false;
-	bool need_stop_gc_turbo = false;
-#endif
 	bool no_extent_cache = !test_opt(sbi, EXTENT_CACHE);
 	bool disable_checkpoint = test_opt(sbi, DISABLE_CHECKPOINT);
 	bool checkpoint_changed;
@@ -1838,12 +1818,6 @@ static int f2fs_remount(struct super_block *sb, int *flags, char *data)
 			f2fs_stop_gc_thread(sbi);
 			need_restart_gc = true;
 		}
-#ifdef CONFIG_F2FS_TURBO_ZONE
-		if (sbi->gc_turbo_thread.f2fs_gc_task) {
-			f2fs_stop_gc_turbo_thread(sbi);
-			need_restart_gc_turbo = true;
-		}
-#endif
 	} else {
 		if (sbi->gc_thread.f2fs_gc_task == NULL) {
 			err = f2fs_start_gc_thread(sbi);
@@ -1851,15 +1825,6 @@ static int f2fs_remount(struct super_block *sb, int *flags, char *data)
 				goto restore_opts;
 			need_stop_gc = true;
 		}
-#ifdef CONFIG_F2FS_TURBO_ZONE
-		if (!is_tz_closed(&sbi->tz_info) &&
-			sbi->gc_turbo_thread.f2fs_gc_task == NULL) {
-			err = f2fs_start_gc_turbo_thread(sbi);
-			if (err)
-				goto restore_opts;
-			need_stop_gc_turbo = true;
-		}
-#endif
 	}
 
 	if (*flags & MS_RDONLY ||
@@ -1917,15 +1882,6 @@ restore_gc:
 	} else if (need_stop_gc) {
 		f2fs_stop_gc_thread(sbi);
 	}
-#ifdef CONFIG_F2FS_TURBO_ZONE
-	if (need_restart_gc_turbo) {
-		if (f2fs_start_gc_turbo_thread(sbi))
-			f2fs_msg(sbi->sb, KERN_WARNING,
-				"background gc turbo thread has stopped");
-	} else if (need_stop_gc_turbo) {
-		f2fs_stop_gc_turbo_thread(sbi);
-	}
-#endif
 
 restore_opts:
 #ifdef CONFIG_QUOTA
@@ -3751,10 +3707,6 @@ try_onemore:
 	f2fs_build_gc_manager(sbi);
 	atomic_set(&sbi->need_ssr_gc, 0);
 
-#ifdef CONFIG_F2FS_TURBO_ZONE
-	/* init f2fs turbo zone info */
-	init_f2fs_turbo_info(sbi);
-#endif
 	/* get an inode for node space */
 	sbi->node_inode = f2fs_iget(sb, F2FS_NODE_INO(sbi));
 	if (IS_ERR(sbi->node_inode)) {
@@ -3879,14 +3831,6 @@ skip_recovery:
 		err = f2fs_start_gc_thread(sbi);
 		if (err)
 			goto sync_free_meta;
-#ifdef CONFIG_F2FS_TURBO_ZONE
-		err = f2fs_start_gc_turbo_thread(sbi);
-		if (err) {
-			f2fs_msg(sb, KERN_ERR,
-				"GC_TURBO: start_gc_turbo_thread err %d", err);
-			goto sync_free_meta;
-		}
-#endif
 	}
 	kfree(options);
 
@@ -4026,10 +3970,6 @@ static void kill_f2fs_super(struct super_block *sb)
 
 		set_sbi_flag(sbi, SBI_IS_CLOSE);
 		f2fs_stop_gc_thread(sbi);
-#ifdef CONFIG_F2FS_TURBO_ZONE
-		f2fs_stop_gc_turbo_thread(sbi);
-		set_tz_weighted_bdev(sbi, false);
-#endif
 		f2fs_stop_discard_thread(sbi);
 
 		if (is_sbi_flag_set(sbi, SBI_IS_DIRTY) ||

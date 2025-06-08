@@ -32,10 +32,6 @@
 #include "trace.h"
 #include <trace/events/f2fs.h>
 
-#ifdef CONFIG_F2FS_TURBO_ZONE
-#include "turbo_zone.h"
-#endif
-
 static int f2fs_filemap_fault(struct vm_fault *vmf)
 {
 	struct inode *inode = file_inode(vmf->vma->vm_file);
@@ -2205,30 +2201,12 @@ static int f2fs_ioc_gc(struct file *filp, unsigned long arg)
 		IOC_GC_count++, sync);
 
 	current->flags |= PF_MUTEX_GC;
-#ifdef CONFIG_F2FS_TURBO_ZONE
-	ret = f2fs_gc(sbi, sync, true, false, NULL_SEGNO);
-#else
 	ret = f2fs_gc(sbi, sync, true, NULL_SEGNO);
-#endif
 	current->flags &= (~PF_MUTEX_GC);
 out:
 	mnt_drop_write_file(filp);
 	return ret;
 }
-
-#ifdef CONFIG_F2FS_TURBO_ZONE
-static bool include_resvd_device(struct f2fs_sb_info *sbi,u64 start, u64 end)
-{
-	int i;
-
-	for (i = 0; i < sbi->s_ndevs; i++) {
-		if (!FDEV(i).bdev && (start < FDEV(i).start_blk && end > FDEV(i).end_blk))
-			return true; //lint !e1564
-	}
-
-	return false; //lint !e1564
-}
-#endif
 
 static int f2fs_ioc_gc_range(struct file *filp, unsigned long arg)
 {
@@ -2253,13 +2231,6 @@ static int f2fs_ioc_gc_range(struct file *filp, unsigned long arg)
 		return -EINVAL;
 	}
 
-#ifdef CONFIG_F2FS_TURBO_ZONE
-	if (sbi->s_ndevs && (is_in_resvd_device(sbi, range.start) ||
-		is_in_resvd_device(sbi, end) ||
-		include_resvd_device(sbi, range.start, end)))
-		return -EINVAL;
-#endif
-
 	ret = mnt_want_write_file(filp);
 	if (ret)
 		return ret;
@@ -2275,12 +2246,7 @@ do_more:
 	}
 
 	current->flags |= PF_MUTEX_GC;
-#ifdef CONFIG_F2FS_TURBO_ZONE
-	ret = f2fs_gc(sbi, range.sync, true, false,
-					GET_SEGNO(sbi, range.start));
-#else
 	ret = f2fs_gc(sbi, range.sync, true, GET_SEGNO(sbi, range.start));
-#endif
 	current->flags &= (~PF_MUTEX_GC);
 	range.start += sbi->blocks_per_seg;
 	if (range.start <= end)
@@ -2695,12 +2661,6 @@ static int f2fs_ioc_flush_device(struct file *filp, unsigned long arg)
 		return -EINVAL;
 	}
 
-#ifdef CONFIG_F2FS_TURBO_ZONE
-	/* cannot flush reserved device */
-	if (!FDEV(range.dev_num).bdev)
-		return -EINVAL;
-#endif
-
 	ret = mnt_want_write_file(filp);
 	if (ret)
 		return ret;
@@ -2723,11 +2683,7 @@ static int f2fs_ioc_flush_device(struct file *filp, unsigned long arg)
 		sm->last_victim[GC_GREEDY] = end_segno + 1;
 		sm->last_victim[ALLOC_NEXT] = end_segno + 1;
 		current->flags |= PF_MUTEX_GC;
-#ifdef CONFIG_F2FS_TURBO_ZONE
-		ret = f2fs_gc(sbi, true, true, false, start_segno);
-#else
 		ret = f2fs_gc(sbi, true, true, start_segno);
-#endif
 		current->flags &= (~PF_MUTEX_GC);
 		if (ret == -EAGAIN)
 			ret = 0;
@@ -3186,38 +3142,7 @@ long f2fs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	case F2FS_IOC_GET_ENCRYPTION_POLICY_TYPE:
 		return f2fs_ioc_get_encryption_policy_type(filp, arg);
 #endif
-#ifdef CONFIG_F2FS_TURBO_ZONE
-	case F2FS_IOC_GET_TZ_KEY_FILE:
-		return f2fs_ioc_get_turbo_file(filp, arg, FI_TZ_KEY_FILE);
-	case F2FS_IOC_SET_TZ_KEY_FILE:
-		return f2fs_ioc_set_turbo_file(filp, arg, FI_TZ_KEY_FILE);
-	case F2FS_IOC_GET_TZ_AGING_FILE:
-		return f2fs_ioc_get_turbo_file(filp, arg, FI_TZ_AGING_FILE);
-	case F2FS_IOC_SET_TZ_AGING_FILE:
-		return f2fs_ioc_set_turbo_file(filp, arg, FI_TZ_AGING_FILE);
-	case F2FS_IOC_GET_TZ_FREE_BLOCKS:
-		return f2fs_ioc_get_turbo_free_blocks(filp, arg);
-	case F2FS_IOC_GET_TZ_STATUS:
-		return f2fs_ioc_get_turbo_status(filp, arg);
-	case F2FS_IOC_SET_TZ_RETURN:
-		return f2fs_ioc_set_turbo_return(filp, arg);
-	case F2FS_IOC_MIGRATE_FILE:
-		return f2fs_ioc_migrate_file(filp, arg);
-	case F2FS_IOC_SET_TZ_FORCE_CLOSE:
-		return f2fs_ioc_set_tz_force_close(filp);
-	case F2FS_IOC_GET_TZ_SPACE_INFO:
-		return f2fs_ioc_get_tz_space_info(filp, arg);
-	case F2FS_IOC_GET_TZ_INFO:
-		return f2fs_ioc_get_tz_info(filp, arg);
-#endif
-#ifdef CONFIG_F2FS_TURBO_ZONE_V2
-	case F2FS_IOC_GET_TZ_SLC_INFO:
-		return f2fs_ioc_get_tz_slc_info(filp, arg);
-#ifdef CONFIG_F2FS_CHECK_FS
-	case F2FS_IOC_GET_TZ_BLK_INFO:
-		return f2fs_ioc_get_tz_blk_info(filp, arg);
-#endif
-#endif
+
 	default:
 		return -ENOTTY;
 	}
@@ -3343,25 +3268,6 @@ long f2fs_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	case F2FS_IOC_SET_SDP_ENCRYPTION_POLICY:
 	case F2FS_IOC_GET_ENCRYPTION_POLICY_TYPE:
 	case F2FS_IOC_GET_SDP_ENCRYPTION_POLICY:
-#endif
-#ifdef CONFIG_F2FS_TURBO_ZONE
-	case F2FS_IOC_GET_TZ_KEY_FILE:
-	case F2FS_IOC_SET_TZ_KEY_FILE:
-	case F2FS_IOC_GET_TZ_AGING_FILE:
-	case F2FS_IOC_SET_TZ_AGING_FILE:
-	case F2FS_IOC_GET_TZ_FREE_BLOCKS:
-	case F2FS_IOC_GET_TZ_STATUS:
-	case F2FS_IOC_SET_TZ_RETURN:
-	case F2FS_IOC_MIGRATE_FILE:
-	case F2FS_IOC_SET_TZ_FORCE_CLOSE:
-	case F2FS_IOC_GET_TZ_SPACE_INFO:
-	case F2FS_IOC_GET_TZ_INFO:
-#endif
-#ifdef CONFIG_F2FS_TURBO_ZONE_V2
-	case F2FS_IOC_GET_TZ_SLC_INFO:
-#ifdef CONFIG_F2FS_CHECK_FS
-	case F2FS_IOC_GET_TZ_BLK_INFO:
-#endif
 #endif
 		break;
 	default:

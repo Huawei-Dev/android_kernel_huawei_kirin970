@@ -197,9 +197,6 @@ extern char *f2fs_fault_name[FAULT_MAX];
 #define F2FS_MOUNT_HW_SDP_ENCRYPT      0x00000010
 #define F2FS_MOUNT_HW_NOATGC           0x00000020
 #define F2FS_MOUNT_HW_NOSUBDIVISION    0x00000040
-#ifdef CONFIG_F2FS_TURBO_ZONE_V2
-#define F2FS_MOUNT_HW_TURBOZONE_V2	0x00000080
-#endif
 
 #define F2FS_OPTION(sbi)	((sbi)->mount_opt)
 #define clear_opt(sbi, option)	(F2FS_OPTION(sbi).opt &= ~F2FS_MOUNT_##option)
@@ -596,41 +593,6 @@ static inline bool __has_cursum_space(struct f2fs_journal *journal,
 #define F2FS_IOC_SET_ENCRYPTION_POLICY	FS_IOC_SET_ENCRYPTION_POLICY
 #define F2FS_IOC_GET_ENCRYPTION_POLICY	FS_IOC_GET_ENCRYPTION_POLICY
 #define F2FS_IOC_GET_ENCRYPTION_PWSALT	FS_IOC_GET_ENCRYPTION_PWSALT
-
-#ifdef CONFIG_F2FS_TURBO_ZONE
-/* for turbo zone ioctl */
-#define F2FS_TZ_IOC_BASE (35)
-#define F2FS_IOC_GET_TZ_KEY_FILE _IOR(F2FS_IOCTL_MAGIC,	\
-				F2FS_TZ_IOC_BASE + 1, __u32)
-#define F2FS_IOC_SET_TZ_KEY_FILE _IOW(F2FS_IOCTL_MAGIC,	\
-				F2FS_TZ_IOC_BASE + 2, __u32)
-#define F2FS_IOC_GET_TZ_AGING_FILE _IOR(F2FS_IOCTL_MAGIC,	\
-				F2FS_TZ_IOC_BASE + 3, __u32)
-#define F2FS_IOC_SET_TZ_AGING_FILE _IOW(F2FS_IOCTL_MAGIC,	\
-				F2FS_TZ_IOC_BASE + 4, __u32)
-#define F2FS_IOC_GET_TZ_FREE_BLOCKS _IOR(F2FS_IOCTL_MAGIC,	\
-				F2FS_TZ_IOC_BASE + 5, __u32)
-#define F2FS_IOC_GET_TZ_STATUS _IOR(F2FS_IOCTL_MAGIC,	\
-				F2FS_TZ_IOC_BASE + 6, struct tz_status_v1)
-#define F2FS_IOC_SET_TZ_RETURN _IOW(F2FS_IOCTL_MAGIC,	\
-				F2FS_TZ_IOC_BASE + 7, __u32)
-#define F2FS_IOC_MIGRATE_FILE _IOW(F2FS_IOCTL_MAGIC,	\
-				F2FS_TZ_IOC_BASE + 8, struct f2fs_migrate_file)
-#define F2FS_IOC_SET_TZ_FORCE_CLOSE _IO(F2FS_IOCTL_MAGIC,	\
-				F2FS_TZ_IOC_BASE + 9)
-#define F2FS_IOC_GET_TZ_SPACE_INFO _IOR(F2FS_IOCTL_MAGIC,	\
-				F2FS_TZ_IOC_BASE + 10, struct f2fs_tz_space_info)
-#define F2FS_IOC_GET_TZ_INFO _IOR(F2FS_IOCTL_MAGIC,	\
-				F2FS_TZ_IOC_BASE + 11, struct f2fs_ioc_tz_info)
-#endif
-#ifdef CONFIG_F2FS_TURBO_ZONE_V2
-#define F2FS_IOC_GET_TZ_SLC_INFO _IOR(F2FS_IOCTL_MAGIC,	\
-				F2FS_TZ_IOC_BASE + 12, struct tz_cap_info)
-#ifdef CONFIG_F2FS_CHECK_FS
-#define F2FS_IOC_GET_TZ_BLK_INFO _IOWR(F2FS_IOCTL_MAGIC,	\
-				F2FS_TZ_IOC_BASE + 13, struct f2fs_ioc_blk_info)
-#endif
-#endif
 
 /*
  * should be same as XFS_IOC_GOINGDOWN.
@@ -1115,11 +1077,7 @@ static inline void set_new_dnode(struct dnode_of_data *dn, struct inode *inode,
  */
 #define	NR_CURSEG_DATA_TYPE	(3)
 #define NR_CURSEG_NODE_TYPE	(3)
-#ifdef CONFIG_F2FS_TURBO_ZONE
-#define NR_CURSEG_SPECIAL_TYPE	(2)
-#else
 #define NR_CURSEG_SPECIAL_TYPE	(1)
-#endif
 #define NR_CURSEG_TYPE	(NR_CURSEG_DATA_TYPE + NR_CURSEG_NODE_TYPE)
 #define NR_INMEM_CURSEG_TYPE	(NR_CURSEG_TYPE + NR_CURSEG_SPECIAL_TYPE)
 
@@ -1131,9 +1089,6 @@ enum {
 	CURSEG_WARM_NODE,	/* direct node blocks of normal files */
 	CURSEG_COLD_NODE,	/* indirect node blocks */
 	CURSEG_FRAGMENT_DATA,	/* do SSR located in hot/warm/cold data area */
-#ifdef CONFIG_F2FS_TURBO_ZONE
-	CURSEG_TURBO_DATA,	/* data blocks in turbo zone */
-#endif
 	NO_CHECK_TYPE,
 	CURSEG_COLD_DATA_PINNED, /* cold data for pinned file */
 };
@@ -1306,9 +1261,6 @@ struct f2fs_io_info {
 	int ci_key_index;
 #endif
 
-#ifdef CONFIG_F2FS_TURBO_ZONE_V2
-	unsigned int flags;	/* turbo zone key flag */
-#endif
 	struct list_head list;		/* serialize IOs */
 	bool submitted;		/* indicate IO submission */
 	int need_lock;		/* indicate we need to lock cp_rwsem */
@@ -1350,50 +1302,6 @@ struct f2fs_dev_info {
 };
 
 #define F2FS_TZ_RESERVED_DEV "RESERVED"
-
-#ifdef CONFIG_F2FS_TURBO_ZONE_V2
-#define F2FS_IO_KEY_FLAG	1	/* keep same with block IO_TZ_MARK */
-#define F2FS_TURBO_ZONE_V2	2
-
-struct f2fs_turbo_info {
-	unsigned char version;		/* tz version */
-	bool enable;			/* tz enabled flag */
-};
-
-#endif
-
-#ifdef CONFIG_F2FS_TURBO_ZONE
-#define F2FS_TURBO_DEV (0)
-#define F2FS_MIN_SEGS_IN_TZ	(8)
-#define F2FS_TURBO_RESERVED_SEGS	(512)
-#define F2FS_HASH_SIZE_TURBO	(64)
-#define F2FS_TURBO_ZONE_V1	1
-
-#define F2FS_TURBO_BD_RESET_MAX_LEN 3
-
-enum tz_move_direction {
-	NZ_TO_TZ,			/* mv normalzone block to turbozone */
-	TZ_TO_NZ,			/* mv turbozone block to normalzone */
-	NR_TZ_MOVE_DIRECTION,
-};
-
-struct f2fs_tz_info {
-	bool enabled;			/* Whether or not enable tz feature */
-	bool switchable;		/* allow to switch from SLC to TLC */
-	unsigned int cur_ec;		/* average erase count currently */
-	unsigned int cur_vpc;		/* valid phyical count currently */
-	unsigned int total_segs;	/* total segments in SLC mode */
-
-	unsigned int free_segs;		/* # of free segments in SLC mode */
-	unsigned int start_seg;		/* start segment in main area */
-	unsigned int end_seg;		/* end segment in main area */
-	block_t reserved_blks;		/* # of blocks reserved for tz */
-
-	block_t written_valid_blocks;	/* # of valid blocks in TZ area */
-	int turbo_bg_gc;		/* turbo background gc calls */
-	unsigned char version;
-};
-#endif
 
 enum inode_type {
 	DIR_INODE,			/* for dirty dir inode */
@@ -1757,15 +1665,6 @@ struct f2fs_sb_info {
 
 #ifdef CONFIG_F2FS_CHECK_FS
 	atomic_t in_cp;
-#endif
-
-#ifdef CONFIG_F2FS_TURBO_ZONE
-	struct f2fs_tz_info tz_info;
-	struct f2fs_gc_kthread  gc_turbo_thread;
-#endif
-
-#ifdef CONFIG_F2FS_TURBO_ZONE_V2
-	struct f2fs_turbo_info turbo_info;	/* for tz 2.0 + */
 #endif
 
 #ifdef CONFIG_FSCK_BOOST
@@ -2282,18 +2181,6 @@ static inline bool __allow_reserved_blocks(struct f2fs_sb_info *sbi,
 	return false;
 }
 
-#ifdef CONFIG_F2FS_TURBO_ZONE
-static inline bool need_turn_off_tz(struct f2fs_sb_info *sbi)
-{
-	if (sbi->total_valid_block_count + sbi->tz_info.reserved_blks >
-		sbi->user_block_count - sbi->current_reserved_blocks)
-		return true;
-	return false;
-}
-
-void init_turbo_curseg(struct f2fs_sb_info *sbi);
-#endif
-
 static inline void f2fs_i_blocks_write(struct inode *, block_t, bool, bool);
 static inline int inc_valid_block_count(struct f2fs_sb_info *sbi,
 				 struct inode *inode, blkcnt_t *count)
@@ -2323,12 +2210,6 @@ static inline int inc_valid_block_count(struct f2fs_sb_info *sbi,
 	avail_user_block_count = sbi->user_block_count -
 					sbi->current_reserved_blocks;
 
-#ifdef CONFIG_F2FS_TURBO_ZONE
-	/* consider reserved blocks if not allowed to switch in turbo zone. */
-	if (sbi->tz_info.total_segs > 0 && !sbi->tz_info.switchable)
-		avail_user_block_count -= (sbi->tz_info.reserved_blks -
-			(F2FS_TURBO_RESERVED_SEGS << sbi->log_blocks_per_seg));
-#endif
 	if (!__allow_reserved_blocks(sbi, inode, true))
 		avail_user_block_count -= F2FS_OPTION(sbi).root_reserved_blocks;
 	if (unlikely(is_sbi_flag_set(sbi, SBI_CP_DISABLED)))
@@ -2830,9 +2711,6 @@ static inline void f2fs_change_bit(unsigned int nr, char *addr)
 #define F2FS_EA_INODE_FL	        0x00200000 /* Inode used for large EA */
 #define F2FS_EOFBLOCKS_FL		0x00400000 /* Blocks allocated beyond EOF */
 #define F2FS_NOCOW_FL			0x00800000 /* Do not cow file */
-#ifdef CONFIG_F2FS_TURBO_ZONE
-#define F2FS_TZ_KEY_FL			0x01000000 /* Key file in Turbo Zone */
-#endif
 #define F2FS_INLINE_DATA_FL		0x10000000 /* Inode has inline data. */
 #define F2FS_PROJINHERIT_FL		0x20000000 /* Create with parents projid */
 #define F2FS_RESERVED_FL		0x80000000 /* reserved for ext4 lib */
@@ -2923,10 +2801,6 @@ enum {
 	FI_ATOMIC_REVOKE_REQUEST, /* request to drop atomic data */
         FI_LOG_FILE,            /* indicate file is a log */
         FI_HOT_FILE,            /* indicate file is hot */
-#ifdef CONFIG_F2FS_TURBO_ZONE
-	FI_TZ_KEY_FILE,         /* indicate key file only be in turbozone */
-	FI_TZ_AGING_FILE,       /* indicate aging file can be in turbozone */
-#endif
 };
 
 static inline void __mark_inode_dirty_flag(struct inode *inode,
@@ -3772,10 +3646,6 @@ void f2fs_destroy_segment_manager_caches(void);
 int f2fs_rw_hint_to_seg_type(enum rw_hint hint);
 enum rw_hint f2fs_io_type_to_rw_hint(struct f2fs_sb_info *sbi,
 			enum page_type type, enum temp_type temp);
-#ifdef CONFIG_F2FS_TURBO_ZONE
-void recovery_turbo_init(struct f2fs_sb_info *sbi, bool sync);
-#endif
-
 /*
  * checkpoint.c
  */
@@ -3870,25 +3740,12 @@ void f2fs_clear_radix_tree_dirty_tag(struct page *page);
 int f2fs_start_gc_thread(struct f2fs_sb_info *sbi);
 void f2fs_stop_gc_thread(struct f2fs_sb_info *sbi);
 block_t f2fs_start_bidx_of_node(unsigned int node_ofs, struct inode *inode);
-#ifdef CONFIG_F2FS_TURBO_ZONE
-int f2fs_gc(struct f2fs_sb_info *sbi, bool sync, bool background, bool turbo,
-			unsigned int segno);
-#else
 int f2fs_gc(struct f2fs_sb_info *sbi, bool sync, bool background,
 			unsigned int segno);
-#endif
 int __init create_garbage_collection_cache(void);
 void destroy_garbage_collection_cache(void);
 void f2fs_build_gc_manager(struct f2fs_sb_info *sbi);
 int f2fs_resize_fs(struct f2fs_sb_info *sbi, size_t resize_len);
-#ifdef CONFIG_F2FS_TURBO_ZONE
-int f2fs_start_gc_turbo_thread(struct f2fs_sb_info *sbi);
-void f2fs_stop_gc_turbo_thread(struct f2fs_sb_info *sbi);
-int f2fs_migrate_file(struct inode *inode, bool turbo, bool sync);
-#endif
-#ifdef CONFIG_F2FS_TURBO_ZONE_V2
-int f2fs_migrate_file_v2(struct inode *inode, bool turbo, bool sync);
-#endif
 
 /*
  * recovery.c
@@ -3916,10 +3773,6 @@ struct f2fs_stat_info {
 	int free_nids, avail_nids, alloc_nids;
 	int total_count, utilization;
 	int bg_gc, nr_wb_cp_data, nr_wb_data;
-#ifdef CONFIG_F2FS_TURBO_ZONE
-	int turbo_bg_gc;
-	int turbo_bg_gc_tot_blks;
-#endif
 	int nr_rd_data, nr_rd_node, nr_rd_meta;
 	unsigned int io_skip_bggc, other_skip_bggc;
 	int nr_flushing, nr_flushed, flush_list_empty;
@@ -3961,11 +3814,6 @@ static inline struct f2fs_stat_info *F2FS_STAT(struct f2fs_sb_info *sbi)
 {
 	return (struct f2fs_stat_info *)sbi->stat_info;
 }
-
-#ifdef CONFIG_F2FS_TURBO_ZONE
-#define stat_inc_turbo_bg_gc_tot_blk_count(si, blks)			\
-		((si)->turbo_bg_gc_tot_blks += (blks))
-#endif
 
 #define stat_inc_cp_count(si)		((si)->cp_count++)
 #define stat_inc_bg_cp_count(si)	((si)->bg_cp_count++)
@@ -4167,18 +4015,6 @@ struct f2fs_bigdata_info {
 		} encrypt_struct;
 		unsigned int encrypt_val;
 	} encrypt;
-
-	/* big data for turbo zone */
-#ifdef CONFIG_F2FS_TURBO_ZONE
-	unsigned int nz_free_segs;
-	unsigned int tz_bg_gc_cnt, tz_bg_gc_fail_cnt;
-	/* NZ_TO_TZ:0, TZ_TO_NZ:1 */
-	unsigned long tz_ioctl_migrate_blks[NR_TZ_MOVE_DIRECTION];
-	/* NZ_TO_TZ:0, TZ_TO_NZ:1 */
-	unsigned long tz_gc_migrate_blks[NR_TZ_MOVE_DIRECTION];
-	unsigned long tz_f2fs_trigger_return_time;
-	unsigned long tz_ioctl_trigger_return_time;
-#endif
 };
 
 static inline struct f2fs_bigdata_info *F2FS_BD_STAT(struct f2fs_sb_info *sbi)
@@ -4251,10 +4087,6 @@ static inline struct f2fs_bigdata_info *F2FS_BD_STAT(struct f2fs_sb_info *sbi)
 #define stat_inc_tot_blk_count(si, blks)		do { } while (0)
 #define stat_inc_data_blk_count(sbi, blks, gc_type)	do { } while (0)
 #define stat_inc_node_blk_count(sbi, blks, gc_type)	do { } while (0)
-
-#ifdef CONFIG_F2FS_TURBO_ZONE
-#define stat_inc_turbo_bg_gc_tot_blk_count(si, blks)	do { } while (0)
-#endif
 
 static inline int f2fs_build_stats(struct f2fs_sb_info *sbi) { return 0; }
 static inline void f2fs_destroy_stats(struct f2fs_sb_info *sbi) { }

@@ -175,11 +175,6 @@ struct bio {
 	void (*dump_fs)(void);
 #endif
 
-#ifdef CONFIG_F2FS_TURBO_ZONE
-#define IO_TZ_MARK	(1 << 0)
-	u32 flags;
-#endif
-
 	/*
 	 * Below info is for inline crypto
 	 */
