@@ -85,10 +85,6 @@
 #include <linux/hisi/mem_trace.h>
 #endif
 
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-#include <linux/hisi/protect_lru.h>
-#endif
-
 /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
 static DEFINE_MUTEX(pcp_batch_high_lock);
 #define MIN_PERCPU_PAGELIST_FRACTION	(8)
@@ -1134,10 +1130,6 @@ static __always_inline bool free_pages_prepare(struct page *page,
 			(page + i)->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
 		}
 	}
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	if (PageProtect(page))
-		ClearPageProtect(page);
-#endif
 	if (PageMappingFlags(page))
 		page->mapping = NULL;
 	if (memcg_kmem_enabled() && PageKmemcg(page))
@@ -4688,9 +4680,6 @@ long si_mem_available(void)
 	 */
 	available += global_zone_page_state(NR_IONCACHE_PAGES);
 	available += (long)global_zone_page_state(NR_MALI_PAGES);
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	available -= (long)get_protected_pages();
-#endif
 
 	if (available < 0)
 		available = 0;
@@ -4819,9 +4808,6 @@ void show_free_areas(unsigned int filter, nodemask_t *nodemask)
 
 	printk("active_anon:%lu inactive_anon:%lu isolated_anon:%lu\n"
 		" active_file:%lu inactive_file:%lu isolated_file:%lu\n"
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-		" protected:%lu"
-#endif
 		" unevictable:%lu dirty:%lu writeback:%lu unstable:%lu\n"
 		" slab_reclaimable:%lu slab_unreclaimable:%lu\n"
 #ifdef CONFIG_ZSMALLOC
@@ -4836,9 +4822,6 @@ void show_free_areas(unsigned int filter, nodemask_t *nodemask)
 		global_node_page_state(NR_ACTIVE_FILE),
 		global_node_page_state(NR_INACTIVE_FILE),
 		global_node_page_state(NR_ISOLATED_FILE),
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-		get_protected_pages(),
-#endif
 		global_node_page_state(NR_UNEVICTABLE),
 		global_node_page_state(NR_FILE_DIRTY),
 		global_node_page_state(NR_WRITEBACK),

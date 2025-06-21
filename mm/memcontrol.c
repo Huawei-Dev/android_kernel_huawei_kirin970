@@ -70,9 +70,6 @@
 #include <net/sock.h>
 #include <net/ip.h>
 #include "slab.h"
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-#include <linux/hisi/protect_lru.h>
-#endif
 
 #include <linux/uaccess.h>
 
@@ -1398,11 +1395,6 @@ static int mem_cgroup_soft_reclaim(struct mem_cgroup *root_memcg,
 
 	while (1) {
 		victim = mem_cgroup_iter(root_memcg, victim, &reclaim);
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-		/* Skip if it is a protect memcg. */
-		if (is_prot_memcg(victim, false))
-			continue;
-#endif
 		if (!victim) {
 			loop++;
 			if (loop >= 2) {
@@ -1949,9 +1941,6 @@ static int try_charge(struct mem_cgroup *memcg, gfp_t gfp_mask,
 	if (mem_cgroup_is_root(memcg))
 		return 0;
 retry:
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	shrink_prot_memcg_by_overlimit(memcg);
-#endif
 	if (consume_stock(memcg, nr_pages))
 		return 0;
 
@@ -4395,12 +4384,6 @@ fail:
 static int mem_cgroup_css_online(struct cgroup_subsys_state *css)
 {
 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	int ret = protect_memcg_css_online(css, memcg);
-
-	if (ret)
-		return ret;
-#endif
 	/* Online state pins memcg ID, memcg ID pins CSS */
 	atomic_set(&memcg->id.ref, 1);
 	css_get(css);
@@ -4412,9 +4395,6 @@ static void mem_cgroup_css_offline(struct cgroup_subsys_state *css)
 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
 	struct mem_cgroup_event *event, *tmp;
 
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	protect_memcg_css_offline(memcg);
-#endif
 	/*
 	 * Unregister events and notify userspace.
 	 * Notify userspace about cgroup removing only after rmdir of cgroup
@@ -4705,20 +4685,12 @@ static int mem_cgroup_move_account(struct page *page,
 
 	ret = 0;
 
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	local_irq_save(flags);
-#else
 	local_irq_disable();
-#endif
 	mem_cgroup_charge_statistics(to, page, compound, nr_pages);
 	memcg_check_events(to, page);
 	mem_cgroup_charge_statistics(from, page, compound, -nr_pages);
 	memcg_check_events(from, page);
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	local_irq_restore(flags);
-#else
 	local_irq_enable();
-#endif
 out_unlock:
 	unlock_page(page);
 out:
@@ -4767,14 +4739,6 @@ static enum mc_target_type get_mctgt_type(struct vm_area_struct *vma,
 
 	if (!page && !ent.val)
 		return ret;
-
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	/* Skip protect pages during cgroup migration. */
-	if (page && PageProtect(page)) {
-		put_page(page);
-		return ret;
-	}
-#endif
 
 	if (page) {
 		/*
@@ -5635,10 +5599,6 @@ int mem_cgroup_try_charge(struct page *page, struct mm_struct *mm,
 			rcu_read_unlock();
 		}
 	}
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	if (PageProtect(page))
-		memcg = get_protect_memcg(page, memcgp);
-#endif
 	if (!memcg)
 		memcg = get_mem_cgroup_from_mm(mm);
 
@@ -6405,44 +6365,3 @@ static int __init mem_cgroup_swap_init(void)
 subsys_initcall(mem_cgroup_swap_init);
 
 #endif /* CONFIG_MEMCG_SWAP */
-
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-void protect_memcg_drain_all_stock(struct mem_cgroup *root_memcg)
-{
-	if (is_prot_memcg(root_memcg, false))
-		drain_all_stock(root_memcg);
-}
-
-void protect_memcg_cancel_charge(
-	struct mem_cgroup *memcg, unsigned int nr_pages)
-{
-	if (is_prot_memcg(memcg, false))
-		cancel_charge(memcg, nr_pages);
-}
-
-int protect_memcg_move_account(
-	struct page *page, bool compound,
-	struct mem_cgroup *from, struct mem_cgroup *to)
-{
-	if (is_prot_memcg(from, false))
-		return mem_cgroup_move_account(page, compound, from, to);
-	else
-		return -EINVAL;
-}
-
-int protect_memcg_resize_limit(struct mem_cgroup *memcg, unsigned long limit)
-{
-	if (is_prot_memcg(memcg, false))
-		return mem_cgroup_resize_limit(memcg, limit);
-	else
-		return -EINVAL;
-}
-
-unsigned long protect_memcg_usage(struct mem_cgroup *memcg, bool swap)
-{
-	if (is_prot_memcg(memcg, false))
-		return mem_cgroup_usage(memcg, swap);
-	else
-		return 0;
-}
-#endif /* CONFIG_MEMCG_PROTECT_LRU */

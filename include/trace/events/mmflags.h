@@ -62,11 +62,7 @@
 #define IF_HAVE_PG_MLOCK(flag,string)
 #endif
 
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-#define IF_HAVE_PG_PROTECT(flag, string) ,{1UL << flag, string}
-#else
 #define IF_HAVE_PG_PROTECT(flag, string)
-#endif
 
 #ifdef CONFIG_ARCH_USES_PG_UNCACHED
 #define IF_HAVE_PG_UNCACHED(flag,string) ,{1UL << flag, string}

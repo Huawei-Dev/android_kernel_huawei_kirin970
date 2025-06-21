@@ -69,9 +69,6 @@
 #ifdef CONFIG_SHRINK_MEMORY
 #include <linux/suspend.h>
 #endif
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-#include <linux/hisi/protect_lru.h>
-#endif
 
 #ifdef CONFIG_HISI_SWAP_ZDATA
 #include <linux/signal.h>
@@ -1033,14 +1030,6 @@ unsigned long shrink_page_list(struct list_head *page_list,
 		page = lru_to_page(page_list);
 		list_del(&page->lru);
 
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-		/* We should not reclaim protect pages directly. */
-		if (PageProtect(page)) {
-			WARN_ON(1);
-			goto keep;
-		}
-#endif
-
 		if (!trylock_page(page))
 			goto keep;
 
@@ -1468,20 +1457,11 @@ unsigned long reclaim_clean_pages_from_list(struct zone *zone,
 	LIST_HEAD(clean_pages);
 
 	list_for_each_entry_safe(page, next, page_list, lru) {
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-		if (page_is_file_cache(page) && !PageDirty(page) &&
-		    !__PageMovable(page) && !PageUnevictable(page) && !PageProtect(page)) {
-			ClearPageActive(page);
-			list_move(&page->lru, &clean_pages);
-		}
-#else
 		if (page_is_file_cache(page) && !PageDirty(page) &&
 		    !__PageMovable(page) && !PageUnevictable(page)) {
 			ClearPageActive(page);
 			list_move(&page->lru, &clean_pages);
 		}
-#endif
-
 	}
 
 	ret = shrink_page_list(&clean_pages, zone->zone_pgdat, &sc,
@@ -3042,10 +3022,6 @@ static bool shrink_node(pg_data_t *pgdat, struct scan_control *sc)
 	unsigned long nr_reclaimed, nr_scanned;
 	bool reclaimable = false;
 
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	shrink_prot_memcg_by_overratio();
-#endif
-
 	do {
 		struct mem_cgroup *root = sc->target_mem_cgroup;
 		struct mem_cgroup_reclaim_cookie reclaim = {
@@ -3064,11 +3040,6 @@ static bool shrink_node(pg_data_t *pgdat, struct scan_control *sc)
 			unsigned long reclaimed;
 			unsigned long scanned;
 
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-			/* Skip if it is a protect memcg. */
-			if (is_prot_memcg(memcg, false))
-				continue;
-#endif
 			if (mem_cgroup_low(root, memcg)) {
 				if (!sc->memcg_low_reclaim) {
 					sc->memcg_low_skipped = 1;
@@ -3155,10 +3126,6 @@ static bool shrink_node(pg_data_t *pgdat, struct scan_control *sc)
 	bool reclaimable = false;
 	struct lruvec *target_lruvec =
 		mem_cgroup_lruvec(pgdat, sc->target_mem_cgroup);
-
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	shrink_prot_memcg_by_overratio();
-#endif
 
 	do {
 		struct mem_cgroup *root = sc->target_mem_cgroup;
@@ -3268,11 +3235,6 @@ static bool shrink_node(pg_data_t *pgdat, struct scan_control *sc)
 			unsigned long reclaimed;
 			unsigned long scanned;
 
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-			/* Skip if it is a protect memcg. */
-			if (is_prot_memcg(memcg, false))
-				continue;
-#endif
 			if (mem_cgroup_low(root, memcg)) {
 				if (!sc->memcg_low_reclaim) {
 					sc->memcg_low_skipped = 1;
@@ -3850,14 +3812,7 @@ unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
 
 	psi_memstall_enter(&pflags);
 	noreclaim_flag = memalloc_noreclaim_save();
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	if (is_prot_memcg(memcg, false))
-		nr_reclaimed = shrink_prot_memcg(memcg);
-	else
-		nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
-#else
 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
-#endif
 
 	memalloc_noreclaim_restore(noreclaim_flag);
 	psi_memstall_leave(&pflags);

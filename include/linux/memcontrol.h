@@ -67,17 +67,10 @@ struct mem_cgroup_reclaim_cookie {
 	unsigned int generation;
 };
 
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-static inline bool is_prot_page(struct page *page)
-{
-	return PageProtect(page);
-}
-#else
 static inline bool is_prot_page(struct page *page)
 {
 	return false;
 }
-#endif
 
 #ifdef CONFIG_MEMCG
 
@@ -310,16 +303,6 @@ void mem_cgroup_cancel_charge(struct page *page, struct mem_cgroup *memcg,
 void mem_cgroup_uncharge(struct page *page);
 void mem_cgroup_uncharge_list(struct list_head *page_list);
 void mem_cgroup_migrate(struct page *oldpage, struct page *newpage);
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-void protect_memcg_drain_all_stock(struct mem_cgroup *root_memcg);
-void protect_memcg_cancel_charge(
-	struct mem_cgroup *memcg, unsigned int nr_pages);
-int protect_memcg_move_account(
-	struct page *page, bool compound,
-	struct mem_cgroup *from, struct mem_cgroup *to);
-int protect_memcg_resize_limit(struct mem_cgroup *memcg, unsigned long limit);
-unsigned long protect_memcg_usage(struct mem_cgroup *memcg, bool swap);
-#endif
 
 static struct mem_cgroup_per_node *
 mem_cgroup_nodeinfo(struct mem_cgroup *memcg, int nid)

@@ -703,12 +703,6 @@ void migrate_page_states(struct page *newpage, struct page *page)
 		SetPageNonCompress(newpage);
 #endif
 
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	if (PageProtect(page)) {
-		SetPageProtect(newpage);
-		ClearPageProtect(page);
-	}
-#endif
 	/*
 	 * Copy NUMA information to the new page, to prevent over-eager
 	 * future migrations of this same page.

@@ -28,10 +28,6 @@
 #include <linux/of_reserved_mem.h>
 #endif
 
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-#include <linux/hisi/protect_lru.h>
-#endif
-
 void __attribute__((weak)) arch_report_meminfo(struct seq_file *m)
 {
 }
@@ -180,9 +176,6 @@ static int meminfo_proc_show(struct seq_file *m, void *v)
 		    mm_ion_total() >> PAGE_SHIFT);
 #endif
 
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	show_val_kb(m, "Protected:      ", get_protected_pages());
-#endif
 #ifdef CONFIG_OF_RESERVED_MEM
 	show_val_kb(m, "RsvTotalUsed:   ",
 			dt_memory_reserved_sizeinfo_get() >> PAGE_SHIFT);

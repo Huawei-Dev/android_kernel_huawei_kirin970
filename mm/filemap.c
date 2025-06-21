@@ -42,9 +42,6 @@
 #include <linux/psi.h>
 #include "internal.h"
 #include <linux/hisi/iolimit_cgroup.h>
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-#include <linux/hisi/protect_lru.h>
-#endif
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/filemap.h>
@@ -777,30 +774,17 @@ static int __add_to_page_cache_locked(struct page *page,
 	VM_BUG_ON_PAGE(!PageLocked(page), page);
 	VM_BUG_ON_PAGE(PageSwapBacked(page), page);
 
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	memcg = get_protect_file_memcg(page, mapping);
-#endif
 	if (!huge) {
 		error = mem_cgroup_try_charge(page, current->mm,
 					      gfp_mask, &memcg, false);
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-		if (error) {
-			protect_add_page_cache_rollback(page);
-			return error;
-		}
-#else
 		if (error)
 			return error;
-#endif
 	}
 
 	error = radix_tree_maybe_preload(gfp_mask & GFP_RECLAIM_MASK);
 	if (error) {
 		if (!huge)
 			mem_cgroup_cancel_charge(page, memcg, false);
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-		protect_add_page_cache_rollback(page);
-#endif
 		return error;
 	}
 
@@ -824,9 +808,6 @@ static int __add_to_page_cache_locked(struct page *page,
 	return 0;
 
 err_insert:
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-	protect_add_page_cache_rollback(page);
-#endif
 	page->mapping = NULL;
 	/* Leave page->index set: truncation relies upon it */
 	spin_unlock_irq(&mapping->tree_lock);
@@ -878,10 +859,6 @@ int add_to_page_cache_lru(struct page *page, struct address_space *mapping,
 		if (!(gfp_mask & __GFP_WRITE) && shadow)
 			workingset_refault(page, shadow);
 
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-		if (PageProtect(page))
-			SetPageActive(page);
-#endif
 		lru_cache_add(page);
 	}
 	return ret;

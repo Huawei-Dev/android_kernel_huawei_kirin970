@@ -266,10 +266,6 @@ struct zone_reclaim_stat {
 };
 #endif
 
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-#define PROTECT_LEVELS_MAX	3
-#endif
-
 struct lruvec {
 	struct list_head		lists[NR_LRU_LISTS];
 #ifndef CONFIG_REFAULT_IO_VMSCAN

@@ -9,9 +9,7 @@
  */
 #include <linux/kobject.h>
 #include <linux/mm.h>
-#ifdef CONFIG_MEMCG_PROTECT_LRU
-#include <linux/slab.h>
-#endif
+
 #ifdef CONFIG_KASAN
 #include <linux/kasan.h>
 #endif
