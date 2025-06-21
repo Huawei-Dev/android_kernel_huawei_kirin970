@@ -760,14 +760,6 @@ struct blk_throtl_wb_stat {
 };
 #endif
 
-#ifdef CONFIG_HISI_SWAP_ZDATA
-struct reclaim_result {
-	unsigned nr_reclaimed;
-	unsigned nr_writedblock;
-	s64 elapsed_centisecs64;
-};
-#endif
-
 struct group_cpu_time {
 	u64 window_start;
 	u64 curr_runnable_sum;
@@ -1495,9 +1487,6 @@ struct task_struct {
 #ifdef CONFIG_THREAD_INFO_IN_TASK
 	/* A live task holds one reference: */
 	atomic_t			stack_refcount;
-#endif
-#ifdef CONFIG_HISI_SWAP_ZDATA
-	struct reclaim_result *proc_reclaimed_result;
 #endif
 #ifdef CONFIG_LIVEPATCH
 	int patch_state;

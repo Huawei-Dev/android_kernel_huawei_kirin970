@@ -250,11 +250,6 @@ struct scan_control {
 	 * on memory until last task zap it.
 	 */
 	struct vm_area_struct *target_vma;
-#ifdef CONFIG_HISI_SWAP_ZDATA
-	bool ishibernation_rec;
-	/* the number of blocks that was writebacked */
-	unsigned int nr_writedblock;
-#endif
 };
 
 struct reclaim_stat {
