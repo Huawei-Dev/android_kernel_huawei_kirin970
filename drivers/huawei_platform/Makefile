@@ -22,7 +22,6 @@ obj-y   += usb/
 obj-$(CONFIG_ANTENNA_BOARDID_GPIO_DETECT) += antenna_board_gpio_match/
 obj-$(CONFIG_HUAWEI_VIBRATOR) += vibrator/
 obj-$(CONFIG_MADAPT) += madapt/
-obj-$(CONFIG_HUAWEI_IO_TRACING) += iotrace/
 obj-y   += hw_led/
 obj-$(CONFIG_DP_AUX_SWITCH) += dp_aux_switch/
 obj-$(CONFIG_HW_DP_SOURCE) += dp_source/
