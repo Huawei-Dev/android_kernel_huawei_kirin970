@@ -35,5 +35,4 @@ obj-$(CONFIG_INTEGRITY)			+= integrity/
 obj-$(CONFIG_HUAWEI_CRYPTO_TEST_MDPP) 	+= mdpp_selfverify/
 obj-$(CONFIG_HW_KERNEL_STP) 		+= kernel_stp/
 obj-$(CONFIG_HUAWEI_SOP)		+= sop/
-include security/kernel_harden/Makefile
 
