@@ -86,11 +86,7 @@ struct fault_private {
 
 bool get_xom_enable(void)
 {
-#ifdef CONFIG_HKIP_XOM_CODE
-	return true;
-#else
 	return false;
-#endif
 }
 
 static uint rscan_trigger_by_stp(char *upload_rootproc, int upload_rootproc_len)

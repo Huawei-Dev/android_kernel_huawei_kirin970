@@ -32,9 +32,6 @@
 #include <linux/io.h>
 #include <linux/mm.h>
 #include <linux/vmalloc.h>
-#ifdef CONFIG_HKIP_PRMEM
-#include <linux/hisi/prmem.h>
-#endif
 #include <linux/hisi/hkip.h>
 
 #include <asm/barrier.h>
@@ -487,41 +484,6 @@ static void __init map_mem(pgd_t *pgd)
 #endif
 }
 
-#ifdef CONFIG_HKIP_PRMEM
-void mark_wr_data_wr(void)
-{
-	unsigned long section_size;
-
-	if (!prmem_active())
-		return;
-
-	section_size = (unsigned long)(uintptr_t)__end_data_wr -
-			(unsigned long)(uintptr_t)__start_data_wr;
-	update_mapping_prot(__pa_symbol(__start_data_wr),
-			    (unsigned long)(uintptr_t)__start_data_wr,
-			    section_size, PAGE_KERNEL_RO);
-	hkip_register_rowm((void *)__start_data_wr,
-			   ALIGN(section_size, PAGE_SIZE));
-}
-
-void mark_wr_after_init_data_wr(void)
-{
-	unsigned long section_size;
-
-	if (!prmem_active())
-		return;
-
-	section_size = (unsigned long)(uintptr_t)__end_data_wr_after_init-
-			(unsigned long)(uintptr_t)__start_data_wr_after_init;
-	if (unlikely(!section_size)) /* Skip empty segment */
-		return;
-	update_mapping_prot(__pa_symbol(__start_data_wr_after_init),
-			    (unsigned long)(uintptr_t)__start_data_wr_after_init,
-			    section_size, PAGE_KERNEL_RO);
-	hkip_register_rowm((void *)__start_data_wr_after_init,
-			   ALIGN(section_size, PAGE_SIZE));
-}
-#else /* CONFIG_HKIP_PRMEM */
 void mark_wr_data_wr(void)
 {
 }
@@ -529,7 +491,6 @@ void mark_wr_data_wr(void)
 void mark_wr_after_init_data_wr(void)
 {
 }
-#endif /* CONFIG_HKIP_PRMEM */
 
 void mark_rodata_ro(void)
 {
@@ -570,11 +531,6 @@ static void __init map_kernel_segment(pgd_t *pgd, void *va_start, void *va_end,
 {
 	phys_addr_t pa_start = __pa_symbol(va_start);
 	unsigned long size = va_end - va_start;
-
-#ifdef CONFIG_HKIP_PRMEM
-	if (unlikely(!size)) /* Mapping an empty segment will BUG() */
-		return;
-#endif
 
 	BUG_ON(!PAGE_ALIGNED(pa_start));
 	BUG_ON(!PAGE_ALIGNED(size));
@@ -639,10 +595,6 @@ static void __init map_kernel(pgd_t *pgd)
 {
 	static struct vm_struct vmlinux_text, vmlinux_rodata, vmlinux_inittext,
 				vmlinux_initdata, vmlinux_data, vmlinux_ro_after_init_data;
-#ifdef CONFIG_HKIP_PRMEM
-	static struct vm_struct vmlinux_wr_data, vmlinux_wr_after_init_data,
-				vmlinux_rw;
-#endif
 	/*
 	 * External debuggers may need to write directly to the text
 	 * mapping to install SW breakpoints. Allow this (only) when
@@ -664,14 +616,6 @@ static void __init map_kernel(pgd_t *pgd)
 			   &vmlinux_inittext, 0, VM_NO_GUARD);
 	map_kernel_segment(pgd, __initdata_begin, __initdata_end, PAGE_KERNEL,
 			   &vmlinux_initdata, 0, VM_NO_GUARD);
-#ifdef CONFIG_HKIP_PRMEM
-	map_kernel_segment(pgd, __start_data_wr, __end_data_wr, PAGE_KERNEL,
-			   &vmlinux_wr_data, NO_CONT_MAPPINGS, VM_NO_GUARD);
-	map_kernel_segment(pgd, __start_data_wr_after_init, __end_data_wr_after_init, PAGE_KERNEL,
-			   &vmlinux_wr_after_init_data, NO_CONT_MAPPINGS, VM_NO_GUARD);
-	map_kernel_segment(pgd, __start_data_rw, __end_data_rw, PAGE_KERNEL,
-			   &vmlinux_rw, NO_CONT_MAPPINGS, VM_NO_GUARD);
-#endif /* CONFIG_HKIP_PRMEM */
 	map_kernel_segment(pgd, _data, _end, PAGE_KERNEL, &vmlinux_data, 0, 0);
 
 	if (!pgd_val(*pgd_offset_raw(pgd, FIXADDR_START))) {

@@ -348,14 +348,7 @@ struct module {
 	unsigned int num_syms;
 
 #ifdef CONFIG_CFI_CLANG
-#ifdef CONFIG_HKIP_CFI_HARDEN
-	struct safe_cfi_area {
-		cfi_check_fn cfi_check;
-		struct module *owner;
-	} *safe_cfi_area;
-#else
 	cfi_check_fn cfi_check;
-#endif
 #endif
 
 	/* Kernel parameters. */

@@ -21,9 +21,6 @@
 #include <linux/sched/task.h>
 #include <linux/sched/task_stack.h>
 #include <linux/thread_info.h>
-#ifdef CONFIG_HKIP_PRMEM
-#include <linux/hisi/prmem.h>
-#endif
 #include <asm/sections.h>
 #include <chipset_common/security/saudit.h>
 

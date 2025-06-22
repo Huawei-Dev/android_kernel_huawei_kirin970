@@ -30,11 +30,7 @@
  * VMALLOC_END: extends to the available space below prmem.
  */
 #define VMALLOC_START		(MODULES_END)
-#ifdef CONFIG_HKIP_PRMEM
-#define VMALLOC_END		(PRMEM_START)
-#else
 #define VMALLOC_END		(PAGE_OFFSET - PUD_SIZE - VMEMMAP_SIZE - SZ_64K)
-#endif
 
 #define vmemmap			((struct page *)VMEMMAP_START - (memstart_addr >> PAGE_SHIFT))
 

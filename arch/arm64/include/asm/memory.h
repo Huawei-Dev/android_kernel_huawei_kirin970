@@ -80,17 +80,6 @@
 #define KERNEL_START      _text
 #define KERNEL_END        _end
 
-#ifdef CONFIG_HKIP_PRMEM
-/*
- * The address space reserved for PRMEM.
- * PRMEM_START: PRMEM_SIZE below PRMEM_END
- * PRMEM_END: extends to the available space below prmem, vmmemmap,
- *            PCI I/O space and fixed mappings
- */
-#define PRMEM_START		(PRMEM_END - PRMEM_SIZE)
-#define PRMEM_END		(PAGE_OFFSET - PUD_SIZE - VMEMMAP_SIZE - SZ_64K)
-#endif
-
 /*
  * Generic and tag-based KASAN require 1/8th and 1/16th of the kernel virtual
  * address space for the shadow region respectively. They can bloat the stack

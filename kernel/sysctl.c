@@ -66,9 +66,6 @@
 #include <linux/kexec.h>
 #include <linux/bpf.h>
 #include <linux/mount.h>
-#ifdef CONFIG_HKIP_PRMEM
-#include <linux/hisi/prmem.h>
-#endif
 
 #include <linux/uaccess.h>
 #include <asm/processor.h>
@@ -645,11 +642,7 @@ static struct ctl_table kern_table[] = {
 		.data		= reboot_command,
 		.maxlen		= 256,
 		.mode		= 0644,
-#ifdef CONFIG_HKIP_PROTECT_POWEROFF_CMD
-		.proc_handler	= proc_dowrstring,
-#else
 		.proc_handler	= proc_dostring,
-#endif
 	},
 	{
 		.procname	= "stop-a",
@@ -1115,11 +1108,7 @@ static struct ctl_table kern_table[] = {
 		.data		= &poweroff_cmd,
 		.maxlen		= POWEROFF_CMD_PATH_LEN,
 		.mode		= 0644,
-#ifdef CONFIG_HKIP_PROTECT_POWEROFF_CMD
-		.proc_handler	= proc_dowrstring,
-#else
 		.proc_handler	= proc_dostring,
-#endif
 	},
 #ifdef CONFIG_KEYS
 	{
@@ -2130,48 +2119,6 @@ int proc_dostring(struct ctl_table *table, int write,
 	return _proc_do_string((char *)(table->data), table->maxlen, write,
 			       (char __user *)buffer, lenp, ppos);
 }
-
-#ifdef CONFIG_HKIP_PROTECT_POWEROFF_CMD
-/**
- * proc_dowrstring - read a string sysctl
- * @table: the sysctl table
- * @write: %TRUE if this is a write to the sysctl file
- * @buffer: the user buffer
- * @lenp: the size of the user buffer
- * @ppos: file position
- *
- * Reads/writes a string from/to the user buffer. If the kernel
- * buffer provided is not large enough to hold the string, the
- * string is truncated. The copied string is %NULL-terminated.
- * If the string is being read by the user process, it is copied
- * and a newline '\n' is added. It is truncated if the buffer is
- * not large enough.
- *
- * Returns 0 on success.
- */
-int proc_dowrstring(struct ctl_table *table, int write,
-		    void __user *buffer, size_t *lenp, loff_t *ppos)
-{
-	char *buf;
-	int retval;
-
-	if (!write)
-		return _proc_do_string((char *)(table->data),
-				       table->maxlen, write,
-				       (char __user *)buffer, lenp, ppos);
-
-	proc_first_pos_non_zero_ignore(ppos, table);
-	buf = (char *)kmalloc(table->maxlen + 1, GFP_KERNEL);
-	if (!buf)
-		return -1;
-	retval = _proc_do_string(buf, table->maxlen, write,
-		       (char __user *)buffer, lenp, ppos);
-	wr_memcpy(table->data, buf, table->maxlen);
-	kfree(buf);
-	return retval;
-
-}
-#endif
 
 static size_t proc_skip_spaces(char **buf)
 {

@@ -65,7 +65,6 @@
 #include <linux/dynamic_debug.h>
 #include <linux/audit.h>
 #include <uapi/linux/module.h>
-#include <linux/hisi/cfi_harden.h>
 #include "module-internal.h"
 #ifdef CONFIG_MODULE_SIG
 #include <chipset_common/security/saudit.h>
@@ -4198,7 +4197,6 @@ int module_kallsyms_on_each_symbol(int (*fn)(void *, const char *,
 static void cfi_init(struct module *mod)
 {
 #ifdef CONFIG_CFI_CLANG
-	cfi_harden_module_init(mod, mod_find_symname(mod, CFI_CHECK_FN_NAME));
 	cfi_module_add(mod, module_addr_min, module_addr_max);
 #endif
 }
@@ -4206,7 +4204,6 @@ static void cfi_init(struct module *mod)
 static void cfi_cleanup(struct module *mod)
 {
 #ifdef CONFIG_CFI_CLANG
-	cfi_harden_module_cleanup(mod);
 	cfi_module_remove(mod, module_addr_min, module_addr_max);
 #endif
 }

@@ -10,10 +10,6 @@
 #include <linux/ratelimit.h>
 #include <linux/rcupdate.h>
 #include <linux/spinlock.h>
-#include <linux/hisi/cfi_harden.h>
-#ifdef CONFIG_HKIP_PRMEM
-#include <linux/hisi/prmem.h>
-#endif
 #include <asm/bug.h>
 #include <asm/cacheflush.h>
 #include <asm/memory.h>
@@ -67,11 +63,7 @@ struct cfi_shadow {
 };
 
 static DEFINE_SPINLOCK(shadow_update_lock);
-#ifdef CONFIG_HKIP_CFI_HARDEN
-static struct cfi_shadow __rcu *cfi_shadow __wr;
-#else
 static struct cfi_shadow __rcu *cfi_shadow __read_mostly;
-#endif
 
 static inline int ptr_to_shadow(const struct cfi_shadow *s, unsigned long ptr)
 {
@@ -211,11 +203,7 @@ static void update_shadow(struct module *mod, unsigned long min_addr,
 
 	fn(next, mod);
 	cfi_protect_shadow_pages(next);
-#ifdef CONFIG_HKIP_CFI_HARDEN
-	wr_rcu_assign_pointer(cfi_shadow, next);
-#else
 	rcu_assign_pointer(cfi_shadow, next);
-#endif
 
 	spin_unlock(&shadow_update_lock);
 	synchronize_rcu();

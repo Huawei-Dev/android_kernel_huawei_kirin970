@@ -88,7 +88,6 @@
 #include <linux/io.h>
 #include <linux/cache.h>
 #include <linux/rodata_test.h>
-#include <linux/hisi/cfi_harden.h>
 
 #include <asm/io.h>
 #include <asm/bugs.h>
@@ -500,14 +499,6 @@ void __init __weak thread_stack_cache_init(void)
 
 void __init __weak mem_encrypt_init(void) { }
 
-#ifdef CONFIG_HKIP_PRMEM
-void prmem_init(void);
-#else
-static void prmem_init(void)
-{
-}
-#endif
-
 /* Report memory auto-initialization states for this boot. */
 static void __init report_meminit(void)
 {
@@ -551,7 +542,6 @@ static void __init mm_init(void)
 	init_espfix_bsp();
 	/* Should be run after espfix64 is set up. */
 	pti_init();
-	prmem_init();
 }
 
 #ifdef CMDLINE_INFO_FILTER
@@ -1185,7 +1175,6 @@ static noinline void __init kernel_init_freeable(void)
 	page_ext_init();
 
 	/* Initialize cfi to enable prmem protection. */
-	cfi_harden_init();
 	do_basic_setup();
 
 	/* Open the /dev/console on the rootfs, this should never fail */

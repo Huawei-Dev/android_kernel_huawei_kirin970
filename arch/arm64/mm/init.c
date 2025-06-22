@@ -717,10 +717,6 @@ void __init mem_init(void)
 		MLK_ROUNDUP(_sdata, _edata));
 	pr_notice("       .bss : 0x%p" " - 0x%p" "   (%6ld KB)\n",
 		MLK_ROUNDUP(__bss_start, __bss_stop));
-#ifdef CONFIG_HKIP_PRMEM
-	pr_notice("    prmem   : 0x%16lx - 0x%16lx   (%6ld MB)\n",
-		MLM(PRMEM_START, PRMEM_END));
-#endif
 	pr_notice("    fixed   : 0x%16lx - 0x%16lx   (%6ld KB)\n",
 		MLK(FIXADDR_START, FIXADDR_TOP));
 	pr_notice("    PCI I/O : 0x%16lx - 0x%16lx   (%6ld MB)\n",

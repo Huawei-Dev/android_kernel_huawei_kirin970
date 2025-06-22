@@ -49,9 +49,6 @@ struct vmap_area {
 	struct list_head list;          /* address sorted list */
 	union {
 		struct llist_node purge_list;    /* "lazy purge" list */
-#ifdef CONFIG_HKIP_PRMEM
-		struct prmem_node *node;
-#endif
 	};
 	struct vm_struct *vm;
 	struct rcu_head rcu_head;

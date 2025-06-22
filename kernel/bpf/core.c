@@ -31,28 +31,7 @@
 #include <linux/rbtree_latch.h>
 #include <linux/kallsyms.h>
 #include <linux/rcupdate.h>
-#ifdef CONFIG_HKIP_PRMEM
-#include <linux/hisi/prmem.h>
-#endif
 #include <asm/unaligned.h>
-
-/*
- * BPF allocations are never modified inplace, so the memory can be
- * declared as ro. However, they get released, so the allcoations must be
- * reclaimable.
- * Either disabling the feature or setting the pool cap to 0 will prevent
- * any limitation in memory allocated.
- * This limit should not be kept disabled in production code.
- */
-#ifdef CONFIG_HKIP_PROTECT_BPF
-#if (CONFIG_HKIP_PROTECT_BPF_CAP > 0)
-#define bpf_cap round_up((CONFIG_HKIP_PROTECT_BPF_CAP * SZ_1M), PAGE_SIZE)
-#else
-#define bpf_cap PRMEM_NO_CAP
-#endif
-
-PRMEM_POOL(bpf_pool, ro_recl, sizeof(void *), PAGE_SIZE, bpf_cap);
-#endif
 
 /* Registers */
 #define BPF_R0	regs[BPF_REG_0]
@@ -97,27 +76,17 @@ void *bpf_internal_load_pointer_neg_helper(const struct sk_buff *skb, int k, uns
 
 struct bpf_prog *bpf_prog_alloc(unsigned int size, gfp_t gfp_extra_flags)
 {
-#ifndef CONFIG_HKIP_PROTECT_BPF
 	gfp_t gfp_flags = GFP_KERNEL | __GFP_ZERO | gfp_extra_flags;
-#endif
 	struct bpf_prog_aux *aux;
 	struct bpf_prog *fp;
 
 	size = round_up(size, PAGE_SIZE);
-#ifdef CONFIG_HKIP_PROTECT_BPF
-	fp = pmalloc(&bpf_pool, size, PRMEM_FREEABLE_NODE);
-#else
 	fp = __vmalloc(size, gfp_flags, PAGE_KERNEL);
-#endif
 	if (fp == NULL)
 		return NULL;
 	aux = kzalloc(sizeof(*aux), GFP_KERNEL | gfp_extra_flags);
 	if (aux == NULL) {
-#ifdef CONFIG_HKIP_PROTECT_BPF
-		pfree(fp);
-#else
 		vfree(fp);
-#endif
 		return NULL;
 	}
 
@@ -134,9 +103,7 @@ EXPORT_SYMBOL_GPL(bpf_prog_alloc);
 struct bpf_prog *bpf_prog_realloc(struct bpf_prog *fp_old, unsigned int size,
 				  gfp_t gfp_extra_flags)
 {
-#ifndef CONFIG_HKIP_PROTECT_BPF
 	gfp_t gfp_flags = GFP_KERNEL | __GFP_ZERO | gfp_extra_flags;
-#endif
 	struct bpf_prog *fp;
 	u32 pages, delta;
 	int ret;
@@ -153,11 +120,7 @@ struct bpf_prog *bpf_prog_realloc(struct bpf_prog *fp_old, unsigned int size,
 	if (ret)
 		return NULL;
 
-#ifdef CONFIG_HKIP_PROTECT_BPF
-	fp = pmalloc(&bpf_pool, size, PRMEM_FREEABLE_NODE);
-#else
 	fp = __vmalloc(size, gfp_flags, PAGE_KERNEL);
-#endif
 	if (fp == NULL) {
 		__bpf_prog_uncharge(fp_old->aux->user, delta);
 	} else {
@@ -178,11 +141,7 @@ struct bpf_prog *bpf_prog_realloc(struct bpf_prog *fp_old, unsigned int size,
 void __bpf_prog_free(struct bpf_prog *fp)
 {
 	kfree(fp->aux);
-#ifdef CONFIG_HKIP_PROTECT_BPF
-	pfree(fp);
-#else
 	vfree(fp);
-#endif
 }
 
 int bpf_prog_calc_tag(struct bpf_prog *fp)
@@ -596,11 +555,7 @@ bpf_jit_binary_alloc(unsigned int proglen, u8 **image_ptr,
 
 	if (bpf_jit_charge_modmem(pages))
 		return NULL;
-#ifdef CONFIG_HKIP_PROTECT_BPF
-	hdr = pmalloc(&bpf_pool, size, PRMEM_FREEABLE_NODE);
-#else
 	hdr = module_alloc(size);
-#endif
 	if (!hdr) {
 		bpf_jit_uncharge_modmem(pages);
 		return NULL;
@@ -625,11 +580,7 @@ void bpf_jit_binary_free(struct bpf_binary_header *hdr)
 {
 	u32 pages = hdr->pages;
 
-#ifdef CONFIG_HKIP_PROTECT_BPF
-	pfree(hdr);
-#else
 	module_memfree(hdr);
-#endif
 	bpf_jit_uncharge_modmem(pages);
 }
 
@@ -1620,7 +1571,6 @@ int bpf_prog_array_copy(struct bpf_prog_array __rcu *old_array,
 	return 0;
 }
 
-#ifndef CONFIG_HKIP_PROTECT_BPF
 static void bpf_prog_free_deferred(struct work_struct *work)
 {
 	struct bpf_prog_aux *aux;
@@ -1628,19 +1578,14 @@ static void bpf_prog_free_deferred(struct work_struct *work)
 	aux = container_of(work, struct bpf_prog_aux, work);
 	bpf_jit_free(aux->prog);
 }
-#endif
 
 /* Free internal BPF program */
 void bpf_prog_free(struct bpf_prog *fp)
 {
-#ifdef CONFIG_HKIP_PROTECT_BPF
-	__bpf_prog_free(fp);
-#else
 	struct bpf_prog_aux *aux = fp->aux;
 
 	INIT_WORK(&aux->work, bpf_prog_free_deferred);
 	schedule_work(&aux->work);
-#endif
 }
 EXPORT_SYMBOL_GPL(bpf_prog_free);
 

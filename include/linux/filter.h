@@ -18,9 +18,6 @@
 #include <linux/capability.h>
 #include <linux/cryptohash.h>
 #include <linux/set_memory.h>
-#ifdef CONFIG_HKIP_PRMEM
-#include <linux/hisi/prmem.h>
-#endif
 #include <net/sch_generic.h>
 
 #include <uapi/linux/filter.h>
@@ -676,19 +673,13 @@ bpf_ctx_narrow_access_ok(u32 off, u32 size, const u32 size_default)
 static inline void bpf_prog_lock_ro(struct bpf_prog *fp)
 {
 	fp->locked = 1;
-#ifdef CONFIG_HKIP_PROTECT_BPF
-	prmem_protect_addr(fp);
-#else
 	WARN_ON_ONCE(set_memory_ro((unsigned long)fp, fp->pages));
-#endif
 }
 
 static inline void bpf_prog_unlock_ro(struct bpf_prog *fp)
 {
 	if (fp->locked) {
-#ifndef CONFIG_HKIP_PROTECT_BPF
 		WARN_ON_ONCE(set_memory_rw((unsigned long)fp, fp->pages));
-#endif
 		/* In case set_memory_rw() fails, we want to be the first
 		 * to crash here instead of some random place later on.
 		 */
@@ -698,18 +689,12 @@ static inline void bpf_prog_unlock_ro(struct bpf_prog *fp)
 
 static inline void bpf_jit_binary_lock_ro(struct bpf_binary_header *hdr)
 {
-#ifdef CONFIG_HKIP_PROTECT_BPF
-	prmem_protect_addr(hdr);
-#else
 	WARN_ON_ONCE(set_memory_ro((unsigned long)hdr, hdr->pages));
-#endif
 }
 
 static inline void bpf_jit_binary_unlock_ro(struct bpf_binary_header *hdr)
 {
-#ifndef CONFIG_HKIP_PROTECT_BPF
 	WARN_ON_ONCE(set_memory_rw((unsigned long)hdr, hdr->pages));
-#endif
 }
 #else
 static inline void bpf_prog_lock_ro(struct bpf_prog *fp)

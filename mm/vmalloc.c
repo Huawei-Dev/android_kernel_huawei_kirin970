@@ -132,13 +132,6 @@ static void vunmap_page_range(unsigned long addr, unsigned long end)
 	} while (pgd++, addr = next, addr != end);
 }
 
-#ifdef CONFIG_HKIP_PRMEM
-void prmem_vunmap_page_range(unsigned long addr, unsigned long end)
-{
-	vunmap_page_range(addr, end);
-}
-#endif
-
 static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
 		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
 {
@@ -252,14 +245,6 @@ static int vmap_page_range(unsigned long start, unsigned long end,
 	flush_cache_vmap(start, end);
 	return ret;
 }
-
-#ifdef CONFIG_HKIP_PRMEM
-int prmem_vmap_page_range(unsigned long start, unsigned long end,
-			  pgprot_t prot, struct page **pages)
-{
-	return vmap_page_range(start, end, prot, pages);
-}
-#endif
 
 int is_vmalloc_or_module_addr(const void *x)
 {

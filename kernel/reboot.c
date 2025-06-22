@@ -399,11 +399,7 @@ void ctrl_alt_del(void)
 		kill_cad_pid(SIGINT, 1);
 }
 
-#ifdef CONFIG_HKIP_PROTECT_POWEROFF_CMD
-char poweroff_cmd[POWEROFF_CMD_PATH_LEN] __wr = "/sbin/poweroff";
-#else
 char poweroff_cmd[POWEROFF_CMD_PATH_LEN] = "/sbin/poweroff";
-#endif
 static const char reboot_cmd[] = "/sbin/reboot";
 
 static int run_cmd(const char *cmd)
