@@ -37,15 +37,6 @@ enum saudit_flags {
 	SAUDIT_REF     = (1 << 3),
 };
 
-#ifdef CONFIG_HUAWEI_PROC_CHECK_ROOT
-extern struct saudit_buffer *saudit_log_start(unsigned int idx);
-extern void saudit_log_end(struct saudit_buffer *sab);
-extern void saudit_log_stack(struct saudit_buffer *sab);
-extern __printf(2, 3)
-void saudit_log_format(struct saudit_buffer *sab, const char *fmt, ...);
-extern __printf(4, 5)
-void saudit_log(int idx, int status, unsigned int flags, const char *fmt, ...);
-#else
 static inline struct saudit_buffer *saudit_log_start(unsigned int flags)
 {
 	return NULL;
@@ -56,6 +47,5 @@ static inline void saudit_log_format(struct saudit_buffer *sab,
 	const char *fmt, ...) {}
 static inline void saudit_log(int idx, int status, unsigned int flags,
 	const char *fmt, ...) {}
-#endif // CONFIG_HUAWEI_PROC_CHECK_ROOT
 
 #endif // _SAUDIT_H_
