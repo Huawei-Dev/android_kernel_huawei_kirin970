@@ -616,11 +616,6 @@ asmlinkage __visible void __init start_kernel(void)
 	add_device_randomness(command_line, strlen(command_line));
 	boot_init_stack_canary();
 
-#ifdef CONFIG_HKIP_EARLY_RODATA_PROTECTION
-    /* setup_arch is the last function to alter the constdata content */
-	mark_constdata_ro();
-#endif
-
 	mm_init_cpumask(&init_mm);
 	setup_command_line(command_line);
 	setup_nr_cpu_ids();
@@ -1071,9 +1066,7 @@ static void mark_readonly(void)
 		 * insecure pages which are W+X.
 		 */
 		rcu_barrier_sched();
-#ifndef CONFIG_HKIP_EARLY_RODATA_PROTECTION
 		mark_constdata_ro();
-#endif
 		mark_rodata_ro();
 		rodata_test();
 	} else {
