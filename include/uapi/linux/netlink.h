@@ -85,19 +85,15 @@
 #define NETLINK_ST_LASER_DRIVER 38
 #endif
 
-#ifdef CONFIG_HUAWEI_EIMA_ACCESS_CONTROL
-#define NETLINK_EIMA 39
-#endif
-
-#define NETLINK_OLLIE 40
+#define NETLINK_OLLIE 39
 
 #ifdef CONFIG_HW_WAUDIO_MODULE
-#define NETLINK_WIFI_AUDIO_EVENT 41 /* Huawei wifi audio event */
+#define NETLINK_WIFI_AUDIO_EVENT 40 /* Huawei wifi audio event */
 #endif
 
-#define NETLINK_WIFI_EXT 42
+#define NETLINK_WIFI_EXT 41
 
-#define MAX_LINKS 43
+#define MAX_LINKS 42
 
 struct sockaddr_nl {
 	__kernel_sa_family_t	nl_family;	/* AF_NETLINK	*/
