@@ -50,10 +50,6 @@
 #include <asm/compiler.h>
 #include <asm/cacheflush.h>
 
-#ifdef CONFIG_TEE_AUDIT
-#include <chipset_common/security/hw_kernel_stp_interface.h>
-#endif
-
 #ifdef CONFIG_TEE_LOG_EXCEPTION
 #include <huawei_platform/log/imonitor.h>
 #define IMONITOR_TA_CRASH_EVENT_ID           901002003
@@ -850,45 +846,6 @@ static int siq_thread_fn(void *arg)
 	}
 }
 
-#ifdef CONFIG_TEE_AUDIT
-#define MAX_UPLOAD_INFO_LEN      4
-#define INFO_HIGH_OFFSET         24U
-#define INFO_MID_OFFSET          16U
-#define INFO_LOW_OFFSET          8U
-
-static void upload_audit_event(unsigned int eventindex)
-{
-#ifdef CONFIG_HW_KERNEL_STP
-	struct stp_item item;
-	int ret;
-	char att_info[MAX_UPLOAD_INFO_LEN + 1] = {0};
-
-	att_info[0] = (unsigned char)(eventindex >> INFO_HIGH_OFFSET);
-	att_info[1] = (unsigned char)(eventindex >> INFO_MID_OFFSET);
-	att_info[2] = (unsigned char)(eventindex >> INFO_LOW_OFFSET);
-	att_info[3] = (unsigned char)eventindex;
-	att_info[MAX_UPLOAD_INFO_LEN] = '\0';
-	item.id = item_info[ITRUSTEE].id; /* 0x00000185 */
-	item.status = STP_RISK;
-	item.credible = STP_REFERENCE;
-	item.version = 0;
-	ret = strcpy_s(item.name, STP_ITEM_NAME_LEN, STP_NAME_ITRUSTEE);
-	if (ret) {
-		tloge("strncpy failed %x\n", ret);
-		return;
-	}
-	tlogd("stp get size %lx succ\n", sizeof(item_info[ITRUSTEE].name));
-	ret = kernel_stp_upload(item, att_info);
-	if (ret)
-		tloge("stp %x event upload failed\n", eventindex);
-	else
-		tloge("stp %x event upload succ\n", eventindex);
-#else
-	(void)eventindex;
-#endif
-}
-#endif
-
 static void cmd_result_check(struct tc_ns_smc_cmd *cmd)
 {
 	if (cmd->ret_val == TEEC_SUCCESS && verify_chksum(cmd)) {
@@ -909,11 +866,6 @@ static void cmd_result_check(struct tc_ns_smc_cmd *cmd)
 	} else if (cmd->ret_val == TEE_ERROR_AUDIT_FAIL) {
 		tloge("error smc call: ret = %x and err-origin=%x\n",
 			cmd->ret_val, cmd->err_origin);
-#ifdef CONFIG_TEE_AUDIT
-		tloge("error smc call: status = %x and err-origin=%x\n",
-			cmd->eventindex, cmd->err_origin);
-		upload_audit_event(cmd->eventindex);
-#endif
 	}
 }
 

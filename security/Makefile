@@ -32,6 +32,5 @@ subdir-$(CONFIG_INTEGRITY)		+= integrity
 obj-$(CONFIG_INTEGRITY)			+= integrity/
 
 # HW Object
-obj-$(CONFIG_HW_KERNEL_STP) 		+= kernel_stp/
 obj-$(CONFIG_HUAWEI_SOP)		+= sop/
 
