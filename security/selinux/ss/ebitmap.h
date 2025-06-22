@@ -17,11 +17,7 @@
 
 #include <net/netlabel.h>
 
-#ifdef CONFIG_HKIP_SELINUX_PROT
-#define HISI_SELINUX_EBITMAP_RO true
-#else
 #define HISI_SELINUX_EBITMAP_RO false
-#endif
 
 #ifdef CONFIG_64BIT
 #define	EBITMAP_NODE_SIZE	64
@@ -46,9 +42,6 @@ struct ebitmap_node {
 struct ebitmap {
 	struct ebitmap_node *node;	/* first node in the bitmap */
 	u32 highbit;	/* highest position in the total bitmap */
-#ifdef CONFIG_HKIP_SELINUX_PROT
-	bool protectable;
-#endif
 };
 
 #define ebitmap_length(e) ((e)->highbit)
@@ -66,19 +59,11 @@ static inline unsigned int ebitmap_start_positive(struct ebitmap *e,
 	return ebitmap_length(e);
 }
 
-#ifdef CONFIG_HKIP_SELINUX_PROT
-static inline void ebitmap_init(struct ebitmap *e, const bool protectable)
-{
-	memset(e, 0, sizeof(*e));
-	e->protectable = protectable;
-}
-#else
 static inline void ebitmap_init(struct ebitmap *e, const bool protectable)
 {
 	(void)protectable;
 	memset(e, 0, sizeof(*e));
 }
-#endif
 
 static inline unsigned int ebitmap_next_positive(struct ebitmap *e,
 						 struct ebitmap_node **n,

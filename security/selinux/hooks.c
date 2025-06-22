@@ -114,7 +114,7 @@ static int __init enforcing_setup(char *str)
 __setup("enforcing=", enforcing_setup);
 #endif
 
-#if defined(CONFIG_HKIP_SELINUX_PROT) && !defined(CONFIG_SECURITY_SELINUX_DISABLE)
+#if !defined(CONFIG_SECURITY_SELINUX_DISABLE)
 #define __selinux_enabled_prot  __ro_after_init
 #else
 #define __selinux_enabled_prot
@@ -6715,10 +6715,6 @@ static __init int selinux_init(void)
 	}
 
 	printk(KERN_INFO "SELinux:  Initializing.\n");
-
-#ifdef CONFIG_HKIP_SELINUX_PROT
-	wr_assign(ss_initialized, 0);
-#endif
 
 	/* Set the security state for the initial task. */
 	cred_init_security();
