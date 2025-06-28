@@ -17,8 +17,6 @@
 
 #include <net/netlabel.h>
 
-#define HISI_SELINUX_EBITMAP_RO false
-
 #ifdef CONFIG_64BIT
 #define	EBITMAP_NODE_SIZE	64
 #else
@@ -59,9 +57,8 @@ static inline unsigned int ebitmap_start_positive(struct ebitmap *e,
 	return ebitmap_length(e);
 }
 
-static inline void ebitmap_init(struct ebitmap *e, const bool protectable)
+static inline void ebitmap_init(struct ebitmap *e)
 {
-	(void)protectable;
 	memset(e, 0, sizeof(*e));
 }
 
@@ -126,12 +123,12 @@ static inline void ebitmap_node_clr_bit(struct ebitmap_node *n,
 	     bit = ebitmap_next_positive(e, &n, bit))	\
 
 int ebitmap_cmp(struct ebitmap *e1, struct ebitmap *e2);
-int ebitmap_cpy(struct ebitmap *dst, struct ebitmap *src, const bool protectable);
+int ebitmap_cpy(struct ebitmap *dst, struct ebitmap *src);
 int ebitmap_contains(struct ebitmap *e1, struct ebitmap *e2, u32 last_e2bit);
 int ebitmap_get_bit(struct ebitmap *e, unsigned long bit);
 int ebitmap_set_bit(struct ebitmap *e, unsigned long bit, int value);
 void ebitmap_destroy(struct ebitmap *e);
-int ebitmap_read(struct ebitmap *e, void *fp, const bool protectable);
+int ebitmap_read(struct ebitmap *e, void *fp);
 int ebitmap_write(struct ebitmap *e, void *fp);
 
 void ebitmap_cache_init(void);

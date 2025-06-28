@@ -316,9 +316,9 @@ static int policydb_init(struct policydb *p)
 		goto out;
 	}
 
-	ebitmap_init(&p->filename_trans_ttypes, false);
-	ebitmap_init(&p->policycaps, false);
-	ebitmap_init(&p->permissive_map, false);
+	ebitmap_init(&p->filename_trans_ttypes);
+	ebitmap_init(&p->policycaps);
+	ebitmap_init(&p->permissive_map);
 
 	return 0;
 out:
@@ -1025,19 +1025,19 @@ static int mls_read_range_helper(struct mls_range *r, void *fp)
 	else
 		r->level[1].sens = r->level[0].sens;
 
-	rc = ebitmap_read(&r->level[0].cat, fp, false);
+	rc = ebitmap_read(&r->level[0].cat, fp);
 	if (rc) {
 		printk(KERN_ERR "SELinux: mls:  error reading low categories\n");
 		goto out;
 	}
 	if (items > 1) {
-		rc = ebitmap_read(&r->level[1].cat, fp, false);
+		rc = ebitmap_read(&r->level[1].cat, fp);
 		if (rc) {
 			printk(KERN_ERR "SELinux: mls:  error reading high categories\n");
 			goto bad_high;
 		}
 	} else {
-		rc = ebitmap_cpy(&r->level[1].cat, &r->level[0].cat, false);
+		rc = ebitmap_cpy(&r->level[1].cat, &r->level[0].cat);
 		if (rc) {
 			printk(KERN_ERR "SELinux: mls:  out of memory\n");
 			goto bad_high;
@@ -1197,8 +1197,8 @@ bad:
 
 static void type_set_init(struct type_set *t)
 {
-	ebitmap_init(&t->types, false);
-	ebitmap_init(&t->negset, false);
+	ebitmap_init(&t->types);
+	ebitmap_init(&t->negset);
 }
 
 static int type_set_read(struct type_set *t, void *fp)
@@ -1206,9 +1206,9 @@ static int type_set_read(struct type_set *t, void *fp)
 	__le32 buf[1];
 	int rc;
 
-	if (ebitmap_read(&t->types, fp, false))
+	if (ebitmap_read(&t->types, fp))
 		return -EINVAL;
-	if (ebitmap_read(&t->negset, fp, false))
+	if (ebitmap_read(&t->negset, fp))
 		return -EINVAL;
 
 	rc = next_entry(buf, fp, sizeof(u32));
@@ -1287,7 +1287,7 @@ static int read_cons_helper(struct policydb *p,
 				if (depth == (CEXPR_MAXDEPTH - 1))
 					return -EINVAL;
 				depth++;
-				rc = ebitmap_read(&e->names, fp, false);
+				rc = ebitmap_read(&e->names, fp);
 				if (rc)
 					return rc;
 				if (p->policyvers >=
@@ -1437,11 +1437,11 @@ static int role_read(struct policydb *p, struct hashtab *h, void *fp)
 	if (rc)
 		goto bad;
 
-	rc = ebitmap_read(&role->dominates, fp, false);
+	rc = ebitmap_read(&role->dominates, fp);
 	if (rc)
 		goto bad;
 
-	rc = ebitmap_read(&role->types, fp, false);
+	rc = ebitmap_read(&role->types, fp);
 	if (rc)
 		goto bad;
 
@@ -1531,7 +1531,7 @@ static int mls_read_level(struct mls_level *lp, void *fp)
 	}
 	lp->sens = le32_to_cpu(buf[0]);
 
-	rc = ebitmap_read(&lp->cat, fp, false);
+	rc = ebitmap_read(&lp->cat, fp);
 	if (rc) {
 		printk(KERN_ERR "SELinux: mls:  error reading level categories\n");
 		return rc;
@@ -1567,7 +1567,7 @@ static int user_read(struct policydb *p, struct hashtab *h, void *fp)
 	if (rc)
 		goto bad;
 
-	rc = ebitmap_read(&usrdatum->roles, fp, false);
+	rc = ebitmap_read(&usrdatum->roles, fp);
 	if (rc)
 		goto bad;
 
@@ -2371,13 +2371,13 @@ int policydb_read(struct policydb *p, void *fp)
 	p->allow_unknown = !!(le32_to_cpu(buf[1]) & ALLOW_UNKNOWN);
 
 	if (p->policyvers >= POLICYDB_VERSION_POLCAP) {
-		rc = ebitmap_read(&p->policycaps, fp, false);
+		rc = ebitmap_read(&p->policycaps, fp);
 		if (rc)
 			goto bad;
 	}
 
 	if (p->policyvers >= POLICYDB_VERSION_PERMISSIVE) {
-		rc = ebitmap_read(&p->permissive_map, fp, false);
+		rc = ebitmap_read(&p->permissive_map, fp);
 		if (rc)
 			goto bad;
 	}
@@ -2539,9 +2539,9 @@ int policydb_read(struct policydb *p, void *fp)
 		struct ebitmap *e = flex_array_get(p->type_attr_map_array, i);
 
 		BUG_ON(!e);
-		ebitmap_init(e, false);
+		ebitmap_init(e);
 		if (p->policyvers >= POLICYDB_VERSION_AVTAB) {
-			rc = ebitmap_read(e, fp, false);
+			rc = ebitmap_read(e, fp);
 			if (rc)
 				goto bad;
 		}

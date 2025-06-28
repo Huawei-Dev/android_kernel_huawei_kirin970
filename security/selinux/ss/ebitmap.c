@@ -49,11 +49,11 @@ int ebitmap_cmp(struct ebitmap *e1, struct ebitmap *e2)
 	return 1;
 }
 
-int ebitmap_cpy(struct ebitmap *dst, struct ebitmap *src, const bool protectable)
+int ebitmap_cpy(struct ebitmap *dst, struct ebitmap *src)
 {
 	struct ebitmap_node *n, *new, *prev;
 
-	ebitmap_init(dst, protectable);
+	ebitmap_init(dst);
 	n = src->node;
 	prev = NULL;
 	while (n) {
@@ -344,7 +344,7 @@ void ebitmap_destroy(struct ebitmap *e)
 	return;
 }
 
-int ebitmap_read(struct ebitmap *e, void *fp, bool protectable)
+int ebitmap_read(struct ebitmap *e, void *fp)
 {
 	struct ebitmap_node *n = NULL;
 	u32 mapunit, count, startbit, index;
@@ -352,7 +352,7 @@ int ebitmap_read(struct ebitmap *e, void *fp, bool protectable)
 	__le32 buf[3];
 	int rc, i;
 
-	ebitmap_init(e, protectable);
+	ebitmap_init(e);
 
 	rc = next_entry(buf, fp, sizeof buf);
 	if (rc < 0)
