@@ -1793,8 +1793,6 @@ static __latent_entropy struct task_struct *copy_process(
 			return ERR_PTR(-EINVAL);
 	}
 
-	validate_task_creds(current);
-
 	if (clone_flags & CLONE_PIDFD) {
 		int reserved;
 

@@ -347,7 +347,6 @@ int copy_creds(struct task_struct *p, unsigned long clone_flags)
 		atomic_inc(&p->cred->user->processes);
 		return 0;
 	}
-	validate_task_creds(current);
 	new = prepare_creds();
 	if (!new)
 		return -ENOMEM;
@@ -437,7 +436,6 @@ int commit_creds(struct cred *new)
 	       atomic_read(usage),
 	       read_cred_subscribers(new));
 
-	validate_task_creds(current);
 	BUG_ON(task->cred != old);
 #ifdef CONFIG_DEBUG_CREDENTIALS
 	BUG_ON(read_cred_subscribers(old) < 2);
@@ -588,12 +586,10 @@ void revert_creds(const struct cred *old)
 	       atomic_read(&old->usage),
 	       read_cred_subscribers(old));
 
-	validate_task_creds(current);
 	validate_creds(old);
 	validate_creds(override);
 	alter_cred_subscribers(old, 1);
 	rcu_assign_pointer(current->cred, old);
-	validate_task_creds(current);
 	alter_cred_subscribers(override, -1);
 	put_cred(override);
 }
@@ -812,7 +808,6 @@ EXPORT_SYMBOL(__invalid_creds);
 void __validate_process_creds(struct task_struct *tsk,
 			      const char *file, unsigned line)
 {
-	validate_task_creds(current);
 	if (tsk->cred == tsk->real_cred) {
 		if (unlikely(read_cred_subscribers(tsk->cred) < 2 ||
 			     creds_are_invalid(tsk->cred)))
@@ -849,7 +844,6 @@ void validate_creds_for_do_exit(struct task_struct *tsk)
 	       atomic_read(&tsk->cred->usage),
 	       read_cred_subscribers(tsk->cred));
 
-	validate_task_creds(current);
 	__validate_process_creds(tsk, __FILE__, __LINE__);
 }
 
