@@ -1846,8 +1846,7 @@ static int check_call(struct bpf_verifier_env *env, int func_id, int insn_idx)
 	int i, err;
 
 	/* find function prototype */
-	if (func_id < 0 || ((func_id >= __BPF_FUNC_MAX_ID) &&
-		!((func_id > __BPF_HW_FUNC_MIN_ID) && (func_id < __BPF_HW_FUNC_MAX_ID)))) {
+	if (func_id < 0 || func_id >= __BPF_FUNC_MAX_ID) {
 		verbose("invalid func %s#%d\n", func_id_name(func_id), func_id);
 		return -EINVAL;
 	}

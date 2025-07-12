@@ -689,7 +689,6 @@ union bpf_attr {
 enum bpf_func_id {
 	__BPF_FUNC_MAPPER(__BPF_ENUM_FN)
 	__BPF_FUNC_MAX_ID,
-	__BPF_HW_FUNC_MIN_ID = 10000,
 
 	/**
 	* u32 bpf_get_socket_pid(skb)
@@ -711,8 +710,6 @@ enum bpf_func_id {
 	*     inside sk_buff is NULL
 	*/
 	BPF_FUNC_get_socket_process,
-
-	__BPF_HW_FUNC_MAX_ID,
 };
 #undef __BPF_ENUM_FN
 
