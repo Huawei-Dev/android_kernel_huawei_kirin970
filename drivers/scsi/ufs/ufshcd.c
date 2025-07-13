@@ -9718,7 +9718,7 @@ void ufshcd_disable_run_stop_reg(struct ufs_hba *hba)
 #ifdef CONFIG_SCSI_UFS_INLINE_CRYPTO
 bool ufshcd_support_inline_encrypt(struct ufs_hba *hba)
 {
-	if (hba->capabilities & MASK_INLINE_ENCRYPTO_SUPPORT)
+	if (hba->capabilities & MASK_CRYPTO_SUPPORT)
 		return true;
 	else
 		return false;

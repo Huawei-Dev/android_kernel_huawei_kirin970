@@ -642,7 +642,7 @@ void hufs_uie_utrd_prepare(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 	if ((lrbp->cmd->cmnd[0] == READ_10) ||
 	    (lrbp->cmd->cmnd[0] == WRITE_10) || (lrbp->cmd->cmnd[0] == READ_16))
 		dword[12] =
-			UTP_REQ_DESC_CRYPTO_ENABLE; /* dword[12] used for DESC */
+			UTP_REQ_DESC_CRYPTO_ENABLE_CMD; /* dword[12] used for DESC */
 	else
 		return;
 
@@ -1009,7 +1009,7 @@ static ssize_t hufs_inline_stat_show(
 
 #ifdef CONFIG_SCSI_UFS_INLINE_CRYPTO
 	if (ufshcd_readl(hba, REG_CONTROLLER_CAPABILITIES) &
-		MASK_INLINE_ENCRYPTO_SUPPORT)
+		MASK_CRYPTO_SUPPORT)
 		ret_show = 1; /* inline crypto v1 */
 #endif
 
